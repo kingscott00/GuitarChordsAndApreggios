@@ -331,11 +331,15 @@ const App = {
         card.className = 'chord-card';
         card.dataset.chordId = chord.id;
 
+        // Get all voicings for this chord
+        const voicings = getVoicingsForChord(chord);
+
         // Header
         const header = document.createElement('div');
         header.className = 'chord-card-header';
 
         const nameContainer = document.createElement('div');
+        nameContainer.className = 'chord-name-container';
 
         const name = document.createElement('span');
         name.className = 'chord-name';
@@ -351,22 +355,59 @@ const App = {
             nameContainer.appendChild(romanNumeral);
         }
 
+        const headerRight = document.createElement('div');
+        headerRight.className = 'chord-header-right';
+
         const symbol = document.createElement('span');
         symbol.className = 'chord-symbol';
         symbol.textContent = chord.symbol;
-
-        header.appendChild(nameContainer);
-        header.appendChild(symbol);
 
         // Difficulty badge
         const difficultyBadge = document.createElement('span');
         difficultyBadge.className = `difficulty-badge ${this.getDifficultyClass(chord.difficulty)}`;
         difficultyBadge.textContent = this.getDifficultyLabel(chord.difficulty);
-        header.appendChild(difficultyBadge);
+
+        headerRight.appendChild(symbol);
+        headerRight.appendChild(difficultyBadge);
+
+        header.appendChild(nameContainer);
+        header.appendChild(headerRight);
 
         // Body
         const body = document.createElement('div');
         body.className = 'chord-card-body';
+
+        // Voicing selector (only show if multiple voicings exist)
+        if (voicings.length > 1) {
+            const voicingSelector = document.createElement('div');
+            voicingSelector.className = 'voicing-selector';
+
+            const voicingLabel = document.createElement('label');
+            voicingLabel.textContent = 'Voicing:';
+            voicingLabel.setAttribute('for', `voicing-${chord.id}`);
+
+            const voicingSelect = document.createElement('select');
+            voicingSelect.id = `voicing-${chord.id}`;
+            voicingSelect.className = 'voicing-select';
+
+            voicings.forEach(v => {
+                const option = document.createElement('option');
+                option.value = v.id;
+                option.textContent = getVoicingLabel(v);
+                if (v.id === chord.id) {
+                    option.selected = true;
+                }
+                voicingSelect.appendChild(option);
+            });
+
+            voicingSelect.addEventListener('change', (e) => {
+                this.handleVoicingChange(e.target.value, card);
+            });
+
+            voicingSelector.appendChild(voicingLabel);
+            voicingSelector.appendChild(voicingSelect);
+            body.appendChild(voicingSelector);
+        }
 
         // Chord diagram container
         const diagramContainer = document.createElement('div');
@@ -399,7 +440,10 @@ const App = {
             <span>Play</span>
         `;
         playBtn.title = 'Play chord';
-        playBtn.addEventListener('click', (e) => this.playChord(chord, e.currentTarget));
+        playBtn.addEventListener('click', (e) => {
+            const currentChord = getChordById(card.dataset.chordId);
+            this.playChord(currentChord, e.currentTarget);
+        });
 
         const favBtn = document.createElement('button');
         favBtn.className = 'action-btn';
@@ -433,6 +477,38 @@ const App = {
         card.appendChild(actions);
 
         return card;
+    },
+
+    /**
+     * Handle voicing change from dropdown
+     */
+    handleVoicingChange(chordId, card) {
+        const newChord = getChordById(chordId);
+        if (!newChord) return;
+
+        // Update card's chord ID
+        card.dataset.chordId = chordId;
+
+        // Update difficulty badge
+        const difficultyBadge = card.querySelector('.difficulty-badge');
+        difficultyBadge.className = `difficulty-badge ${this.getDifficultyClass(newChord.difficulty)}`;
+        difficultyBadge.textContent = this.getDifficultyLabel(newChord.difficulty);
+
+        // Update diagram
+        const diagramContainer = card.querySelector('.chord-diagram-container');
+        diagramContainer.innerHTML = '';
+        const newDiagram = ChordRenderer.render(newChord);
+        diagramContainer.appendChild(newDiagram);
+
+        // Update tablature
+        const oldTab = card.querySelector('.tab-container');
+        const newTab = TabRenderer.render(newChord);
+        oldTab.replaceWith(newTab);
+
+        // Update finger info
+        const oldFingerInfo = card.querySelector('.finger-info');
+        const newFingerInfo = TabRenderer.renderFingerInfo(newChord);
+        oldFingerInfo.replaceWith(newFingerInfo);
     },
 
     /**

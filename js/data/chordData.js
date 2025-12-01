@@ -648,6 +648,483 @@ const ChordLibrary = {
             isOpenChord: true,
             isBarreChord: false
         }
+    },
+
+    // Additional Voicings - C Major
+    c_major_barre_a: {
+        id: "c_major_barre_a",
+        name: "C Major",
+        symbol: "C",
+        altSymbols: ["Cmaj"],
+        root: "C",
+        quality: "major",
+        voicingType: "barre",
+        voicingDescription: "A-shape barre",
+        intervals: ["1", "3", "5"],
+        notes: ["C", "E", "G"],
+        frets: [-1, 3, 5, 5, 5, 3],
+        fingers: [0, 1, 2, 3, 4, 1],
+        barre: { fret: 3, fromString: 1, toString: 5 },
+        position: 3,
+        difficulty: 3,
+        categories: {
+            moods: ["happy", "peaceful", "energetic"],
+            styles: ["rock", "pop", "jazz"],
+            isOpenChord: false,
+            isBarreChord: true
+        }
+    },
+
+    c_major_barre_e: {
+        id: "c_major_barre_e",
+        name: "C Major",
+        symbol: "C",
+        altSymbols: ["Cmaj"],
+        root: "C",
+        quality: "major",
+        voicingType: "barre",
+        voicingDescription: "E-shape barre",
+        intervals: ["1", "3", "5"],
+        notes: ["C", "E", "G"],
+        frets: [8, 10, 10, 9, 8, 8],
+        fingers: [1, 3, 4, 2, 1, 1],
+        barre: { fret: 8, fromString: 0, toString: 5 },
+        position: 8,
+        difficulty: 3,
+        categories: {
+            moods: ["happy", "peaceful", "energetic"],
+            styles: ["rock", "pop"],
+            isOpenChord: false,
+            isBarreChord: true
+        }
+    },
+
+    // Additional Voicings - G Major
+    g_major_barre: {
+        id: "g_major_barre",
+        name: "G Major",
+        symbol: "G",
+        altSymbols: ["Gmaj"],
+        root: "G",
+        quality: "major",
+        voicingType: "barre",
+        voicingDescription: "E-shape barre",
+        intervals: ["1", "3", "5"],
+        notes: ["G", "B", "D"],
+        frets: [3, 5, 5, 4, 3, 3],
+        fingers: [1, 3, 4, 2, 1, 1],
+        barre: { fret: 3, fromString: 0, toString: 5 },
+        position: 3,
+        difficulty: 3,
+        categories: {
+            moods: ["happy", "energetic", "peaceful"],
+            styles: ["rock", "pop", "folk"],
+            isOpenChord: false,
+            isBarreChord: true
+        }
+    },
+
+    // Additional Voicings - D Major
+    d_major_barre: {
+        id: "d_major_barre",
+        name: "D Major",
+        symbol: "D",
+        altSymbols: ["Dmaj"],
+        root: "D",
+        quality: "major",
+        voicingType: "barre",
+        voicingDescription: "A-shape barre",
+        intervals: ["1", "3", "5"],
+        notes: ["D", "F#", "A"],
+        frets: [-1, 5, 7, 7, 7, 5],
+        fingers: [0, 1, 2, 3, 4, 1],
+        barre: { fret: 5, fromString: 1, toString: 5 },
+        position: 5,
+        difficulty: 3,
+        categories: {
+            moods: ["happy", "energetic", "romantic"],
+            styles: ["rock", "pop", "country"],
+            isOpenChord: false,
+            isBarreChord: true
+        }
+    },
+
+    // Additional Voicings - A Major
+    a_major_barre: {
+        id: "a_major_barre",
+        name: "A Major",
+        symbol: "A",
+        altSymbols: ["Amaj"],
+        root: "A",
+        quality: "major",
+        voicingType: "barre",
+        voicingDescription: "E-shape barre",
+        intervals: ["1", "3", "5"],
+        notes: ["A", "C#", "E"],
+        frets: [5, 7, 7, 6, 5, 5],
+        fingers: [1, 3, 4, 2, 1, 1],
+        barre: { fret: 5, fromString: 0, toString: 5 },
+        position: 5,
+        difficulty: 3,
+        categories: {
+            moods: ["happy", "energetic", "romantic"],
+            styles: ["rock", "pop", "country"],
+            isOpenChord: false,
+            isBarreChord: true
+        }
+    },
+
+    // Additional Voicings - E Major
+    e_major_barre_a: {
+        id: "e_major_barre_a",
+        name: "E Major",
+        symbol: "E",
+        altSymbols: ["Emaj"],
+        root: "E",
+        quality: "major",
+        voicingType: "barre",
+        voicingDescription: "A-shape barre at 7th fret",
+        intervals: ["1", "3", "5"],
+        notes: ["E", "G#", "B"],
+        frets: [-1, 7, 9, 9, 9, 7],
+        fingers: [0, 1, 2, 3, 4, 1],
+        barre: { fret: 7, fromString: 1, toString: 5 },
+        position: 7,
+        difficulty: 3,
+        categories: {
+            moods: ["happy", "energetic", "peaceful"],
+            styles: ["rock", "pop"],
+            isOpenChord: false,
+            isBarreChord: true
+        }
+    },
+
+    // Additional Voicings - A Minor
+    a_minor_barre: {
+        id: "a_minor_barre",
+        name: "A Minor",
+        symbol: "Am",
+        altSymbols: ["Amin"],
+        root: "A",
+        quality: "minor",
+        voicingType: "barre",
+        voicingDescription: "E-shape barre",
+        intervals: ["1", "b3", "5"],
+        notes: ["A", "C", "E"],
+        frets: [5, 7, 7, 5, 5, 5],
+        fingers: [1, 3, 4, 1, 1, 1],
+        barre: { fret: 5, fromString: 0, toString: 5 },
+        position: 5,
+        difficulty: 3,
+        categories: {
+            moods: ["sad", "mysterious", "peaceful"],
+            styles: ["rock", "pop", "folk"],
+            isOpenChord: false,
+            isBarreChord: true
+        }
+    },
+
+    // Additional Voicings - E Minor
+    e_minor_barre: {
+        id: "e_minor_barre",
+        name: "E Minor",
+        symbol: "Em",
+        altSymbols: ["Emin"],
+        root: "E",
+        quality: "minor",
+        voicingType: "barre",
+        voicingDescription: "Am-shape barre at 7th fret",
+        intervals: ["1", "b3", "5"],
+        notes: ["E", "G", "B"],
+        frets: [-1, 7, 9, 9, 8, 7],
+        fingers: [0, 1, 3, 4, 2, 1],
+        barre: { fret: 7, fromString: 1, toString: 5 },
+        position: 7,
+        difficulty: 3,
+        categories: {
+            moods: ["sad", "peaceful", "mysterious"],
+            styles: ["rock", "pop"],
+            isOpenChord: false,
+            isBarreChord: true
+        }
+    },
+
+    // Additional Voicings - D Minor
+    d_minor_barre: {
+        id: "d_minor_barre",
+        name: "D Minor",
+        symbol: "Dm",
+        altSymbols: ["Dmin"],
+        root: "D",
+        quality: "minor",
+        voicingType: "barre",
+        voicingDescription: "Am-shape barre at 5th fret",
+        intervals: ["1", "b3", "5"],
+        notes: ["D", "F", "A"],
+        frets: [-1, 5, 7, 7, 6, 5],
+        fingers: [0, 1, 3, 4, 2, 1],
+        barre: { fret: 5, fromString: 1, toString: 5 },
+        position: 5,
+        difficulty: 3,
+        categories: {
+            moods: ["sad", "mysterious", "tense"],
+            styles: ["rock", "classical", "pop"],
+            isOpenChord: false,
+            isBarreChord: true
+        }
+    },
+
+    // Jazz Voicings
+    cmaj7_jazz: {
+        id: "cmaj7_jazz",
+        name: "C Major 7",
+        symbol: "Cmaj7",
+        altSymbols: ["CΔ7", "CM7"],
+        root: "C",
+        quality: "major7",
+        voicingType: "jazz",
+        voicingDescription: "Drop 2 voicing",
+        intervals: ["1", "3", "5", "7"],
+        notes: ["C", "E", "G", "B"],
+        frets: [-1, 3, 5, 4, 5, -1],
+        fingers: [0, 1, 3, 2, 4, 0],
+        barre: null,
+        position: 3,
+        difficulty: 3,
+        categories: {
+            moods: ["dreamy", "romantic", "peaceful"],
+            styles: ["jazz", "bossa"],
+            isOpenChord: false,
+            isBarreChord: false
+        }
+    },
+
+    am7_barre: {
+        id: "am7_barre",
+        name: "A Minor 7",
+        symbol: "Am7",
+        altSymbols: ["Amin7", "A-7"],
+        root: "A",
+        quality: "minor7",
+        voicingType: "barre",
+        voicingDescription: "Em7-shape barre",
+        intervals: ["1", "b3", "5", "b7"],
+        notes: ["A", "C", "E", "G"],
+        frets: [5, 7, 5, 5, 5, 5],
+        fingers: [1, 3, 1, 1, 1, 1],
+        barre: { fret: 5, fromString: 0, toString: 5 },
+        position: 5,
+        difficulty: 3,
+        categories: {
+            moods: ["sad", "dreamy", "peaceful"],
+            styles: ["jazz", "pop", "bossa"],
+            isOpenChord: false,
+            isBarreChord: true
+        }
+    },
+
+    dm7_barre: {
+        id: "dm7_barre",
+        name: "D Minor 7",
+        symbol: "Dm7",
+        altSymbols: ["Dmin7", "D-7"],
+        root: "D",
+        quality: "minor7",
+        voicingType: "barre",
+        voicingDescription: "Am7-shape barre",
+        intervals: ["1", "b3", "5", "b7"],
+        notes: ["D", "F", "A", "C"],
+        frets: [-1, 5, 7, 5, 6, 5],
+        fingers: [0, 1, 3, 1, 2, 1],
+        barre: { fret: 5, fromString: 1, toString: 5 },
+        position: 5,
+        difficulty: 3,
+        categories: {
+            moods: ["sad", "dreamy", "mysterious"],
+            styles: ["jazz", "pop", "bossa"],
+            isOpenChord: false,
+            isBarreChord: true
+        }
+    },
+
+    // Add 9 chords
+    cadd9_open: {
+        id: "cadd9_open",
+        name: "C Add 9",
+        symbol: "Cadd9",
+        altSymbols: ["C2"],
+        root: "C",
+        quality: "add9",
+        intervals: ["1", "3", "5", "9"],
+        notes: ["C", "E", "G", "D"],
+        frets: [-1, 3, 2, 0, 3, 0],
+        fingers: [0, 2, 1, 0, 3, 0],
+        barre: null,
+        position: 1,
+        difficulty: 2,
+        categories: {
+            moods: ["dreamy", "happy", "peaceful"],
+            styles: ["pop", "rock", "folk"],
+            isOpenChord: true,
+            isBarreChord: false
+        }
+    },
+
+    gadd9_open: {
+        id: "gadd9_open",
+        name: "G Add 9",
+        symbol: "Gadd9",
+        altSymbols: ["G2"],
+        root: "G",
+        quality: "add9",
+        intervals: ["1", "3", "5", "9"],
+        notes: ["G", "B", "D", "A"],
+        frets: [3, 2, 0, 2, 0, 3],
+        fingers: [2, 1, 0, 3, 0, 4],
+        barre: null,
+        position: 1,
+        difficulty: 2,
+        categories: {
+            moods: ["dreamy", "happy", "peaceful"],
+            styles: ["pop", "rock", "folk"],
+            isOpenChord: true,
+            isBarreChord: false
+        }
+    },
+
+    // Power Chords
+    e5_power: {
+        id: "e5_power",
+        name: "E5 Power Chord",
+        symbol: "E5",
+        altSymbols: ["E(no3)"],
+        root: "E",
+        quality: "power",
+        intervals: ["1", "5"],
+        notes: ["E", "B"],
+        frets: [0, 2, 2, -1, -1, -1],
+        fingers: [0, 1, 2, 0, 0, 0],
+        barre: null,
+        position: 1,
+        difficulty: 1,
+        categories: {
+            moods: ["energetic", "tense"],
+            styles: ["rock", "punk", "metal"],
+            isOpenChord: true,
+            isBarreChord: false
+        }
+    },
+
+    a5_power: {
+        id: "a5_power",
+        name: "A5 Power Chord",
+        symbol: "A5",
+        altSymbols: ["A(no3)"],
+        root: "A",
+        quality: "power",
+        intervals: ["1", "5"],
+        notes: ["A", "E"],
+        frets: [-1, 0, 2, 2, -1, -1],
+        fingers: [0, 0, 1, 2, 0, 0],
+        barre: null,
+        position: 1,
+        difficulty: 1,
+        categories: {
+            moods: ["energetic", "tense"],
+            styles: ["rock", "punk", "metal"],
+            isOpenChord: true,
+            isBarreChord: false
+        }
+    },
+
+    g5_power: {
+        id: "g5_power",
+        name: "G5 Power Chord",
+        symbol: "G5",
+        altSymbols: ["G(no3)"],
+        root: "G",
+        quality: "power",
+        intervals: ["1", "5"],
+        notes: ["G", "D"],
+        frets: [3, 5, 5, -1, -1, -1],
+        fingers: [1, 3, 4, 0, 0, 0],
+        barre: null,
+        position: 3,
+        difficulty: 2,
+        categories: {
+            moods: ["energetic", "tense"],
+            styles: ["rock", "punk", "metal"],
+            isOpenChord: false,
+            isBarreChord: false
+        }
+    },
+
+    d5_power: {
+        id: "d5_power",
+        name: "D5 Power Chord",
+        symbol: "D5",
+        altSymbols: ["D(no3)"],
+        root: "D",
+        quality: "power",
+        intervals: ["1", "5"],
+        notes: ["D", "A"],
+        frets: [-1, 5, 7, 7, -1, -1],
+        fingers: [0, 1, 3, 4, 0, 0],
+        barre: null,
+        position: 5,
+        difficulty: 2,
+        categories: {
+            moods: ["energetic", "tense"],
+            styles: ["rock", "punk", "metal"],
+            isOpenChord: false,
+            isBarreChord: false
+        }
+    },
+
+    // Diminished Chords
+    bdim_open: {
+        id: "bdim_open",
+        name: "B Diminished",
+        symbol: "Bdim",
+        altSymbols: ["B°"],
+        root: "B",
+        quality: "diminished",
+        intervals: ["1", "b3", "b5"],
+        notes: ["B", "D", "F"],
+        frets: [-1, 2, 3, 4, 3, -1],
+        fingers: [0, 1, 2, 4, 3, 0],
+        barre: null,
+        position: 2,
+        difficulty: 3,
+        categories: {
+            moods: ["tense", "mysterious"],
+            styles: ["jazz", "classical"],
+            isOpenChord: false,
+            isBarreChord: false
+        }
+    },
+
+    // Augmented Chords
+    caug_open: {
+        id: "caug_open",
+        name: "C Augmented",
+        symbol: "Caug",
+        altSymbols: ["C+"],
+        root: "C",
+        quality: "augmented",
+        intervals: ["1", "3", "#5"],
+        notes: ["C", "E", "G#"],
+        frets: [-1, 3, 2, 1, 1, 0],
+        fingers: [0, 4, 3, 1, 2, 0],
+        barre: null,
+        position: 1,
+        difficulty: 2,
+        categories: {
+            moods: ["tense", "mysterious", "dreamy"],
+            styles: ["jazz", "classical"],
+            isOpenChord: true,
+            isBarreChord: false
+        }
     }
 };
 
@@ -690,6 +1167,63 @@ function getChordById(id) {
     return ChordLibrary[id] || null;
 }
 
+// Helper function to get all voicings for a chord (by name and symbol)
+function getVoicingsForChord(chord) {
+    const allChords = getAllChords();
+    return allChords.filter(c =>
+        c.name === chord.name &&
+        c.symbol === chord.symbol
+    );
+}
+
+// Helper function to group chords by their base name (for voicing display)
+function groupChordsByName() {
+    const groups = {};
+    const allChords = getAllChords();
+
+    allChords.forEach(chord => {
+        const key = `${chord.name}_${chord.symbol}`;
+        if (!groups[key]) {
+            groups[key] = {
+                name: chord.name,
+                symbol: chord.symbol,
+                root: chord.root,
+                quality: chord.quality,
+                voicings: []
+            };
+        }
+        groups[key].voicings.push(chord);
+    });
+
+    // Sort voicings by difficulty within each group
+    Object.values(groups).forEach(group => {
+        group.voicings.sort((a, b) => a.difficulty - b.difficulty);
+    });
+
+    return groups;
+}
+
+// Helper function to get a unique list of chords (one per name/symbol combination)
+// Returns the easiest voicing for each chord by default
+function getUniqueChords() {
+    const groups = groupChordsByName();
+    return Object.values(groups).map(group => group.voicings[0]);
+}
+
+// Helper function to get voicing description for display
+function getVoicingLabel(chord) {
+    if (chord.voicingType) {
+        return chord.voicingDescription || chord.voicingType;
+    }
+    if (chord.categories.isOpenChord) {
+        return 'Open position';
+    }
+    if (chord.categories.isBarreChord) {
+        return `Barre (fret ${chord.position})`;
+    }
+    return `Position ${chord.position}`;
+}
+
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -699,6 +1233,10 @@ if (typeof module !== 'undefined' && module.exports) {
         getChordsByMood,
         getChordsByStyle,
         getChordsByDifficulty,
-        getChordById
+        getChordById,
+        getVoicingsForChord,
+        groupChordsByName,
+        getUniqueChords,
+        getVoicingLabel
     };
 }

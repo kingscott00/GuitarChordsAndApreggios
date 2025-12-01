@@ -13,7 +13,8 @@ const App = {
         currentMode: 'ionian',
         voicingFilter: 'all',
         selectedChords: [],
-        displayedChords: []
+        displayedChords: [],
+        hasSearched: false
     },
 
     /**
@@ -21,6 +22,7 @@ const App = {
      */
     init() {
         this.bindEventListeners();
+        // Show all chords on initial load
         this.displayAllChords();
     },
 
@@ -80,8 +82,9 @@ const App = {
         document.getElementById('style-selector').classList.toggle('hidden', mode !== 'style');
         document.getElementById('theory-selector').classList.toggle('hidden', mode !== 'theory');
 
-        // Clear previous selections
+        // Clear previous selections and hide info banner
         this.clearSelections();
+        this.hideSelectionInfo();
     },
 
     /**
@@ -136,8 +139,10 @@ const App = {
             btn.classList.toggle('active', btn.dataset.voicing === voicing);
         });
 
-        // Re-filter displayed chords
-        this.filterAndDisplayChords();
+        // Re-filter displayed chords if we have already searched
+        if (this.state.hasSearched) {
+            this.applyFiltersAndDisplay();
+        }
     },
 
     /**
@@ -156,28 +161,52 @@ const App = {
      * Show chords based on current selection
      */
     showChords() {
-        let chords = getAllChords();
+        let chords = [];
+        let selectionInfo = null;
 
-        // Filter by mode
+        // Get chords based on selection mode
         switch (this.state.selectionMode) {
             case 'mood':
                 if (this.state.currentMood) {
-                    chords = getChordsByMood(this.state.currentMood);
+                    chords = SelectionEngine.getChordsByMood(this.state.currentMood);
+                    selectionInfo = SelectionEngine.getSelectionInfo('mood', this.state.currentMood);
+                } else {
+                    // No mood selected, show all
+                    chords = getAllChords();
                 }
                 break;
+
             case 'style':
                 if (this.state.currentStyle) {
-                    chords = getChordsByStyle(this.state.currentStyle);
+                    chords = SelectionEngine.getChordsByStyle(this.state.currentStyle);
+                    selectionInfo = SelectionEngine.getSelectionInfo('style', this.state.currentStyle);
+                } else {
+                    // No style selected, show all
+                    chords = getAllChords();
                 }
                 break;
+
             case 'theory':
-                // For Phase 1, just show all chords
-                // Theory filtering will be implemented in Phase 2
+                chords = SelectionEngine.getChordsByTheory(this.state.currentKey, this.state.currentMode);
+                selectionInfo = SelectionEngine.getSelectionInfo('theory', this.state.currentMode);
+                if (selectionInfo) {
+                    selectionInfo.name = `${this.state.currentKey} ${selectionInfo.name}`;
+                    selectionInfo.icon = '🎼';
+                }
                 break;
         }
 
         this.state.selectedChords = chords;
-        this.filterAndDisplayChords();
+        this.state.hasSearched = true;
+
+        // Show selection info banner
+        if (selectionInfo) {
+            this.showSelectionInfo(selectionInfo, chords.length);
+        } else {
+            this.hideSelectionInfo();
+        }
+
+        this.applyFiltersAndDisplay();
     },
 
     /**
@@ -185,26 +214,51 @@ const App = {
      */
     displayAllChords() {
         this.state.selectedChords = getAllChords();
-        this.filterAndDisplayChords();
+        this.state.hasSearched = false;
+        this.hideSelectionInfo();
+        this.applyFiltersAndDisplay();
     },
 
     /**
      * Apply voicing filter and display chords
      */
-    filterAndDisplayChords() {
-        let chords = this.state.selectedChords;
+    applyFiltersAndDisplay() {
+        let chords = [...this.state.selectedChords];
 
-        // Apply voicing filter
-        chords = getChordsByDifficulty(this.state.voicingFilter);
+        // Apply voicing/difficulty filter
+        chords = SelectionEngine.filterByDifficulty(chords, this.state.voicingFilter);
 
-        // If we have a mood/style selected, intersect with that selection
-        if (this.state.selectedChords.length > 0 && this.state.selectedChords !== getAllChords()) {
-            const selectedIds = new Set(this.state.selectedChords.map(c => c.id));
-            chords = chords.filter(c => selectedIds.has(c.id));
-        }
+        // Sort chords
+        chords = SelectionEngine.sortChords(chords, 'root');
 
         this.state.displayedChords = chords;
         this.renderChordGrid(chords);
+    },
+
+    /**
+     * Show selection info banner
+     */
+    showSelectionInfo(info, count) {
+        const banner = document.getElementById('selection-info');
+        const icon = document.getElementById('selection-icon');
+        const title = document.getElementById('selection-title');
+        const description = document.getElementById('selection-description');
+        const countEl = document.getElementById('chord-count');
+
+        icon.textContent = info.icon || '🎸';
+        title.textContent = info.name;
+        description.textContent = info.description || info.character || '';
+        countEl.textContent = `${count} chord${count !== 1 ? 's' : ''}`;
+
+        banner.classList.remove('hidden');
+    },
+
+    /**
+     * Hide selection info banner
+     */
+    hideSelectionInfo() {
+        const banner = document.getElementById('selection-info');
+        banner.classList.add('hidden');
     },
 
     /**
@@ -237,16 +291,34 @@ const App = {
         const header = document.createElement('div');
         header.className = 'chord-card-header';
 
+        const nameContainer = document.createElement('div');
+
         const name = document.createElement('span');
         name.className = 'chord-name';
         name.textContent = chord.name;
+
+        nameContainer.appendChild(name);
+
+        // Add roman numeral if in theory mode and chord has diatonic info
+        if (chord.diatonicInfo) {
+            const romanNumeral = document.createElement('span');
+            romanNumeral.className = 'theory-badge';
+            romanNumeral.innerHTML = `<span class="roman-numeral">${chord.diatonicInfo.romanNumeral}</span>`;
+            nameContainer.appendChild(romanNumeral);
+        }
 
         const symbol = document.createElement('span');
         symbol.className = 'chord-symbol';
         symbol.textContent = chord.symbol;
 
-        header.appendChild(name);
+        header.appendChild(nameContainer);
         header.appendChild(symbol);
+
+        // Difficulty badge
+        const difficultyBadge = document.createElement('span');
+        difficultyBadge.className = `difficulty-badge ${this.getDifficultyClass(chord.difficulty)}`;
+        difficultyBadge.textContent = this.getDifficultyLabel(chord.difficulty);
+        header.appendChild(difficultyBadge);
 
         // Body
         const body = document.createElement('div');
@@ -311,12 +383,6 @@ const App = {
         actions.appendChild(playBtn);
         actions.appendChild(favBtn);
         actions.appendChild(addBtn);
-
-        // Difficulty badge
-        const difficultyBadge = document.createElement('span');
-        difficultyBadge.className = `difficulty-badge ${this.getDifficultyClass(chord.difficulty)}`;
-        difficultyBadge.textContent = this.getDifficultyLabel(chord.difficulty);
-        header.appendChild(difficultyBadge);
 
         card.appendChild(header);
         card.appendChild(body);

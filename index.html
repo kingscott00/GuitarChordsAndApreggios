@@ -248,13 +248,201 @@
         </section>
 
         <!-- Practice Tools (Phase 7) -->
-        <section class="practice-tools hidden" id="practice-tools">
-            <h2>Practice Tools</h2>
-            <div class="metronome">
-                <label for="tempo-slider">Metronome:</label>
-                <input type="range" id="tempo-slider" min="40" max="220" value="80">
-                <span id="tempo-display">80 BPM</span>
-                <button class="btn" id="metronome-start">Start</button>
+        <section class="practice-tools" id="practice-tools">
+            <div class="practice-header">
+                <h2>Practice Tools</h2>
+                <div class="practice-stats" id="practice-stats">
+                    <span class="stat-item" id="stat-session-time">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span id="session-time-value">0:00</span>
+                    </span>
+                    <span class="stat-item" id="stat-chords-practiced">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                        <span id="chords-practiced-value">0 chords</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Metronome -->
+            <div class="practice-section metronome-section">
+                <h3>Metronome</h3>
+                <div class="metronome-display">
+                    <div class="tempo-display-large" id="tempo-display-large">80</div>
+                    <div class="tempo-label">BPM</div>
+                </div>
+                <div class="metronome-beats" id="metronome-beats">
+                    <span class="beat-indicator" data-beat="1"></span>
+                    <span class="beat-indicator" data-beat="2"></span>
+                    <span class="beat-indicator" data-beat="3"></span>
+                    <span class="beat-indicator" data-beat="4"></span>
+                </div>
+                <div class="metronome-controls">
+                    <button class="btn secondary tempo-btn" id="tempo-decrease">-5</button>
+                    <input type="range" id="metronome-tempo" min="40" max="220" value="80">
+                    <button class="btn secondary tempo-btn" id="tempo-increase">+5</button>
+                </div>
+                <div class="metronome-settings">
+                    <div class="setting-group">
+                        <label for="time-signature">Time Signature:</label>
+                        <select id="time-signature">
+                            <option value="4">4/4</option>
+                            <option value="3">3/4</option>
+                            <option value="6">6/8</option>
+                            <option value="2">2/4</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label for="accent-toggle">Accent First Beat:</label>
+                        <input type="checkbox" id="accent-toggle" checked>
+                    </div>
+                </div>
+                <div class="metronome-actions">
+                    <button class="btn play-btn metronome-start-btn" id="metronome-start">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        Start
+                    </button>
+                    <button class="btn secondary" id="tap-tempo">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 11V6a2 2 0 0 0-2-2h-5a2 2 0 0 0-2 2"></path>
+                            <path d="M14 10h4a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"></path>
+                            <path d="M10 14H6a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4"></path>
+                            <path d="M14 18v-4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v4"></path>
+                        </svg>
+                        Tap Tempo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chord Drill Mode -->
+            <div class="practice-section drill-section">
+                <h3>Chord Drill</h3>
+                <p class="section-description">Practice random chords with a timer to improve your muscle memory.</p>
+
+                <div class="drill-display hidden" id="drill-display">
+                    <div class="drill-current-chord" id="drill-current-chord">
+                        <span class="drill-chord-name">C</span>
+                        <span class="drill-chord-symbol">Major</span>
+                    </div>
+                    <div class="drill-countdown" id="drill-countdown">
+                        <svg class="countdown-ring" viewBox="0 0 100 100">
+                            <circle class="countdown-bg" cx="50" cy="50" r="45"></circle>
+                            <circle class="countdown-progress" cx="50" cy="50" r="45" id="countdown-progress"></circle>
+                        </svg>
+                        <span class="countdown-text" id="countdown-text">4</span>
+                    </div>
+                    <div class="drill-next-chord" id="drill-next-chord">
+                        <span class="next-label">Next:</span>
+                        <span class="next-chord-name">G</span>
+                    </div>
+                </div>
+
+                <div class="drill-settings" id="drill-settings">
+                    <div class="setting-group">
+                        <label for="drill-interval">Change every:</label>
+                        <select id="drill-interval">
+                            <option value="2">2 seconds</option>
+                            <option value="4" selected>4 seconds</option>
+                            <option value="6">6 seconds</option>
+                            <option value="8">8 seconds</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label for="drill-difficulty">Difficulty:</label>
+                        <select id="drill-difficulty">
+                            <option value="beginner">Beginner (open chords)</option>
+                            <option value="intermediate">Intermediate (+ barre)</option>
+                            <option value="advanced">Advanced (all chords)</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label for="drill-with-sound">Play Sound:</label>
+                        <input type="checkbox" id="drill-with-sound" checked>
+                    </div>
+                </div>
+
+                <div class="drill-actions">
+                    <button class="btn play-btn" id="drill-start">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        Start Drill
+                    </button>
+                    <button class="btn secondary hidden" id="drill-stop">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="6" y="6" width="12" height="12"></rect>
+                        </svg>
+                        Stop
+                    </button>
+                </div>
+
+                <div class="drill-results hidden" id="drill-results">
+                    <h4>Session Results</h4>
+                    <div class="results-grid">
+                        <div class="result-item">
+                            <span class="result-value" id="drill-total-chords">0</span>
+                            <span class="result-label">Chords Practiced</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-value" id="drill-duration">0:00</span>
+                            <span class="result-label">Duration</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progression Practice -->
+            <div class="practice-section progression-practice-section">
+                <h3>Progression Practice</h3>
+                <p class="section-description">Practice your saved progressions with the metronome.</p>
+
+                <div class="progression-practice-settings">
+                    <div class="setting-group">
+                        <label for="practice-progression-select">Select Progression:</label>
+                        <select id="practice-progression-select">
+                            <option value="">-- Select a saved progression --</option>
+                            <!-- Options populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label for="practice-loop">Loop:</label>
+                        <input type="checkbox" id="practice-loop" checked>
+                    </div>
+                </div>
+
+                <div class="progression-practice-display hidden" id="progression-practice-display">
+                    <div class="practice-chord-display" id="practice-chord-display">
+                        <span class="practice-chord-name">C</span>
+                        <span class="practice-chord-symbol">Major</span>
+                    </div>
+                    <div class="practice-progress">
+                        <div class="practice-progress-bar" id="practice-progress-bar"></div>
+                    </div>
+                    <div class="practice-beat-counter" id="practice-beat-counter">Beat 1 of 4</div>
+                </div>
+
+                <div class="progression-practice-actions">
+                    <button class="btn play-btn" id="practice-start" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        Start Practice
+                    </button>
+                    <button class="btn secondary hidden" id="practice-stop">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="6" y="6" width="12" height="12"></rect>
+                        </svg>
+                        Stop
+                    </button>
+                </div>
             </div>
         </section>
     </main>

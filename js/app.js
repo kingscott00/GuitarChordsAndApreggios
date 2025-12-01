@@ -23,7 +23,45 @@ const App = {
         progressionPlaybackTimer: null,
         beatsPerChord: 4,
         progressionTempo: 100,
-        savedProgressions: []
+        savedProgressions: [],
+        // Practice tools state
+        metronome: {
+            playing: false,
+            tempo: 80,
+            timeSignature: 4,
+            currentBeat: 0,
+            accentFirstBeat: true,
+            intervalId: null
+        },
+        drill: {
+            active: false,
+            interval: 4,
+            difficulty: 'beginner',
+            withSound: true,
+            currentChord: null,
+            nextChord: null,
+            totalChords: 0,
+            startTime: null,
+            intervalId: null,
+            countdownId: null
+        },
+        practice: {
+            active: false,
+            progressionId: null,
+            loop: true,
+            currentIndex: 0,
+            currentBeat: 0,
+            intervalId: null
+        },
+        session: {
+            startTime: null,
+            chordsPracticed: 0,
+            timerInterval: null
+        },
+        tapTempo: {
+            taps: [],
+            lastTap: 0
+        }
     },
 
     /**
@@ -33,6 +71,7 @@ const App = {
         this.bindEventListeners();
         this.initVolumeControl();
         this.initProgressionBuilder();
+        this.initPracticeTools();
         this.loadSavedProgressions();
         // Show all chords on initial load
         this.displayAllChords();
@@ -1298,6 +1337,7 @@ const App = {
         localStorage.setItem('savedProgressions', JSON.stringify(this.state.savedProgressions));
 
         this.renderSavedProgressions();
+        this.updatePracticeProgressionDropdown();
         return progression;
     },
 
@@ -1310,6 +1350,7 @@ const App = {
             if (saved) {
                 this.state.savedProgressions = JSON.parse(saved);
                 this.renderSavedProgressions();
+                this.updatePracticeProgressionDropdown();
             }
         } catch (error) {
             console.error('Failed to load saved progressions:', error);
@@ -1363,6 +1404,7 @@ const App = {
         this.state.savedProgressions = this.state.savedProgressions.filter(p => p.id !== progressionId);
         localStorage.setItem('savedProgressions', JSON.stringify(this.state.savedProgressions));
         this.renderSavedProgressions();
+        this.updatePracticeProgressionDropdown();
     },
 
     /**
@@ -1409,6 +1451,610 @@ const App = {
 
             list.appendChild(item);
         });
+    },
+
+    // ==========================================
+    // PRACTICE TOOLS METHODS
+    // ==========================================
+
+    /**
+     * Initialize practice tools
+     */
+    initPracticeTools() {
+        // Metronome controls
+        document.getElementById('metronome-start')?.addEventListener('click', () => this.toggleMetronome());
+        document.getElementById('metronome-tempo')?.addEventListener('input', (e) => this.setMetronomeTempo(parseInt(e.target.value)));
+        document.getElementById('tempo-decrease')?.addEventListener('click', () => this.adjustMetronomeTempo(-5));
+        document.getElementById('tempo-increase')?.addEventListener('click', () => this.adjustMetronomeTempo(5));
+        document.getElementById('time-signature')?.addEventListener('change', (e) => this.setTimeSignature(parseInt(e.target.value)));
+        document.getElementById('accent-toggle')?.addEventListener('change', (e) => {
+            this.state.metronome.accentFirstBeat = e.target.checked;
+        });
+        document.getElementById('tap-tempo')?.addEventListener('click', () => this.handleTapTempo());
+
+        // Drill controls
+        document.getElementById('drill-start')?.addEventListener('click', () => this.startDrill());
+        document.getElementById('drill-stop')?.addEventListener('click', () => this.stopDrill());
+        document.getElementById('drill-interval')?.addEventListener('change', (e) => {
+            this.state.drill.interval = parseInt(e.target.value);
+        });
+        document.getElementById('drill-difficulty')?.addEventListener('change', (e) => {
+            this.state.drill.difficulty = e.target.value;
+        });
+        document.getElementById('drill-with-sound')?.addEventListener('change', (e) => {
+            this.state.drill.withSound = e.target.checked;
+        });
+
+        // Progression practice controls
+        document.getElementById('practice-progression-select')?.addEventListener('change', (e) => {
+            this.state.practice.progressionId = e.target.value;
+            const startBtn = document.getElementById('practice-start');
+            if (startBtn) startBtn.disabled = !e.target.value;
+        });
+        document.getElementById('practice-loop')?.addEventListener('change', (e) => {
+            this.state.practice.loop = e.target.checked;
+        });
+        document.getElementById('practice-start')?.addEventListener('click', () => this.startProgressionPractice());
+        document.getElementById('practice-stop')?.addEventListener('click', () => this.stopProgressionPractice());
+
+        // Update beat indicators based on time signature
+        this.updateBeatIndicators();
+
+        // Populate progression practice dropdown
+        this.updatePracticeProgressionDropdown();
+    },
+
+    /**
+     * Update beat indicators based on time signature
+     */
+    updateBeatIndicators() {
+        const container = document.getElementById('metronome-beats');
+        if (!container) return;
+
+        container.innerHTML = '';
+        for (let i = 1; i <= this.state.metronome.timeSignature; i++) {
+            const indicator = document.createElement('span');
+            indicator.className = 'beat-indicator';
+            indicator.dataset.beat = i;
+            container.appendChild(indicator);
+        }
+    },
+
+    /**
+     * Toggle metronome on/off
+     */
+    async toggleMetronome() {
+        if (this.state.metronome.playing) {
+            this.stopMetronome();
+        } else {
+            await this.startMetronome();
+        }
+    },
+
+    /**
+     * Start the metronome
+     */
+    async startMetronome() {
+        await AudioEngine.init();
+        await AudioEngine.resume();
+
+        this.state.metronome.playing = true;
+        this.state.metronome.currentBeat = 0;
+
+        // Start session timer
+        this.startSessionTimer();
+
+        // Update button
+        const btn = document.getElementById('metronome-start');
+        if (btn) {
+            btn.classList.add('playing');
+            btn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="6" y="6" width="12" height="12"></rect>
+                </svg>
+                Stop
+            `;
+        }
+
+        // Calculate interval
+        const beatInterval = 60000 / this.state.metronome.tempo;
+
+        // Play first beat immediately
+        this.playMetronomeBeat();
+
+        // Set up interval for subsequent beats
+        this.state.metronome.intervalId = setInterval(() => {
+            this.playMetronomeBeat();
+        }, beatInterval);
+    },
+
+    /**
+     * Stop the metronome
+     */
+    stopMetronome() {
+        this.state.metronome.playing = false;
+
+        if (this.state.metronome.intervalId) {
+            clearInterval(this.state.metronome.intervalId);
+            this.state.metronome.intervalId = null;
+        }
+
+        // Clear beat indicators
+        document.querySelectorAll('.beat-indicator').forEach(ind => {
+            ind.classList.remove('active', 'accent');
+        });
+
+        // Update button
+        const btn = document.getElementById('metronome-start');
+        if (btn) {
+            btn.classList.remove('playing');
+            btn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                Start
+            `;
+        }
+    },
+
+    /**
+     * Play a metronome beat
+     */
+    playMetronomeBeat() {
+        this.state.metronome.currentBeat++;
+        if (this.state.metronome.currentBeat > this.state.metronome.timeSignature) {
+            this.state.metronome.currentBeat = 1;
+        }
+
+        const isAccent = this.state.metronome.currentBeat === 1 && this.state.metronome.accentFirstBeat;
+
+        // Play click sound
+        this.playMetronomeClick(isAccent);
+
+        // Update visual indicators
+        document.querySelectorAll('.beat-indicator').forEach(ind => {
+            ind.classList.remove('active', 'accent');
+        });
+
+        const currentIndicator = document.querySelector(`.beat-indicator[data-beat="${this.state.metronome.currentBeat}"]`);
+        if (currentIndicator) {
+            currentIndicator.classList.add('active');
+            if (isAccent) currentIndicator.classList.add('accent');
+        }
+    },
+
+    /**
+     * Play metronome click sound
+     */
+    playMetronomeClick(isAccent = false) {
+        if (!AudioEngine.context) return;
+
+        const ctx = AudioEngine.context;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        // Higher frequency for accent
+        osc.frequency.value = isAccent ? 1000 : 800;
+        osc.type = 'sine';
+
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+
+        osc.connect(gain);
+        gain.connect(AudioEngine.masterGain);
+
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.05);
+    },
+
+    /**
+     * Set metronome tempo
+     */
+    setMetronomeTempo(tempo) {
+        tempo = Math.max(40, Math.min(220, tempo));
+        this.state.metronome.tempo = tempo;
+
+        // Update displays
+        const display = document.getElementById('tempo-display-large');
+        if (display) display.textContent = tempo;
+
+        const slider = document.getElementById('metronome-tempo');
+        if (slider) slider.value = tempo;
+
+        // Restart metronome if playing to apply new tempo
+        if (this.state.metronome.playing) {
+            this.stopMetronome();
+            this.startMetronome();
+        }
+    },
+
+    /**
+     * Adjust metronome tempo by delta
+     */
+    adjustMetronomeTempo(delta) {
+        this.setMetronomeTempo(this.state.metronome.tempo + delta);
+    },
+
+    /**
+     * Set time signature
+     */
+    setTimeSignature(beats) {
+        this.state.metronome.timeSignature = beats;
+        this.updateBeatIndicators();
+
+        // Restart metronome if playing
+        if (this.state.metronome.playing) {
+            this.stopMetronome();
+            this.startMetronome();
+        }
+    },
+
+    /**
+     * Handle tap tempo
+     */
+    handleTapTempo() {
+        const now = Date.now();
+        const timeSinceLastTap = now - this.state.tapTempo.lastTap;
+
+        // Reset if more than 2 seconds since last tap
+        if (timeSinceLastTap > 2000) {
+            this.state.tapTempo.taps = [];
+        }
+
+        this.state.tapTempo.taps.push(now);
+        this.state.tapTempo.lastTap = now;
+
+        // Keep only last 4 taps
+        if (this.state.tapTempo.taps.length > 4) {
+            this.state.tapTempo.taps.shift();
+        }
+
+        // Calculate average if we have at least 2 taps
+        if (this.state.tapTempo.taps.length >= 2) {
+            const intervals = [];
+            for (let i = 1; i < this.state.tapTempo.taps.length; i++) {
+                intervals.push(this.state.tapTempo.taps[i] - this.state.tapTempo.taps[i - 1]);
+            }
+            const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+            const bpm = Math.round(60000 / avgInterval);
+            this.setMetronomeTempo(bpm);
+        }
+    },
+
+    /**
+     * Start chord drill
+     */
+    async startDrill() {
+        await AudioEngine.init();
+        await AudioEngine.resume();
+
+        this.state.drill.active = true;
+        this.state.drill.totalChords = 0;
+        this.state.drill.startTime = Date.now();
+
+        // Start session timer
+        this.startSessionTimer();
+
+        // Show display, hide settings
+        document.getElementById('drill-display')?.classList.remove('hidden');
+        document.getElementById('drill-settings')?.classList.add('hidden');
+        document.getElementById('drill-start')?.classList.add('hidden');
+        document.getElementById('drill-stop')?.classList.remove('hidden');
+        document.getElementById('drill-results')?.classList.add('hidden');
+
+        // Get first chord
+        this.nextDrillChord();
+    },
+
+    /**
+     * Stop chord drill
+     */
+    stopDrill() {
+        this.state.drill.active = false;
+
+        if (this.state.drill.intervalId) {
+            clearInterval(this.state.drill.intervalId);
+            this.state.drill.intervalId = null;
+        }
+
+        if (this.state.drill.countdownId) {
+            clearInterval(this.state.drill.countdownId);
+            this.state.drill.countdownId = null;
+        }
+
+        // Show results
+        const duration = Math.floor((Date.now() - this.state.drill.startTime) / 1000);
+        const minutes = Math.floor(duration / 60);
+        const seconds = duration % 60;
+
+        document.getElementById('drill-total-chords').textContent = this.state.drill.totalChords;
+        document.getElementById('drill-duration').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        // Show settings, hide display
+        document.getElementById('drill-display')?.classList.add('hidden');
+        document.getElementById('drill-settings')?.classList.remove('hidden');
+        document.getElementById('drill-start')?.classList.remove('hidden');
+        document.getElementById('drill-stop')?.classList.add('hidden');
+        document.getElementById('drill-results')?.classList.remove('hidden');
+    },
+
+    /**
+     * Get next chord for drill
+     */
+    nextDrillChord() {
+        if (!this.state.drill.active) return;
+
+        // Get appropriate chords based on difficulty
+        let chords = getAllChords();
+
+        if (this.state.drill.difficulty === 'beginner') {
+            chords = chords.filter(c => c.categories.isOpenChord && c.difficulty <= 1);
+        } else if (this.state.drill.difficulty === 'intermediate') {
+            chords = chords.filter(c => c.difficulty <= 2);
+        }
+        // Advanced uses all chords
+
+        // Get unique chords by name
+        const uniqueChords = [];
+        const seen = new Set();
+        chords.forEach(c => {
+            const key = `${c.name}_${c.symbol}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                uniqueChords.push(c);
+            }
+        });
+
+        // Pick random chord (different from current)
+        let newChord;
+        do {
+            newChord = uniqueChords[Math.floor(Math.random() * uniqueChords.length)];
+        } while (this.state.drill.currentChord && newChord.id === this.state.drill.currentChord.id && uniqueChords.length > 1);
+
+        // Move next to current
+        if (this.state.drill.nextChord) {
+            this.state.drill.currentChord = this.state.drill.nextChord;
+        } else {
+            this.state.drill.currentChord = newChord;
+            newChord = uniqueChords[Math.floor(Math.random() * uniqueChords.length)];
+        }
+        this.state.drill.nextChord = newChord;
+
+        this.state.drill.totalChords++;
+        this.state.session.chordsPracticed++;
+        this.updateSessionStats();
+
+        // Update display
+        const currentChordEl = document.getElementById('drill-current-chord');
+        if (currentChordEl) {
+            currentChordEl.querySelector('.drill-chord-name').textContent = this.state.drill.currentChord.name;
+            currentChordEl.querySelector('.drill-chord-symbol').textContent = this.state.drill.currentChord.symbol || 'Major';
+        }
+
+        const nextChordEl = document.getElementById('drill-next-chord');
+        if (nextChordEl) {
+            nextChordEl.querySelector('.next-chord-name').textContent = this.state.drill.nextChord.name;
+        }
+
+        // Play chord sound if enabled
+        if (this.state.drill.withSound) {
+            AudioEngine.playChord(this.state.drill.currentChord, 'down');
+        }
+
+        // Start countdown
+        this.startDrillCountdown();
+    },
+
+    /**
+     * Start drill countdown timer
+     */
+    startDrillCountdown() {
+        const interval = this.state.drill.interval;
+        let remaining = interval;
+
+        const countdownText = document.getElementById('countdown-text');
+        const countdownProgress = document.getElementById('countdown-progress');
+        const circumference = 2 * Math.PI * 45; // r=45
+
+        // Update immediately
+        if (countdownText) countdownText.textContent = remaining;
+        if (countdownProgress) countdownProgress.style.strokeDashoffset = '0';
+
+        // Clear existing countdown
+        if (this.state.drill.countdownId) {
+            clearInterval(this.state.drill.countdownId);
+        }
+
+        const updateInterval = 100; // Update every 100ms for smooth animation
+        let elapsed = 0;
+
+        this.state.drill.countdownId = setInterval(() => {
+            if (!this.state.drill.active) return;
+
+            elapsed += updateInterval;
+            const progress = elapsed / (interval * 1000);
+            remaining = Math.ceil(interval - (elapsed / 1000));
+
+            if (countdownText) countdownText.textContent = Math.max(0, remaining);
+            if (countdownProgress) {
+                countdownProgress.style.strokeDashoffset = (progress * circumference).toString();
+            }
+
+            if (elapsed >= interval * 1000) {
+                this.nextDrillChord();
+            }
+        }, updateInterval);
+    },
+
+    /**
+     * Start progression practice
+     */
+    async startProgressionPractice() {
+        const progressionId = this.state.practice.progressionId;
+        const progression = this.state.savedProgressions.find(p => p.id === progressionId);
+
+        if (!progression || progression.chords.length === 0) return;
+
+        await AudioEngine.init();
+        await AudioEngine.resume();
+
+        this.state.practice.active = true;
+        this.state.practice.currentIndex = 0;
+        this.state.practice.currentBeat = 0;
+
+        // Start session timer
+        this.startSessionTimer();
+
+        // Show display
+        document.getElementById('progression-practice-display')?.classList.remove('hidden');
+        document.getElementById('practice-start')?.classList.add('hidden');
+        document.getElementById('practice-stop')?.classList.remove('hidden');
+
+        // Set tempo from metronome
+        const beatInterval = 60000 / this.state.metronome.tempo;
+
+        // Play first chord
+        this.playPracticeChord(progression);
+
+        // Set up interval
+        this.state.practice.intervalId = setInterval(() => {
+            this.advancePracticeBeat(progression);
+        }, beatInterval);
+    },
+
+    /**
+     * Stop progression practice
+     */
+    stopProgressionPractice() {
+        this.state.practice.active = false;
+
+        if (this.state.practice.intervalId) {
+            clearInterval(this.state.practice.intervalId);
+            this.state.practice.intervalId = null;
+        }
+
+        document.getElementById('progression-practice-display')?.classList.add('hidden');
+        document.getElementById('practice-start')?.classList.remove('hidden');
+        document.getElementById('practice-stop')?.classList.add('hidden');
+    },
+
+    /**
+     * Play current practice chord
+     */
+    playPracticeChord(progression) {
+        const chordData = progression.chords[this.state.practice.currentIndex];
+        if (!chordData) return;
+
+        const chord = getChordById(chordData.chordId);
+
+        // Update display
+        const display = document.getElementById('practice-chord-display');
+        if (display) {
+            display.querySelector('.practice-chord-name').textContent = chordData.name;
+            display.querySelector('.practice-chord-symbol').textContent = chordData.symbol || 'Major';
+        }
+
+        // Play chord
+        if (chord) {
+            AudioEngine.playChord(chord, 'down');
+        }
+
+        // Update stats
+        this.state.session.chordsPracticed++;
+        this.updateSessionStats();
+    },
+
+    /**
+     * Advance practice beat
+     */
+    advancePracticeBeat(progression) {
+        if (!this.state.practice.active) return;
+
+        this.state.practice.currentBeat++;
+        const beatsPerChord = progression.beatsPerChord || 4;
+
+        // Update progress bar
+        const progress = (this.state.practice.currentBeat / beatsPerChord) * 100;
+        const progressBar = document.getElementById('practice-progress-bar');
+        if (progressBar) progressBar.style.width = `${progress}%`;
+
+        // Update beat counter
+        const counter = document.getElementById('practice-beat-counter');
+        if (counter) counter.textContent = `Beat ${this.state.practice.currentBeat} of ${beatsPerChord}`;
+
+        // Check if time for next chord
+        if (this.state.practice.currentBeat >= beatsPerChord) {
+            this.state.practice.currentBeat = 0;
+            this.state.practice.currentIndex++;
+
+            // Check if end of progression
+            if (this.state.practice.currentIndex >= progression.chords.length) {
+                if (this.state.practice.loop) {
+                    this.state.practice.currentIndex = 0;
+                } else {
+                    this.stopProgressionPractice();
+                    return;
+                }
+            }
+
+            this.playPracticeChord(progression);
+        }
+    },
+
+    /**
+     * Update practice progression dropdown
+     */
+    updatePracticeProgressionDropdown() {
+        const select = document.getElementById('practice-progression-select');
+        if (!select) return;
+
+        // Clear existing options except first
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+
+        // Add saved progressions
+        this.state.savedProgressions.forEach(prog => {
+            const option = document.createElement('option');
+            option.value = prog.id;
+            option.textContent = prog.name;
+            select.appendChild(option);
+        });
+    },
+
+    /**
+     * Start session timer
+     */
+    startSessionTimer() {
+        if (!this.state.session.startTime) {
+            this.state.session.startTime = Date.now();
+        }
+
+        if (this.state.session.timerInterval) return;
+
+        this.state.session.timerInterval = setInterval(() => {
+            this.updateSessionStats();
+        }, 1000);
+    },
+
+    /**
+     * Update session statistics display
+     */
+    updateSessionStats() {
+        // Update time
+        if (this.state.session.startTime) {
+            const elapsed = Math.floor((Date.now() - this.state.session.startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            const timeDisplay = document.getElementById('session-time-value');
+            if (timeDisplay) timeDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Update chords practiced
+        const chordsDisplay = document.getElementById('chords-practiced-value');
+        if (chordsDisplay) {
+            chordsDisplay.textContent = `${this.state.session.chordsPracticed} chord${this.state.session.chordsPracticed !== 1 ? 's' : ''}`;
+        }
     }
 };
 

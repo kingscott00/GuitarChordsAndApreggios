@@ -783,13 +783,346 @@ h3 { font-size: var(--font-size-lg); }
     box-shadow: 0 2px 8px var(--shadow-color);
 }
 
-.metronome {
+.practice-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
+    margin-bottom: var(--spacing-xl);
+    flex-wrap: wrap;
     gap: var(--spacing-md);
 }
 
-#tempo-slider {
+.practice-header h2 {
+    margin: 0;
+}
+
+.practice-stats {
+    display: flex;
+    gap: var(--spacing-lg);
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-md);
+}
+
+.stat-item svg {
+    color: var(--accent);
+}
+
+.practice-section {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.practice-section:last-child {
+    margin-bottom: 0;
+}
+
+.practice-section h3 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+}
+
+.section-description {
+    margin: 0 0 var(--spacing-lg) 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+/* Metronome */
+.metronome-display {
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.tempo-display-large {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.tempo-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.metronome-beats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.beat-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--border-color);
+    transition: all var(--transition-fast);
+}
+
+.beat-indicator.active {
+    background: var(--accent);
+    transform: scale(1.2);
+    box-shadow: 0 0 12px var(--accent);
+}
+
+.beat-indicator.accent {
+    background: #E63946;
+    box-shadow: 0 0 12px #E63946;
+}
+
+.metronome-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.tempo-btn {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    font-weight: 600;
+}
+
+#metronome-tempo {
     flex: 1;
-    max-width: 300px;
+    max-width: 200px;
+}
+
+.metronome-settings {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.metronome-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+}
+
+.metronome-start-btn {
+    min-width: 120px;
+}
+
+.metronome-start-btn.playing {
+    background: #E63946;
+}
+
+.metronome-start-btn.playing:hover {
+    background: #C1121F;
+}
+
+/* Chord Drill */
+.drill-display {
+    text-align: center;
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+}
+
+.drill-current-chord {
+    margin-bottom: var(--spacing-lg);
+}
+
+.drill-chord-name {
+    display: block;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.drill-chord-symbol {
+    display: block;
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+}
+
+.drill-countdown {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto var(--spacing-lg);
+}
+
+.countdown-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.countdown-bg {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 6;
+}
+
+.countdown-progress {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.1s linear;
+}
+
+.countdown-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.drill-next-chord {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.next-label {
+    opacity: 0.7;
+}
+
+.next-chord-name {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.drill-settings {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-lg);
+}
+
+.drill-actions {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.drill-results {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+}
+
+.drill-results h4 {
+    margin: 0 0 var(--spacing-md) 0;
+    font-size: var(--font-size-base);
+    color: var(--text-primary);
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.result-item {
+    text-align: center;
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+.result-value {
+    display: block;
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.result-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+/* Progression Practice */
+.progression-practice-settings {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-lg);
+}
+
+.progression-practice-settings select {
+    min-width: 200px;
+}
+
+.progression-practice-display {
+    text-align: center;
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+}
+
+.practice-chord-display {
+    margin-bottom: var(--spacing-lg);
+}
+
+.practice-chord-name {
+    display: block;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.practice-chord-symbol {
+    display: block;
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+}
+
+.practice-progress {
+    height: 8px;
+    background: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: var(--spacing-md);
+}
+
+.practice-progress-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+.practice-beat-counter {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.progression-practice-actions {
+    display: flex;
+    gap: var(--spacing-md);
 }

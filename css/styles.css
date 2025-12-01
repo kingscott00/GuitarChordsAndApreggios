@@ -443,6 +443,30 @@ h3 { font-size: var(--font-size-lg); }
     background: var(--border-color);
 }
 
+.btn-small {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.btn-small:hover {
+    background: var(--bg-secondary);
+}
+
+.btn-small.delete-btn {
+    color: #E63946;
+    font-weight: bold;
+}
+
+.btn-small.delete-btn:hover {
+    background: #FFEBEE;
+}
+
 /* Arpeggio Section */
 .arpeggio-section {
     margin-top: var(--spacing-xl);
@@ -476,8 +500,281 @@ h3 { font-size: var(--font-size-lg); }
     border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
-/* Practice Tools & Progression Builder (placeholder styles for Phase 6-7) */
-.progression-builder,
+/* Progression Builder */
+.progression-builder {
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-top: var(--spacing-xl);
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.progression-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.progression-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.progression-templates {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.progression-templates label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.progression-templates select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+}
+
+.progression-templates select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.progression-slots {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    padding: var(--spacing-lg);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-lg);
+    min-height: 140px;
+    align-items: stretch;
+}
+
+.progression-slot {
+    flex: 1;
+    min-width: 120px;
+    max-width: 180px;
+    min-height: 120px;
+    background: var(--bg-card);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.progression-slot:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+.progression-slot.empty .slot-placeholder {
+    font-size: 2rem;
+    color: var(--text-muted);
+    line-height: 1;
+}
+
+.progression-slot.filled {
+    border-style: solid;
+    border-color: var(--accent);
+    cursor: grab;
+    padding: var(--spacing-sm);
+}
+
+.progression-slot.filled:active {
+    cursor: grabbing;
+}
+
+.progression-slot.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.progression-slot.drag-over {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    transform: scale(1.02);
+}
+
+.progression-slot.playing {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light), 0 0 20px rgba(33, 150, 243, 0.3);
+}
+
+.progression-slot.selected {
+    border-color: var(--accent);
+    border-style: solid;
+    background: var(--accent-light);
+}
+
+.slot-chord-name {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.slot-chord-symbol {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+.slot-remove {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #E63946;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.progression-slot.filled:hover .slot-remove {
+    opacity: 1;
+}
+
+.slot-remove:hover {
+    background: #C1121F;
+}
+
+.progression-settings {
+    display: flex;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.setting-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.setting-group label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.setting-group select {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+}
+
+.setting-group input[type="range"] {
+    width: 150px;
+}
+
+#progression-tempo-display {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    min-width: 70px;
+}
+
+.progression-controls {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.progression-controls .btn {
+    gap: var(--spacing-xs);
+}
+
+.progression-controls .btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.play-progression-btn.playing {
+    background: #E63946;
+}
+
+.play-progression-btn.playing:hover {
+    background: #C1121F;
+}
+
+/* Saved Progressions */
+.saved-progressions {
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border-color);
+}
+
+.saved-progressions h3 {
+    font-size: var(--font-size-base);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.saved-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.saved-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+.saved-item-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.saved-item-chords {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.saved-item-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.saved-item-actions button {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+}
+
+/* Practice Tools */
 .practice-tools {
     background: var(--bg-primary);
     border-radius: var(--radius-lg);

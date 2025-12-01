@@ -15,7 +15,15 @@ const App = {
         selectedChords: [],
         displayedChords: [],
         hasSearched: false,
-        arpeggiosExpanded: false
+        arpeggiosExpanded: false,
+        // Progression builder state
+        progression: [],
+        progressionPlaying: false,
+        progressionPlaybackIndex: 0,
+        progressionPlaybackTimer: null,
+        beatsPerChord: 4,
+        progressionTempo: 100,
+        savedProgressions: []
     },
 
     /**
@@ -24,6 +32,8 @@ const App = {
     init() {
         this.bindEventListeners();
         this.initVolumeControl();
+        this.initProgressionBuilder();
+        this.loadSavedProgressions();
         // Show all chords on initial load
         this.displayAllChords();
     },
@@ -457,7 +467,7 @@ const App = {
         favBtn.title = 'Favorites coming in Phase 8';
 
         const addBtn = document.createElement('button');
-        addBtn.className = 'action-btn';
+        addBtn.className = 'action-btn add-btn';
         addBtn.innerHTML = `
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -465,8 +475,16 @@ const App = {
             </svg>
             <span>Add</span>
         `;
-        addBtn.disabled = true;
-        addBtn.title = 'Progression builder coming in Phase 6';
+        addBtn.title = 'Add to progression';
+        addBtn.addEventListener('click', () => {
+            const currentChord = getChordById(card.dataset.chordId);
+            if (currentChord) {
+                this.addToProgression(currentChord);
+                // Visual feedback
+                addBtn.classList.add('added');
+                setTimeout(() => addBtn.classList.remove('added'), 300);
+            }
+        });
 
         actions.appendChild(playBtn);
         actions.appendChild(favBtn);
@@ -737,6 +755,660 @@ const App = {
             console.error('Failed to play arpeggio:', error);
             if (button) button.classList.remove('playing');
         }
+    },
+
+    // ==========================================
+    // PROGRESSION BUILDER METHODS
+    // ==========================================
+
+    /**
+     * Initialize the progression builder
+     */
+    initProgressionBuilder() {
+        // Template selector
+        const templateSelect = document.getElementById('template-select');
+        templateSelect?.addEventListener('change', (e) => this.loadTemplate(e.target.value));
+
+        // Beats per chord selector
+        const beatsSelect = document.getElementById('beats-per-chord');
+        beatsSelect?.addEventListener('change', (e) => {
+            this.state.beatsPerChord = parseInt(e.target.value);
+        });
+
+        // Tempo slider
+        const tempoSlider = document.getElementById('progression-tempo');
+        const tempoDisplay = document.getElementById('progression-tempo-display');
+        tempoSlider?.addEventListener('input', (e) => {
+            this.state.progressionTempo = parseInt(e.target.value);
+            if (tempoDisplay) tempoDisplay.textContent = `${e.target.value} BPM`;
+        });
+
+        // Control buttons
+        document.getElementById('play-progression')?.addEventListener('click', () => this.playProgression());
+        document.getElementById('stop-progression')?.addEventListener('click', () => this.stopProgression());
+        document.getElementById('clear-progression')?.addEventListener('click', () => this.clearProgression());
+        document.getElementById('add-slot')?.addEventListener('click', () => this.addProgressionSlot());
+        document.getElementById('save-progression')?.addEventListener('click', () => this.promptSaveProgression());
+
+        // Initialize slot listeners
+        this.initProgressionSlots();
+    },
+
+    /**
+     * Initialize progression slot event listeners
+     */
+    initProgressionSlots() {
+        const slots = document.querySelectorAll('.progression-slot');
+        slots.forEach((slot, index) => {
+            this.setupSlotListeners(slot, index);
+        });
+    },
+
+    /**
+     * Setup event listeners for a progression slot
+     */
+    setupSlotListeners(slot, index) {
+        // Click to select slot (for adding chords)
+        slot.addEventListener('click', (e) => {
+            if (slot.classList.contains('empty')) {
+                // Select this slot for adding
+                document.querySelectorAll('.progression-slot').forEach(s => s.classList.remove('selected'));
+                slot.classList.add('selected');
+            }
+        });
+
+        // Drag and drop
+        slot.setAttribute('draggable', 'false');
+
+        slot.addEventListener('dragstart', (e) => {
+            if (!slot.classList.contains('filled')) return;
+            slot.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', index.toString());
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        slot.addEventListener('dragend', () => {
+            slot.classList.remove('dragging');
+            document.querySelectorAll('.progression-slot').forEach(s => s.classList.remove('drag-over'));
+        });
+
+        slot.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (!slot.classList.contains('dragging')) {
+                slot.classList.add('drag-over');
+            }
+        });
+
+        slot.addEventListener('dragleave', () => {
+            slot.classList.remove('drag-over');
+        });
+
+        slot.addEventListener('drop', (e) => {
+            e.preventDefault();
+            slot.classList.remove('drag-over');
+            const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+            const toIndex = index;
+            if (fromIndex !== toIndex) {
+                this.reorderProgression(fromIndex, toIndex);
+            }
+        });
+    },
+
+    /**
+     * Add a chord to the progression
+     */
+    addToProgression(chord) {
+        // Find the first empty slot or selected slot
+        const slots = document.querySelectorAll('.progression-slot');
+        let targetSlot = document.querySelector('.progression-slot.selected.empty');
+
+        if (!targetSlot) {
+            // Find first empty slot
+            targetSlot = Array.from(slots).find(slot => slot.classList.contains('empty'));
+        }
+
+        if (!targetSlot) {
+            // All slots full, add a new one
+            this.addProgressionSlot();
+            targetSlot = document.querySelector('.progression-slot.empty');
+        }
+
+        if (targetSlot) {
+            const index = parseInt(targetSlot.dataset.index);
+            this.state.progression[index] = {
+                chordId: chord.id,
+                name: chord.name,
+                symbol: chord.symbol
+            };
+            this.renderProgressionSlot(targetSlot, chord);
+            targetSlot.classList.remove('selected');
+        }
+    },
+
+    /**
+     * Render a filled progression slot
+     */
+    renderProgressionSlot(slot, chord) {
+        slot.classList.remove('empty');
+        slot.classList.add('filled');
+        slot.setAttribute('draggable', 'true');
+
+        slot.innerHTML = `
+            <span class="slot-chord-name">${chord.name}</span>
+            <span class="slot-chord-symbol">${chord.symbol}</span>
+            <button class="slot-remove" title="Remove chord">&times;</button>
+        `;
+
+        // Add remove button listener
+        const removeBtn = slot.querySelector('.slot-remove');
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.removeFromProgression(parseInt(slot.dataset.index));
+        });
+    },
+
+    /**
+     * Remove a chord from the progression
+     */
+    removeFromProgression(index) {
+        this.state.progression[index] = null;
+
+        const slot = document.querySelector(`.progression-slot[data-index="${index}"]`);
+        if (slot) {
+            slot.classList.remove('filled');
+            slot.classList.add('empty');
+            slot.setAttribute('draggable', 'false');
+            slot.innerHTML = '<span class="slot-placeholder">+</span>';
+        }
+    },
+
+    /**
+     * Reorder progression slots via drag and drop
+     */
+    reorderProgression(fromIndex, toIndex) {
+        const progression = this.state.progression;
+
+        // Swap the items
+        const temp = progression[fromIndex];
+        progression[fromIndex] = progression[toIndex];
+        progression[toIndex] = temp;
+
+        // Re-render both slots
+        this.renderAllProgressionSlots();
+    },
+
+    /**
+     * Render all progression slots based on current state
+     */
+    renderAllProgressionSlots() {
+        const slotsContainer = document.getElementById('progression-slots');
+        const slots = slotsContainer.querySelectorAll('.progression-slot');
+
+        slots.forEach((slot, index) => {
+            const chordData = this.state.progression[index];
+
+            if (chordData) {
+                const chord = getChordById(chordData.chordId);
+                if (chord) {
+                    this.renderProgressionSlot(slot, chord);
+                } else {
+                    // Chord not found, render with saved data
+                    slot.classList.remove('empty');
+                    slot.classList.add('filled');
+                    slot.setAttribute('draggable', 'true');
+                    slot.innerHTML = `
+                        <span class="slot-chord-name">${chordData.name}</span>
+                        <span class="slot-chord-symbol">${chordData.symbol}</span>
+                        <button class="slot-remove" title="Remove chord">&times;</button>
+                    `;
+                    const removeBtn = slot.querySelector('.slot-remove');
+                    removeBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.removeFromProgression(index);
+                    });
+                }
+            } else {
+                slot.classList.remove('filled');
+                slot.classList.add('empty');
+                slot.setAttribute('draggable', 'false');
+                slot.innerHTML = '<span class="slot-placeholder">+</span>';
+            }
+        });
+    },
+
+    /**
+     * Add a new progression slot
+     */
+    addProgressionSlot() {
+        const slotsContainer = document.getElementById('progression-slots');
+        const currentSlots = slotsContainer.querySelectorAll('.progression-slot');
+        const newIndex = currentSlots.length;
+
+        const newSlot = document.createElement('div');
+        newSlot.className = 'progression-slot empty';
+        newSlot.dataset.index = newIndex;
+        newSlot.innerHTML = '<span class="slot-placeholder">+</span>';
+
+        slotsContainer.appendChild(newSlot);
+        this.setupSlotListeners(newSlot, newIndex);
+    },
+
+    /**
+     * Clear the entire progression
+     */
+    clearProgression() {
+        this.stopProgression();
+        this.state.progression = [];
+
+        const slotsContainer = document.getElementById('progression-slots');
+        slotsContainer.innerHTML = '';
+
+        // Re-create 4 empty slots
+        for (let i = 0; i < 4; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'progression-slot empty';
+            slot.dataset.index = i;
+            slot.innerHTML = '<span class="slot-placeholder">+</span>';
+            slotsContainer.appendChild(slot);
+            this.setupSlotListeners(slot, i);
+        }
+
+        // Reset template selector
+        const templateSelect = document.getElementById('template-select');
+        if (templateSelect) templateSelect.value = '';
+    },
+
+    /**
+     * Load a progression template
+     */
+    loadTemplate(templateId) {
+        if (!templateId) return;
+
+        // Clear current progression first
+        this.clearProgression();
+
+        // Get template chords based on current key
+        const key = this.state.currentKey;
+        const templates = this.getProgressionTemplates();
+        const template = templates[templateId];
+
+        if (!template) return;
+
+        // Get scale degrees and find matching chords
+        const scaleChords = this.getChordsForKey(key, template.degrees);
+
+        scaleChords.forEach((chordInfo, index) => {
+            if (chordInfo && index < document.querySelectorAll('.progression-slot').length) {
+                const slot = document.querySelector(`.progression-slot[data-index="${index}"]`);
+                if (slot) {
+                    this.state.progression[index] = chordInfo;
+                    const chord = getChordById(chordInfo.chordId);
+                    if (chord) {
+                        this.renderProgressionSlot(slot, chord);
+                    }
+                }
+            } else if (chordInfo) {
+                // Need to add more slots
+                this.addProgressionSlot();
+                const slot = document.querySelector(`.progression-slot[data-index="${index}"]`);
+                if (slot) {
+                    this.state.progression[index] = chordInfo;
+                    const chord = getChordById(chordInfo.chordId);
+                    if (chord) {
+                        this.renderProgressionSlot(slot, chord);
+                    }
+                }
+            }
+        });
+    },
+
+    /**
+     * Get progression template definitions
+     */
+    getProgressionTemplates() {
+        return {
+            'i-iv-v-i': {
+                name: 'I - IV - V - I (Basic)',
+                degrees: [1, 4, 5, 1]
+            },
+            'i-v-vi-iv': {
+                name: 'I - V - vi - IV (Pop)',
+                degrees: [1, 5, 6, 4],
+                minorDegrees: [6] // 6th degree is minor
+            },
+            'ii-v-i': {
+                name: 'ii - V - I (Jazz)',
+                degrees: [2, 5, 1],
+                minorDegrees: [2]
+            },
+            'i-vi-iv-v': {
+                name: 'I - vi - IV - V (50s)',
+                degrees: [1, 6, 4, 5],
+                minorDegrees: [6]
+            },
+            '12-bar-blues': {
+                name: '12-Bar Blues',
+                degrees: [1, 1, 1, 1, 4, 4, 1, 1, 5, 4, 1, 5]
+            },
+            'i-iv-i-v': {
+                name: 'I - IV - I - V (Country)',
+                degrees: [1, 4, 1, 5]
+            }
+        };
+    },
+
+    /**
+     * Get chords for a key based on scale degrees
+     */
+    getChordsForKey(key, degrees) {
+        // Major scale notes
+        const noteOrder = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const majorIntervals = [0, 2, 4, 5, 7, 9, 11]; // Intervals for major scale
+
+        const keyIndex = noteOrder.indexOf(key);
+        if (keyIndex === -1) return [];
+
+        // Get scale notes
+        const scaleNotes = majorIntervals.map(interval =>
+            noteOrder[(keyIndex + interval) % 12]
+        );
+
+        // Map degrees to chords
+        return degrees.map((degree, idx) => {
+            const noteIndex = (degree - 1) % 7;
+            const root = scaleNotes[noteIndex];
+
+            // Determine if this degree should be minor
+            // In major scale: ii, iii, vi are minor
+            const minorDegrees = [2, 3, 6];
+            const isMinor = minorDegrees.includes(degree);
+
+            // Find a chord matching this root
+            const allChords = getAllChords();
+            let chord;
+
+            if (isMinor) {
+                // Look for minor chord
+                chord = allChords.find(c =>
+                    c.name === root + 'm' ||
+                    (c.name.startsWith(root) && c.symbol === 'm')
+                );
+            }
+
+            if (!chord) {
+                // Look for major chord
+                chord = allChords.find(c =>
+                    c.name === root ||
+                    (c.name === root && c.symbol === '')
+                );
+            }
+
+            if (!chord) {
+                // Fallback: find any chord with this root
+                chord = allChords.find(c => c.name.startsWith(root));
+            }
+
+            if (chord) {
+                return {
+                    chordId: chord.id,
+                    name: chord.name,
+                    symbol: chord.symbol
+                };
+            }
+
+            return null;
+        });
+    },
+
+    /**
+     * Play the entire progression
+     */
+    async playProgression() {
+        if (this.state.progressionPlaying) return;
+
+        // Get filled slots
+        const filledChords = this.state.progression.filter(c => c !== null && c !== undefined);
+        if (filledChords.length === 0) return;
+
+        await AudioEngine.init();
+        await AudioEngine.resume();
+
+        this.state.progressionPlaying = true;
+        this.state.progressionPlaybackIndex = 0;
+
+        // Update play button state
+        const playBtn = document.getElementById('play-progression');
+        if (playBtn) playBtn.classList.add('playing');
+
+        this.playNextInProgression();
+    },
+
+    /**
+     * Play the next chord in the progression
+     */
+    playNextInProgression() {
+        if (!this.state.progressionPlaying) return;
+
+        // Find the next filled slot
+        const slots = document.querySelectorAll('.progression-slot');
+        let currentIndex = this.state.progressionPlaybackIndex;
+
+        // Find next filled slot
+        while (currentIndex < this.state.progression.length &&
+               (!this.state.progression[currentIndex])) {
+            currentIndex++;
+        }
+
+        if (currentIndex >= this.state.progression.length) {
+            // Loop back to start
+            currentIndex = 0;
+            while (currentIndex < this.state.progression.length &&
+                   (!this.state.progression[currentIndex])) {
+                currentIndex++;
+            }
+        }
+
+        const chordData = this.state.progression[currentIndex];
+        if (!chordData) {
+            this.stopProgression();
+            return;
+        }
+
+        const chord = getChordById(chordData.chordId);
+        if (!chord) {
+            this.stopProgression();
+            return;
+        }
+
+        // Highlight current slot
+        slots.forEach(s => s.classList.remove('playing'));
+        const currentSlot = document.querySelector(`.progression-slot[data-index="${currentIndex}"]`);
+        if (currentSlot) currentSlot.classList.add('playing');
+
+        // Play the chord
+        AudioEngine.playChord(chord, 'down');
+
+        // Calculate timing for next chord
+        const beatDuration = 60 / this.state.progressionTempo; // seconds per beat
+        const chordDuration = beatDuration * this.state.beatsPerChord * 1000; // ms
+
+        // Move to next index
+        this.state.progressionPlaybackIndex = currentIndex + 1;
+
+        // Schedule next chord
+        this.state.progressionPlaybackTimer = setTimeout(() => {
+            this.playNextInProgression();
+        }, chordDuration);
+    },
+
+    /**
+     * Stop progression playback
+     */
+    stopProgression() {
+        this.state.progressionPlaying = false;
+
+        if (this.state.progressionPlaybackTimer) {
+            clearTimeout(this.state.progressionPlaybackTimer);
+            this.state.progressionPlaybackTimer = null;
+        }
+
+        // Remove playing state from all slots
+        document.querySelectorAll('.progression-slot').forEach(s => s.classList.remove('playing'));
+
+        // Update play button state
+        const playBtn = document.getElementById('play-progression');
+        if (playBtn) playBtn.classList.remove('playing');
+
+        // Stop audio
+        AudioEngine.stop();
+    },
+
+    /**
+     * Prompt user to save progression with a name
+     */
+    promptSaveProgression() {
+        const filledChords = this.state.progression.filter(c => c !== null && c !== undefined);
+        if (filledChords.length === 0) {
+            alert('Add some chords to the progression first!');
+            return;
+        }
+
+        const name = prompt('Enter a name for this progression:', `Progression ${this.state.savedProgressions.length + 1}`);
+        if (name) {
+            this.saveProgression(name);
+        }
+    },
+
+    /**
+     * Save progression to localStorage
+     */
+    saveProgression(name) {
+        const progression = {
+            id: Date.now().toString(),
+            name: name || `Progression ${this.state.savedProgressions.length + 1}`,
+            chords: this.state.progression.filter(c => c !== null),
+            beatsPerChord: this.state.beatsPerChord,
+            tempo: this.state.progressionTempo,
+            key: this.state.currentKey,
+            createdAt: new Date().toISOString()
+        };
+
+        this.state.savedProgressions.push(progression);
+        localStorage.setItem('savedProgressions', JSON.stringify(this.state.savedProgressions));
+
+        this.renderSavedProgressions();
+        return progression;
+    },
+
+    /**
+     * Load saved progressions from localStorage
+     */
+    loadSavedProgressions() {
+        try {
+            const saved = localStorage.getItem('savedProgressions');
+            if (saved) {
+                this.state.savedProgressions = JSON.parse(saved);
+                this.renderSavedProgressions();
+            }
+        } catch (error) {
+            console.error('Failed to load saved progressions:', error);
+            this.state.savedProgressions = [];
+        }
+    },
+
+    /**
+     * Load a saved progression
+     */
+    loadSavedProgression(progressionId) {
+        const saved = this.state.savedProgressions.find(p => p.id === progressionId);
+        if (!saved) return;
+
+        this.clearProgression();
+
+        // Restore settings
+        this.state.beatsPerChord = saved.beatsPerChord || 4;
+        this.state.progressionTempo = saved.tempo || 100;
+
+        // Update UI
+        const beatsSelect = document.getElementById('beats-per-chord');
+        if (beatsSelect) beatsSelect.value = this.state.beatsPerChord;
+
+        const tempoSlider = document.getElementById('progression-tempo');
+        const tempoDisplay = document.getElementById('progression-tempo-display');
+        if (tempoSlider) tempoSlider.value = this.state.progressionTempo;
+        if (tempoDisplay) tempoDisplay.textContent = `${this.state.progressionTempo} BPM`;
+
+        // Load chords into slots
+        saved.chords.forEach((chordData, index) => {
+            if (index >= document.querySelectorAll('.progression-slot').length) {
+                this.addProgressionSlot();
+            }
+
+            const slot = document.querySelector(`.progression-slot[data-index="${index}"]`);
+            if (slot && chordData) {
+                this.state.progression[index] = chordData;
+                const chord = getChordById(chordData.chordId);
+                if (chord) {
+                    this.renderProgressionSlot(slot, chord);
+                }
+            }
+        });
+    },
+
+    /**
+     * Delete a saved progression
+     */
+    deleteSavedProgression(progressionId) {
+        this.state.savedProgressions = this.state.savedProgressions.filter(p => p.id !== progressionId);
+        localStorage.setItem('savedProgressions', JSON.stringify(this.state.savedProgressions));
+        this.renderSavedProgressions();
+    },
+
+    /**
+     * Render saved progressions list
+     */
+    renderSavedProgressions() {
+        const container = document.getElementById('saved-progressions');
+        const list = document.getElementById('saved-list');
+
+        if (!container || !list) return;
+
+        if (this.state.savedProgressions.length === 0) {
+            container.classList.add('hidden');
+            return;
+        }
+
+        container.classList.remove('hidden');
+        list.innerHTML = '';
+
+        this.state.savedProgressions.forEach(prog => {
+            const item = document.createElement('div');
+            item.className = 'saved-item';
+
+            const chordNames = prog.chords.map(c => c.name).join(' → ');
+
+            item.innerHTML = `
+                <div class="saved-item-info">
+                    <span class="saved-item-name">${prog.name}</span>
+                    <span class="saved-item-chords">${chordNames}</span>
+                </div>
+                <div class="saved-item-actions">
+                    <button class="btn-small load-btn" title="Load">Load</button>
+                    <button class="btn-small delete-btn" title="Delete">&times;</button>
+                </div>
+            `;
+
+            item.querySelector('.load-btn').addEventListener('click', () => {
+                this.loadSavedProgression(prog.id);
+            });
+
+            item.querySelector('.delete-btn').addEventListener('click', () => {
+                this.deleteSavedProgression(prog.id);
+            });
+
+            list.appendChild(item);
+        });
     }
 };
 

@@ -170,15 +170,80 @@
         </section>
 
         <!-- Progression Builder (Phase 6) -->
-        <section class="progression-builder hidden" id="progression-builder">
-            <h2>Progression Builder</h2>
+        <section class="progression-builder" id="progression-builder">
+            <div class="progression-header">
+                <h2>Progression Builder</h2>
+                <div class="progression-templates">
+                    <label for="template-select">Templates:</label>
+                    <select id="template-select">
+                        <option value="">Select a template...</option>
+                        <option value="i-iv-v-i">I - IV - V - I (Basic)</option>
+                        <option value="i-v-vi-iv">I - V - vi - IV (Pop)</option>
+                        <option value="ii-v-i">ii - V - I (Jazz)</option>
+                        <option value="i-vi-iv-v">I - vi - IV - V (50s)</option>
+                        <option value="12-bar-blues">12-Bar Blues</option>
+                        <option value="i-iv-i-v">I - IV - I - V (Country)</option>
+                    </select>
+                </div>
+            </div>
             <div class="progression-slots" id="progression-slots">
-                <!-- Progression slots will be inserted here -->
+                <div class="progression-slot empty" data-index="0">
+                    <span class="slot-placeholder">+</span>
+                </div>
+                <div class="progression-slot empty" data-index="1">
+                    <span class="slot-placeholder">+</span>
+                </div>
+                <div class="progression-slot empty" data-index="2">
+                    <span class="slot-placeholder">+</span>
+                </div>
+                <div class="progression-slot empty" data-index="3">
+                    <span class="slot-placeholder">+</span>
+                </div>
+            </div>
+            <div class="progression-settings">
+                <div class="setting-group">
+                    <label for="beats-per-chord">Beats per chord:</label>
+                    <select id="beats-per-chord">
+                        <option value="2">2</option>
+                        <option value="4" selected>4</option>
+                        <option value="8">8</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label for="progression-tempo">Tempo:</label>
+                    <input type="range" id="progression-tempo" min="40" max="200" value="100">
+                    <span id="progression-tempo-display">100 BPM</span>
+                </div>
             </div>
             <div class="progression-controls">
-                <button class="btn" id="play-progression">Play All</button>
+                <button class="btn play-progression-btn" id="play-progression">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    Play All
+                </button>
+                <button class="btn secondary" id="stop-progression">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="6" y="6" width="12" height="12"></rect>
+                    </svg>
+                    Stop
+                </button>
                 <button class="btn secondary" id="clear-progression">Clear</button>
-                <button class="btn secondary" id="save-progression">Save</button>
+                <button class="btn secondary" id="add-slot">+ Add Slot</button>
+                <button class="btn secondary" id="save-progression">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Save
+                </button>
+            </div>
+            <div class="saved-progressions hidden" id="saved-progressions">
+                <h3>Saved Progressions</h3>
+                <div class="saved-list" id="saved-list">
+                    <!-- Saved progressions will be inserted here -->
+                </div>
             </div>
         </section>
 

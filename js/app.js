@@ -23,8 +23,43 @@ const App = {
      */
     init() {
         this.bindEventListeners();
+        this.initVolumeControl();
         // Show all chords on initial load
         this.displayAllChords();
+    },
+
+    /**
+     * Initialize volume control
+     */
+    initVolumeControl() {
+        const volumeBtn = document.getElementById('volume-btn');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeSliderContainer = document.getElementById('volume-slider-container');
+        const volumeValue = document.getElementById('volume-value');
+
+        if (!volumeBtn || !volumeSlider) return;
+
+        // Toggle volume slider visibility
+        volumeBtn.addEventListener('click', () => {
+            volumeSliderContainer.classList.toggle('hidden');
+        });
+
+        // Close volume slider when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.volume-control')) {
+                volumeSliderContainer.classList.add('hidden');
+            }
+        });
+
+        // Volume slider change
+        volumeSlider.addEventListener('input', (e) => {
+            const volume = parseInt(e.target.value) / 100;
+            AudioEngine.setVolume(volume);
+            volumeValue.textContent = `${e.target.value}%`;
+
+            // Update muted state visual
+            volumeBtn.classList.toggle('muted', volume === 0);
+        });
     },
 
     /**
@@ -351,20 +386,20 @@ const App = {
         body.appendChild(tab);
         body.appendChild(fingerInfo);
 
-        // Actions (placeholder for Phase 4+)
+        // Actions
         const actions = document.createElement('div');
         actions.className = 'chord-card-actions';
 
         const playBtn = document.createElement('button');
-        playBtn.className = 'action-btn';
+        playBtn.className = 'action-btn play-btn';
         playBtn.innerHTML = `
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
             <span>Play</span>
         `;
-        playBtn.disabled = true;
-        playBtn.title = 'Audio playback coming in Phase 4';
+        playBtn.title = 'Play chord';
+        playBtn.addEventListener('click', (e) => this.playChord(chord, e.currentTarget));
 
         const favBtn = document.createElement('button');
         favBtn.className = 'action-btn';
@@ -479,6 +514,9 @@ const App = {
         const header = document.createElement('div');
         header.className = 'arpeggio-card-header';
 
+        const headerLeft = document.createElement('div');
+        headerLeft.className = 'arpeggio-header-left';
+
         const name = document.createElement('span');
         name.className = 'arpeggio-name';
         name.textContent = arpeggio.name;
@@ -487,8 +525,23 @@ const App = {
         position.className = 'arpeggio-position';
         position.textContent = arpeggio.position;
 
-        header.appendChild(name);
-        header.appendChild(position);
+        headerLeft.appendChild(name);
+        headerLeft.appendChild(position);
+
+        // Play button for arpeggio
+        const playBtn = document.createElement('button');
+        playBtn.className = 'action-btn arpeggio-play-btn';
+        playBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Play</span>
+        `;
+        playBtn.title = 'Play arpeggio';
+        playBtn.addEventListener('click', (e) => this.playArpeggio(arpeggio, e.currentTarget));
+
+        header.appendChild(headerLeft);
+        header.appendChild(playBtn);
 
         // Notes display
         const notesContainer = document.createElement('div');
@@ -559,6 +612,55 @@ const App = {
                 </p>
             </div>
         `;
+    },
+
+    /**
+     * Play a chord using the audio engine
+     */
+    async playChord(chord, button = null) {
+        // Find the button if not passed (for visual feedback)
+        if (!button) {
+            const card = document.querySelector(`.chord-card[data-chord-id="${chord.id}"]`);
+            button = card?.querySelector('.play-btn');
+        }
+
+        try {
+            // Add playing state
+            if (button) button.classList.add('playing');
+
+            await AudioEngine.playChord(chord, 'down');
+
+            // Remove playing state after strum duration
+            setTimeout(() => {
+                if (button) button.classList.remove('playing');
+            }, AudioEngine.settings.strumSpeed * 6 + 100);
+        } catch (error) {
+            console.error('Failed to play chord:', error);
+            if (button) button.classList.remove('playing');
+        }
+    },
+
+    /**
+     * Play an arpeggio using the audio engine
+     */
+    async playArpeggio(arpeggio, button = null) {
+        try {
+            // Add playing state
+            if (button) button.classList.add('playing');
+
+            await AudioEngine.playArpeggio(arpeggio);
+
+            // Calculate duration and remove playing state
+            const beatDuration = 60 / AudioEngine.settings.arpeggioTempo;
+            const totalDuration = (arpeggio.pattern.length * beatDuration * 0.5 * 1000) + 500;
+
+            setTimeout(() => {
+                if (button) button.classList.remove('playing');
+            }, totalDuration);
+        } catch (error) {
+            console.error('Failed to play arpeggio:', error);
+            if (button) button.classList.remove('playing');
+        }
     }
 };
 

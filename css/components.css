@@ -218,6 +218,25 @@
     color: var(--accent);
 }
 
+.action-btn.play-btn:hover,
+.action-btn.arpeggio-play-btn:hover {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+.action-btn.playing {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    animation: pulse 0.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
 .action-btn svg {
     width: 16px;
     height: 16px;
@@ -478,6 +497,16 @@
     margin-bottom: var(--spacing-md);
     padding-bottom: var(--spacing-md);
     border-bottom: 1px solid var(--border-color);
+}
+
+.arpeggio-header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.arpeggio-play-btn {
+    flex-shrink: 0;
 }
 
 .arpeggio-name {

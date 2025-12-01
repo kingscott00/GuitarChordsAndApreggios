@@ -1,0 +1,346 @@
+/* Guitar Chord Explorer - Component Styles */
+
+/* Chord Card */
+.chord-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 8px var(--shadow-color);
+    overflow: hidden;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.chord-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px var(--shadow-color);
+}
+
+.chord-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+}
+
+.chord-name {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.chord-symbol {
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.chord-card-body {
+    padding: var(--spacing-lg);
+}
+
+.chord-diagram-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--spacing-md);
+}
+
+/* SVG Chord Diagram */
+.chord-diagram {
+    display: block;
+}
+
+.chord-diagram .fretboard {
+    fill: var(--fretboard-bg);
+}
+
+.chord-diagram .nut {
+    fill: var(--fretboard-nut);
+}
+
+.chord-diagram .fret {
+    stroke: var(--fretboard-fret);
+    stroke-width: 2;
+}
+
+.chord-diagram .string {
+    stroke: var(--fretboard-string);
+}
+
+.chord-diagram .string-1 { stroke-width: 1; }
+.chord-diagram .string-2 { stroke-width: 1.2; }
+.chord-diagram .string-3 { stroke-width: 1.5; }
+.chord-diagram .string-4 { stroke-width: 2; }
+.chord-diagram .string-5 { stroke-width: 2.5; }
+.chord-diagram .string-6 { stroke-width: 3; }
+
+.chord-diagram .finger-dot {
+    fill: var(--dot-color);
+}
+
+.chord-diagram .finger-dot.root {
+    fill: var(--dot-root);
+}
+
+.chord-diagram .finger-number {
+    fill: white;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-family);
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.chord-diagram .open-string {
+    fill: none;
+    stroke: var(--text-primary);
+    stroke-width: 2;
+}
+
+.chord-diagram .muted-string {
+    stroke: var(--text-primary);
+    stroke-width: 2;
+}
+
+.chord-diagram .string-label {
+    fill: var(--text-muted);
+    font-size: 10px;
+    font-family: var(--font-family);
+    text-anchor: middle;
+}
+
+.chord-diagram .position-marker {
+    fill: var(--text-primary);
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font-family);
+}
+
+.chord-diagram .barre {
+    fill: var(--dot-color);
+    rx: 6;
+    ry: 6;
+}
+
+/* Tablature */
+.tab-container {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.tab-label {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tablature {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--text-primary);
+    white-space: pre;
+}
+
+.tablature .string-line {
+    display: block;
+}
+
+.tablature .string-name {
+    color: var(--text-secondary);
+}
+
+.tablature .fret-number {
+    color: var(--text-primary);
+}
+
+.tablature .muted {
+    color: var(--text-muted);
+}
+
+/* Finger Position Display */
+.finger-info {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.finger-info-label {
+    font-weight: 600;
+    margin-right: var(--spacing-sm);
+}
+
+.finger-positions {
+    font-family: var(--font-mono);
+    letter-spacing: 0.5em;
+}
+
+/* Chord Card Actions */
+.chord-card-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.action-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.action-btn.active {
+    background-color: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.action-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Voicing Selector */
+.voicing-dropdown {
+    flex: 1;
+    text-align: right;
+}
+
+.voicing-dropdown select {
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+}
+
+/* Difficulty Badge */
+.difficulty-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.difficulty-badge.beginner {
+    background-color: #E8F5E9;
+    color: #2E7D32;
+}
+
+.difficulty-badge.intermediate {
+    background-color: #FFF3E0;
+    color: #E65100;
+}
+
+.difficulty-badge.advanced {
+    background-color: #FCE4EC;
+    color: #C2185B;
+}
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl) * 3;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.empty-state-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: var(--spacing-lg);
+    opacity: 0.5;
+}
+
+.empty-state-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.empty-state-description {
+    font-size: var(--font-size-base);
+    max-width: 400px;
+}
+
+/* Loading State */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl) * 2;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Tooltip */
+.tooltip {
+    position: relative;
+}
+
+.tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+    border-radius: var(--radius-sm);
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-fast);
+    pointer-events: none;
+}
+
+.tooltip:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-4px);
+}

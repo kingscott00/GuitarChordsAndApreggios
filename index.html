@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guitar Chord Explorer</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <h1 class="logo">Guitar Chord Explorer</h1>
+        </div>
+        <nav class="header-nav">
+            <button class="nav-btn active" data-mode="mood">Mood</button>
+            <button class="nav-btn" data-mode="style">Style</button>
+            <button class="nav-btn" data-mode="theory">Theory</button>
+        </nav>
+        <div class="header-right">
+            <button class="icon-btn" id="settings-btn" aria-label="Settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
+            <button class="icon-btn" id="theme-btn" aria-label="Toggle Theme">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Selection Panel -->
+        <section class="selection-panel">
+            <div class="selection-controls" id="selection-controls">
+                <!-- Selection controls will be dynamically inserted based on mode -->
+                <div class="mood-selector active" id="mood-selector">
+                    <div class="selector-grid">
+                        <button class="selector-btn" data-mood="happy">Happy</button>
+                        <button class="selector-btn" data-mood="sad">Sad</button>
+                        <button class="selector-btn" data-mood="dreamy">Dreamy</button>
+                        <button class="selector-btn" data-mood="tense">Tense</button>
+                        <button class="selector-btn" data-mood="peaceful">Peaceful</button>
+                        <button class="selector-btn" data-mood="romantic">Romantic</button>
+                        <button class="selector-btn" data-mood="energetic">Energetic</button>
+                        <button class="selector-btn" data-mood="mysterious">Mysterious</button>
+                    </div>
+                </div>
+
+                <div class="style-selector hidden" id="style-selector">
+                    <div class="selector-grid">
+                        <button class="selector-btn" data-style="blues">Blues</button>
+                        <button class="selector-btn" data-style="jazz">Jazz</button>
+                        <button class="selector-btn" data-style="folk">Folk</button>
+                        <button class="selector-btn" data-style="rock">Rock</button>
+                        <button class="selector-btn" data-style="country">Country</button>
+                        <button class="selector-btn" data-style="classical">Classical</button>
+                        <button class="selector-btn" data-style="funk">Funk</button>
+                        <button class="selector-btn" data-style="bossa">Bossa Nova</button>
+                    </div>
+                </div>
+
+                <div class="theory-selector hidden" id="theory-selector">
+                    <div class="theory-controls">
+                        <div class="control-group">
+                            <label for="key-select">Key:</label>
+                            <select id="key-select">
+                                <option value="C">C</option>
+                                <option value="C#">C#/Db</option>
+                                <option value="D">D</option>
+                                <option value="D#">D#/Eb</option>
+                                <option value="E">E</option>
+                                <option value="F">F</option>
+                                <option value="F#">F#/Gb</option>
+                                <option value="G">G</option>
+                                <option value="G#">G#/Ab</option>
+                                <option value="A">A</option>
+                                <option value="A#">A#/Bb</option>
+                                <option value="B">B</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label for="mode-select">Mode:</label>
+                            <select id="mode-select">
+                                <option value="ionian">Ionian (Major)</option>
+                                <option value="dorian">Dorian</option>
+                                <option value="phrygian">Phrygian</option>
+                                <option value="lydian">Lydian</option>
+                                <option value="mixolydian">Mixolydian</option>
+                                <option value="aeolian">Aeolian (Minor)</option>
+                                <option value="locrian">Locrian</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-controls">
+                <div class="voicing-filter">
+                    <label>Voicings:</label>
+                    <div class="btn-group">
+                        <button class="filter-btn active" data-voicing="all">All</button>
+                        <button class="filter-btn" data-voicing="beginner">Beginner</button>
+                        <button class="filter-btn" data-voicing="advanced">Advanced</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="show-chords-btn" id="show-chords-btn">Show Chords</button>
+        </section>
+
+        <!-- Results Area -->
+        <section class="results-area" id="results-area">
+            <div class="chord-grid" id="chord-grid">
+                <!-- Chord cards will be dynamically inserted here -->
+            </div>
+        </section>
+
+        <!-- Arpeggio Section (collapsible) -->
+        <section class="arpeggio-section hidden" id="arpeggio-section">
+            <button class="arpeggio-toggle" id="arpeggio-toggle">
+                <span>Show Arpeggios</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="arpeggio-content hidden" id="arpeggio-content">
+                <!-- Arpeggio diagrams will be inserted here -->
+            </div>
+        </section>
+
+        <!-- Progression Builder (Phase 6) -->
+        <section class="progression-builder hidden" id="progression-builder">
+            <h2>Progression Builder</h2>
+            <div class="progression-slots" id="progression-slots">
+                <!-- Progression slots will be inserted here -->
+            </div>
+            <div class="progression-controls">
+                <button class="btn" id="play-progression">Play All</button>
+                <button class="btn secondary" id="clear-progression">Clear</button>
+                <button class="btn secondary" id="save-progression">Save</button>
+            </div>
+        </section>
+
+        <!-- Practice Tools (Phase 7) -->
+        <section class="practice-tools hidden" id="practice-tools">
+            <h2>Practice Tools</h2>
+            <div class="metronome">
+                <label for="tempo-slider">Metronome:</label>
+                <input type="range" id="tempo-slider" min="40" max="220" value="80">
+                <span id="tempo-display">80 BPM</span>
+                <button class="btn" id="metronome-start">Start</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/data/chordData.js"></script>
+    <script src="js/renderers/chordRenderer.js"></script>
+    <script src="js/renderers/tabRenderer.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+/* Guitar Chord Explorer - Responsive Styles */
+
+/* Tablet (768px - 1024px) */
+@media screen and (max-width: 1024px) {
+    .main-content {
+        padding: var(--spacing-lg);
+    }
+
+    .chord-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    .header {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+
+    .logo {
+        font-size: var(--font-size-lg);
+    }
+
+    .nav-btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .theory-controls {
+        gap: var(--spacing-lg);
+    }
+}
+
+/* Mobile (< 768px) */
+@media screen and (max-width: 768px) {
+    .header {
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+    }
+
+    .header-left {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .header-nav {
+        width: 100%;
+        justify-content: center;
+        order: 3;
+    }
+
+    .header-right {
+        position: absolute;
+        top: var(--spacing-md);
+        right: var(--spacing-md);
+    }
+
+    .main-content {
+        padding: var(--spacing-md);
+    }
+
+    .selection-panel {
+        padding: var(--spacing-lg);
+    }
+
+    .selector-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .chord-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+
+    .chord-card-body {
+        padding: var(--spacing-md);
+    }
+
+    .theory-controls {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .control-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .control-group select {
+        flex: 1;
+        max-width: 200px;
+    }
+
+    .filter-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+    }
+
+    .voicing-filter {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+
+    .btn-group {
+        width: 100%;
+    }
+
+    .filter-btn {
+        flex: 1;
+        padding: var(--spacing-sm);
+    }
+
+    .show-chords-btn {
+        max-width: none;
+    }
+
+    .chord-card-actions {
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        flex: 1;
+        min-width: calc(50% - var(--spacing-sm));
+    }
+
+    .voicing-dropdown {
+        width: 100%;
+        text-align: left;
+        margin-top: var(--spacing-sm);
+    }
+
+    .voicing-dropdown select {
+        width: 100%;
+    }
+}
+
+/* Small Mobile (< 480px) */
+@media screen and (max-width: 480px) {
+    :root {
+        --spacing-lg: 1rem;
+        --spacing-xl: 1.5rem;
+    }
+
+    .logo {
+        font-size: var(--font-size-base);
+    }
+
+    .nav-btn {
+        font-size: var(--font-size-sm);
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    .selector-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .selector-btn {
+        padding: var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+
+    .chord-card-header {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .chord-name {
+        font-size: var(--font-size-base);
+    }
+
+    .chord-symbol {
+        font-size: var(--font-size-sm);
+    }
+
+    .tablature {
+        font-size: 12px;
+    }
+
+    .action-btn {
+        font-size: 12px;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+}
+
+/* Landscape orientation on mobile */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+    .chord-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .header {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .header-left {
+        width: auto;
+    }
+
+    .header-nav {
+        width: auto;
+        order: 0;
+    }
+
+    .selection-panel {
+        padding: var(--spacing-md);
+    }
+}
+
+/* Large screens (> 1400px) */
+@media screen and (min-width: 1400px) {
+    .chord-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Extra large screens (> 1800px) */
+@media screen and (min-width: 1800px) {
+    .main-content {
+        max-width: 1800px;
+    }
+
+    .chord-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* Print styles */
+@media print {
+    .header,
+    .selection-panel,
+    .chord-card-actions,
+    .practice-tools,
+    .progression-builder {
+        display: none !important;
+    }
+
+    .main-content {
+        max-width: none;
+        padding: 0;
+    }
+
+    .chord-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1cm;
+    }
+
+    .chord-card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        break-inside: avoid;
+    }
+
+    .chord-card:hover {
+        transform: none;
+    }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    :root {
+        --border-color: #000000;
+        --text-secondary: #333333;
+        --shadow-color: rgba(0, 0, 0, 0.3);
+    }
+
+    .chord-card {
+        border: 2px solid var(--border-color);
+    }
+
+    .selector-btn,
+    .nav-btn,
+    .action-btn {
+        border-width: 2px;
+    }
+}

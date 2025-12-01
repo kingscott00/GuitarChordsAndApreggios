@@ -14,7 +14,8 @@ const App = {
         voicingFilter: 'all',
         selectedChords: [],
         displayedChords: [],
-        hasSearched: false
+        hasSearched: false,
+        arpeggiosExpanded: false
     },
 
     /**
@@ -62,6 +63,11 @@ const App = {
         // Show Chords button
         document.getElementById('show-chords-btn')?.addEventListener('click', () => {
             this.showChords();
+        });
+
+        // Arpeggio toggle
+        document.getElementById('arpeggio-toggle')?.addEventListener('click', () => {
+            this.toggleArpeggios();
         });
     },
 
@@ -233,6 +239,9 @@ const App = {
 
         this.state.displayedChords = chords;
         this.renderChordGrid(chords);
+
+        // Show arpeggio section and update if expanded
+        this.showArpeggioSection(chords);
     },
 
     /**
@@ -387,6 +396,131 @@ const App = {
         card.appendChild(header);
         card.appendChild(body);
         card.appendChild(actions);
+
+        return card;
+    },
+
+    /**
+     * Show arpeggio section when chords are displayed
+     */
+    showArpeggioSection(chords) {
+        const section = document.getElementById('arpeggio-section');
+
+        // Check if any displayed chords have arpeggios
+        const chordsWithArpeggios = chords.filter(chord => getArpeggioForChord(chord.id));
+
+        if (chordsWithArpeggios.length > 0) {
+            section.classList.remove('hidden');
+
+            // Update the toggle button text with count
+            const toggle = document.getElementById('arpeggio-toggle');
+            const toggleText = toggle.querySelector('span');
+            toggleText.textContent = `Show Arpeggios (${chordsWithArpeggios.length} available)`;
+
+            // If already expanded, update the content
+            if (this.state.arpeggiosExpanded) {
+                this.renderArpeggios(chordsWithArpeggios);
+            }
+        } else {
+            section.classList.add('hidden');
+        }
+    },
+
+    /**
+     * Toggle arpeggio section visibility
+     */
+    toggleArpeggios() {
+        const toggle = document.getElementById('arpeggio-toggle');
+        const content = document.getElementById('arpeggio-content');
+
+        this.state.arpeggiosExpanded = !this.state.arpeggiosExpanded;
+
+        toggle.classList.toggle('expanded', this.state.arpeggiosExpanded);
+        content.classList.toggle('hidden', !this.state.arpeggiosExpanded);
+
+        if (this.state.arpeggiosExpanded) {
+            // Get chords with arpeggios
+            const chordsWithArpeggios = this.state.displayedChords.filter(
+                chord => getArpeggioForChord(chord.id)
+            );
+            this.renderArpeggios(chordsWithArpeggios);
+        }
+    },
+
+    /**
+     * Render arpeggios for displayed chords
+     */
+    renderArpeggios(chords) {
+        const content = document.getElementById('arpeggio-content');
+        content.innerHTML = '';
+
+        // Add legend at the top
+        const legend = ArpeggioRenderer.renderLegend();
+        content.appendChild(legend);
+
+        // Render each arpeggio
+        chords.forEach(chord => {
+            const arpeggio = getArpeggioForChord(chord.id);
+            if (arpeggio) {
+                const card = this.createArpeggioCard(arpeggio);
+                content.appendChild(card);
+            }
+        });
+    },
+
+    /**
+     * Create an arpeggio card element
+     */
+    createArpeggioCard(arpeggio) {
+        const card = document.createElement('div');
+        card.className = 'arpeggio-card';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'arpeggio-card-header';
+
+        const name = document.createElement('span');
+        name.className = 'arpeggio-name';
+        name.textContent = arpeggio.name;
+
+        const position = document.createElement('span');
+        position.className = 'arpeggio-position';
+        position.textContent = arpeggio.position;
+
+        header.appendChild(name);
+        header.appendChild(position);
+
+        // Notes display
+        const notesContainer = document.createElement('div');
+        notesContainer.className = 'arpeggio-notes';
+
+        arpeggio.notes.forEach((note, index) => {
+            const badge = document.createElement('span');
+            badge.className = `note-badge${index === 0 ? ' root' : ''}`;
+            badge.textContent = note;
+            notesContainer.appendChild(badge);
+        });
+
+        // Diagram container
+        const diagramContainer = document.createElement('div');
+        diagramContainer.className = 'arpeggio-diagram-container';
+
+        const diagram = ArpeggioRenderer.render(arpeggio);
+        diagramContainer.appendChild(diagram);
+
+        // Tab
+        const tab = ArpeggioRenderer.renderTab(arpeggio);
+
+        // Tips
+        const tips = document.createElement('div');
+        tips.className = 'arpeggio-tips';
+        tips.innerHTML = `<span class="arpeggio-tips-label">Tip:</span>${arpeggio.fingeringTips}`;
+
+        card.appendChild(header);
+        card.appendChild(notesContainer);
+        card.appendChild(diagramContainer);
+        card.appendChild(tab);
+        card.appendChild(tips);
 
         return card;
     },

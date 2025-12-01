@@ -411,3 +411,196 @@
     color: var(--accent);
     margin-right: var(--spacing-xs);
 }
+
+/* Arpeggio Section */
+.arpeggio-section {
+    margin-top: var(--spacing-xl);
+}
+
+.arpeggio-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.arpeggio-toggle:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+.arpeggio-toggle.expanded {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    border-bottom: none;
+}
+
+.arpeggio-toggle svg {
+    transition: transform var(--transition-fast);
+}
+
+.arpeggio-toggle.expanded svg {
+    transform: rotate(180deg);
+}
+
+.arpeggio-content {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    padding: var(--spacing-xl);
+}
+
+/* Arpeggio Card */
+.arpeggio-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.arpeggio-card:last-child {
+    margin-bottom: 0;
+}
+
+.arpeggio-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.arpeggio-name {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.arpeggio-position {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+}
+
+.arpeggio-diagram-container {
+    overflow-x: auto;
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-sm) 0;
+}
+
+.arpeggio-diagram {
+    display: block;
+    min-width: max-content;
+}
+
+/* Arpeggio Legend */
+.arpeggio-legend {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    padding: var(--spacing-md);
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.legend-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
+
+/* Arpeggio Tab */
+.arpeggio-tab-container {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+}
+
+.arpeggio-tablature {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-primary);
+    white-space: pre;
+    overflow-x: auto;
+}
+
+/* Arpeggio Tips */
+.arpeggio-tips {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.arpeggio-tips-label {
+    font-weight: 600;
+    color: var(--accent);
+    margin-right: var(--spacing-sm);
+}
+
+/* Notes display */
+.arpeggio-notes {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.note-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 var(--spacing-sm);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.note-badge.root {
+    background: #E63946;
+    color: white;
+    border-color: #E63946;
+}
+
+/* No arpeggio available state */
+.no-arpeggio {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-muted);
+}
+
+.no-arpeggio-icon {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-sm);
+    opacity: 0.5;
+}

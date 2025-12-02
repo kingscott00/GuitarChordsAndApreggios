@@ -2515,8 +2515,11 @@ const App = {
             this.applySettings();
             this.saveSettings();
             // Re-render arpeggios if any are displayed
-            if (this.state.displayedChords.length > 0) {
-                this.renderArpeggios();
+            if (this.state.displayedChords.length > 0 && this.state.arpeggiosExpanded) {
+                const chordsWithArpeggios = this.state.displayedChords.filter(
+                    chord => getArpeggioForChord(chord.id)
+                );
+                this.renderArpeggios(chordsWithArpeggios);
             }
         });
 
@@ -3376,7 +3379,8 @@ const App = {
         document.getElementById('per-chord-modes-section')?.classList.toggle('hidden', mode !== 'per-chord');
 
         // Render appropriate content if progression exists
-        if (this.state.progression.length > 0) {
+        const hasValidProgression = this.state.progression.some(item => item !== null && item !== undefined);
+        if (hasValidProgression) {
             if (mode === 'single') {
                 this.renderMainScale();
             } else {
@@ -3389,7 +3393,10 @@ const App = {
      * Update Scale Builder when progression changes
      */
     updateScaleBuilder() {
-        if (this.state.progression.length === 0) {
+        // Check if there are any valid (non-null) entries in the progression
+        const hasValidProgression = this.state.progression.some(item => item !== null && item !== undefined);
+
+        if (!hasValidProgression) {
             this.showScaleEmptyState();
             return;
         }

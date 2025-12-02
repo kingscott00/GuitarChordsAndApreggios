@@ -886,6 +886,19 @@ h3 { font-size: var(--font-size-lg); }
     font-size: var(--font-size-sm);
 }
 
+/* Scale Builder */
+.scale-builder {
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-top: var(--spacing-xl);
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.scale-builder .section-content {
+    padding: var(--spacing-lg);
+}
+
 /* Practice Tools */
 .practice-tools {
     background: var(--bg-primary);

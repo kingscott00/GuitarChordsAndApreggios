@@ -61,18 +61,34 @@ const App = {
         tapTempo: {
             taps: [],
             lastTap: 0
-        }
+        },
+        // Settings state
+        settings: {
+            showTab: true,
+            showFingerInfo: true,
+            darkTheme: false,
+            leftHanded: false
+        },
+        // Favorites state
+        favorites: [],
+        // Arpeggio sequence state
+        arpeggioSequence: []
     },
 
     /**
      * Initialize the application
      */
     init() {
+        this.loadSettings();
         this.bindEventListeners();
         this.initVolumeControl();
+        this.initSettingsPanel();
+        this.initCollapsibleSections();
+        this.initArpeggioSequenceBuilder();
         this.initProgressionBuilder();
         this.initPracticeTools();
         this.loadSavedProgressions();
+        this.loadFavorites();
         // Show all chords on initial load
         this.displayAllChords();
     },
@@ -120,14 +136,14 @@ const App = {
             btn.addEventListener('click', (e) => this.handleModeChange(e));
         });
 
-        // Mood selector buttons
-        document.querySelectorAll('#mood-selector .selector-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.handleMoodSelect(e));
+        // Mood dropdown
+        document.getElementById('mood-dropdown')?.addEventListener('change', (e) => {
+            this.state.currentMood = e.target.value || null;
         });
 
-        // Style selector buttons
-        document.querySelectorAll('#style-selector .selector-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.handleStyleSelect(e));
+        // Style dropdown
+        document.getElementById('style-dropdown')?.addEventListener('change', (e) => {
+            this.state.currentStyle = e.target.value || null;
         });
 
         // Theory selectors
@@ -177,45 +193,6 @@ const App = {
         this.hideSelectionInfo();
     },
 
-    /**
-     * Handle mood selection
-     */
-    handleMoodSelect(e) {
-        const mood = e.target.dataset.mood;
-
-        // Toggle selection
-        if (this.state.currentMood === mood) {
-            this.state.currentMood = null;
-            e.target.classList.remove('active');
-        } else {
-            // Remove active from all mood buttons
-            document.querySelectorAll('#mood-selector .selector-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            this.state.currentMood = mood;
-            e.target.classList.add('active');
-        }
-    },
-
-    /**
-     * Handle style selection
-     */
-    handleStyleSelect(e) {
-        const style = e.target.dataset.style;
-
-        // Toggle selection
-        if (this.state.currentStyle === style) {
-            this.state.currentStyle = null;
-            e.target.classList.remove('active');
-        } else {
-            // Remove active from all style buttons
-            document.querySelectorAll('#style-selector .selector-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            this.state.currentStyle = style;
-            e.target.classList.add('active');
-        }
-    },
 
     /**
      * Handle voicing filter change
@@ -242,9 +219,11 @@ const App = {
         this.state.currentMood = null;
         this.state.currentStyle = null;
 
-        document.querySelectorAll('.selector-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
+        // Reset dropdowns
+        const moodDropdown = document.getElementById('mood-dropdown');
+        const styleDropdown = document.getElementById('style-dropdown');
+        if (moodDropdown) moodDropdown.value = '';
+        if (styleDropdown) styleDropdown.value = '';
     },
 
     /**
@@ -495,15 +474,24 @@ const App = {
         });
 
         const favBtn = document.createElement('button');
-        favBtn.className = 'action-btn';
+        const isFavorite = this.isFavorite(chord.id);
+        favBtn.className = `action-btn fav-btn${isFavorite ? ' active' : ''}`;
         favBtn.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="${isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
             </svg>
-            <span>Favorite</span>
+            <span>${isFavorite ? 'Favorited' : 'Favorite'}</span>
         `;
-        favBtn.disabled = true;
-        favBtn.title = 'Favorites coming in Phase 8';
+        favBtn.title = 'Toggle favorite';
+        favBtn.addEventListener('click', () => {
+            const currentChord = getChordById(card.dataset.chordId);
+            if (currentChord) {
+                const nowFavorite = this.toggleFavorite(currentChord.id);
+                favBtn.classList.toggle('active', nowFavorite);
+                favBtn.querySelector('svg').setAttribute('fill', nowFavorite ? 'currentColor' : 'none');
+                favBtn.querySelector('span').textContent = nowFavorite ? 'Favorited' : 'Favorite';
+            }
+        });
 
         const addBtn = document.createElement('button');
         addBtn.className = 'action-btn add-btn';
@@ -619,19 +607,21 @@ const App = {
      * Render arpeggios for displayed chords
      */
     renderArpeggios(chords) {
-        const content = document.getElementById('arpeggio-content');
-        content.innerHTML = '';
+        const arpeggioList = document.getElementById('arpeggio-list');
+        if (!arpeggioList) return;
+
+        arpeggioList.innerHTML = '';
 
         // Add legend at the top
         const legend = ArpeggioRenderer.renderLegend();
-        content.appendChild(legend);
+        arpeggioList.appendChild(legend);
 
         // Render each arpeggio
         chords.forEach(chord => {
             const arpeggio = getArpeggioForChord(chord.id);
             if (arpeggio) {
                 const card = this.createArpeggioCard(arpeggio);
-                content.appendChild(card);
+                arpeggioList.appendChild(card);
             }
         });
     },
@@ -661,6 +651,11 @@ const App = {
         headerLeft.appendChild(name);
         headerLeft.appendChild(position);
 
+        // Button container
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '8px';
+
         // Play button for arpeggio
         const playBtn = document.createElement('button');
         playBtn.className = 'action-btn arpeggio-play-btn';
@@ -673,8 +668,32 @@ const App = {
         playBtn.title = 'Play arpeggio';
         playBtn.addEventListener('click', (e) => this.playArpeggio(arpeggio, e.currentTarget));
 
+        // Add to sequence button
+        const addSequenceBtn = document.createElement('button');
+        addSequenceBtn.className = 'action-btn add-to-sequence-btn';
+        addSequenceBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Add to Sequence</span>
+        `;
+        addSequenceBtn.title = 'Add to arpeggio sequence';
+        addSequenceBtn.addEventListener('click', () => {
+            this.addToArpeggioSequence(arpeggio);
+            addSequenceBtn.classList.add('added');
+            addSequenceBtn.querySelector('span').textContent = 'Added!';
+            setTimeout(() => {
+                addSequenceBtn.classList.remove('added');
+                addSequenceBtn.querySelector('span').textContent = 'Add to Sequence';
+            }, 1000);
+        });
+
+        buttonContainer.appendChild(playBtn);
+        buttonContainer.appendChild(addSequenceBtn);
+
         header.appendChild(headerLeft);
-        header.appendChild(playBtn);
+        header.appendChild(buttonContainer);
 
         // Notes display
         const notesContainer = document.createElement('div');
@@ -2055,6 +2074,387 @@ const App = {
         if (chordsDisplay) {
             chordsDisplay.textContent = `${this.state.session.chordsPracticed} chord${this.state.session.chordsPracticed !== 1 ? 's' : ''}`;
         }
+    },
+
+    // ==========================================
+    // SETTINGS METHODS
+    // ==========================================
+
+    /**
+     * Load settings from localStorage
+     */
+    loadSettings() {
+        try {
+            const saved = localStorage.getItem('guitarExplorerSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                this.state.settings = { ...this.state.settings, ...settings };
+            }
+        } catch (error) {
+            console.error('Failed to load settings:', error);
+        }
+
+        // Apply loaded settings
+        this.applySettings();
+    },
+
+    /**
+     * Save settings to localStorage
+     */
+    saveSettings() {
+        try {
+            localStorage.setItem('guitarExplorerSettings', JSON.stringify(this.state.settings));
+        } catch (error) {
+            console.error('Failed to save settings:', error);
+        }
+    },
+
+    /**
+     * Apply all settings
+     */
+    applySettings() {
+        // Apply tab visibility
+        const chordGrid = document.getElementById('chord-grid');
+        if (chordGrid) {
+            chordGrid.classList.toggle('hide-tab', !this.state.settings.showTab);
+            chordGrid.classList.toggle('hide-finger-info', !this.state.settings.showFingerInfo);
+        }
+
+        // Apply dark theme
+        document.body.classList.toggle('dark-theme', this.state.settings.darkTheme);
+
+        // Apply left-handed mode
+        document.body.classList.toggle('left-handed', this.state.settings.leftHanded);
+
+        // Update settings panel checkboxes
+        const showTabToggle = document.getElementById('show-tab-toggle');
+        const showFingerToggle = document.getElementById('show-finger-toggle');
+        const darkThemeToggle = document.getElementById('dark-theme-toggle');
+        const leftHandedToggle = document.getElementById('left-handed-toggle');
+
+        if (showTabToggle) showTabToggle.checked = this.state.settings.showTab;
+        if (showFingerToggle) showFingerToggle.checked = this.state.settings.showFingerInfo;
+        if (darkThemeToggle) darkThemeToggle.checked = this.state.settings.darkTheme;
+        if (leftHandedToggle) leftHandedToggle.checked = this.state.settings.leftHanded;
+    },
+
+    /**
+     * Initialize settings panel
+     */
+    initSettingsPanel() {
+        // Settings button
+        document.getElementById('settings-btn')?.addEventListener('click', () => this.toggleSettingsPanel());
+        document.getElementById('settings-close')?.addEventListener('click', () => this.closeSettingsPanel());
+
+        // Theme button quick toggle
+        document.getElementById('theme-btn')?.addEventListener('click', () => {
+            this.state.settings.darkTheme = !this.state.settings.darkTheme;
+            this.applySettings();
+            this.saveSettings();
+        });
+
+        // Settings toggles
+        document.getElementById('show-tab-toggle')?.addEventListener('change', (e) => {
+            this.state.settings.showTab = e.target.checked;
+            this.applySettings();
+            this.saveSettings();
+        });
+
+        document.getElementById('show-finger-toggle')?.addEventListener('change', (e) => {
+            this.state.settings.showFingerInfo = e.target.checked;
+            this.applySettings();
+            this.saveSettings();
+        });
+
+        document.getElementById('dark-theme-toggle')?.addEventListener('change', (e) => {
+            this.state.settings.darkTheme = e.target.checked;
+            this.applySettings();
+            this.saveSettings();
+        });
+
+        document.getElementById('left-handed-toggle')?.addEventListener('change', (e) => {
+            this.state.settings.leftHanded = e.target.checked;
+            this.applySettings();
+            this.saveSettings();
+            // Re-render chords with new orientation
+            if (this.state.displayedChords.length > 0) {
+                this.renderChordGrid(this.state.displayedChords);
+            }
+        });
+    },
+
+    /**
+     * Toggle settings panel visibility
+     */
+    toggleSettingsPanel() {
+        const panel = document.getElementById('settings-panel');
+        if (panel) {
+            panel.classList.toggle('hidden');
+        }
+    },
+
+    /**
+     * Close settings panel
+     */
+    closeSettingsPanel() {
+        const panel = document.getElementById('settings-panel');
+        if (panel) {
+            panel.classList.add('hidden');
+        }
+    },
+
+    // ==========================================
+    // COLLAPSIBLE SECTIONS
+    // ==========================================
+
+    /**
+     * Initialize collapsible sections
+     */
+    initCollapsibleSections() {
+        // All sections collapsed by default except chord section
+        // Selection panel and Results area stay visible (chord section)
+
+        // Collapse arpeggio section (already has toggle)
+        this.state.arpeggiosExpanded = false;
+
+        // Collapse progression builder
+        const progressionBuilder = document.getElementById('progression-builder');
+        if (progressionBuilder) {
+            progressionBuilder.classList.add('collapsed');
+        }
+
+        // Collapse practice tools
+        const practiceTools = document.getElementById('practice-tools');
+        if (practiceTools) {
+            practiceTools.classList.add('collapsed');
+        }
+    },
+
+    /**
+     * Toggle section collapse state
+     */
+    toggleSection(sectionId) {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.classList.toggle('collapsed');
+        }
+    },
+
+    // ==========================================
+    // FAVORITES METHODS
+    // ==========================================
+
+    /**
+     * Load favorites from localStorage
+     */
+    loadFavorites() {
+        try {
+            const saved = localStorage.getItem('guitarExplorerFavorites');
+            if (saved) {
+                this.state.favorites = JSON.parse(saved);
+            }
+        } catch (error) {
+            console.error('Failed to load favorites:', error);
+            this.state.favorites = [];
+        }
+    },
+
+    /**
+     * Save favorites to localStorage
+     */
+    saveFavorites() {
+        try {
+            localStorage.setItem('guitarExplorerFavorites', JSON.stringify(this.state.favorites));
+        } catch (error) {
+            console.error('Failed to save favorites:', error);
+        }
+    },
+
+    /**
+     * Toggle chord as favorite
+     */
+    toggleFavorite(chordId) {
+        const index = this.state.favorites.indexOf(chordId);
+        if (index > -1) {
+            this.state.favorites.splice(index, 1);
+        } else {
+            this.state.favorites.push(chordId);
+        }
+        this.saveFavorites();
+        return index === -1; // Returns true if now favorite
+    },
+
+    /**
+     * Check if chord is favorite
+     */
+    isFavorite(chordId) {
+        return this.state.favorites.includes(chordId);
+    },
+
+    // ==========================================
+    // ARPEGGIO SEQUENCE BUILDER METHODS
+    // ==========================================
+
+    /**
+     * Initialize arpeggio sequence builder
+     */
+    initArpeggioSequenceBuilder() {
+        document.getElementById('clear-sequence')?.addEventListener('click', () => this.clearArpeggioSequence());
+        document.getElementById('generate-sequence-tab')?.addEventListener('click', () => this.generateSequenceTablature());
+    },
+
+    /**
+     * Add arpeggio to sequence
+     */
+    addToArpeggioSequence(arpeggio) {
+        this.state.arpeggioSequence.push({
+            id: arpeggio.id || arpeggio.chordId,
+            name: arpeggio.name,
+            arpeggio: arpeggio
+        });
+        this.renderArpeggioSequence();
+    },
+
+    /**
+     * Remove arpeggio from sequence
+     */
+    removeFromArpeggioSequence(index) {
+        this.state.arpeggioSequence.splice(index, 1);
+        this.renderArpeggioSequence();
+    },
+
+    /**
+     * Clear arpeggio sequence
+     */
+    clearArpeggioSequence() {
+        this.state.arpeggioSequence = [];
+        this.renderArpeggioSequence();
+        document.getElementById('sequence-tablature')?.classList.add('hidden');
+    },
+
+    /**
+     * Render arpeggio sequence slots
+     */
+    renderArpeggioSequence() {
+        const container = document.getElementById('sequence-slots');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        this.state.arpeggioSequence.forEach((item, index) => {
+            const slot = document.createElement('div');
+            slot.className = 'sequence-slot-item';
+            slot.draggable = true;
+            slot.dataset.index = index;
+
+            slot.innerHTML = `
+                <span class="slot-name">${item.name}</span>
+                <button class="slot-remove" title="Remove">&times;</button>
+            `;
+
+            // Remove button
+            slot.querySelector('.slot-remove').addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.removeFromArpeggioSequence(index);
+            });
+
+            // Drag events
+            slot.addEventListener('dragstart', (e) => {
+                slot.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', index.toString());
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            slot.addEventListener('dragend', () => {
+                slot.classList.remove('dragging');
+            });
+
+            slot.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const dragging = container.querySelector('.dragging');
+                if (dragging && dragging !== slot) {
+                    const rect = slot.getBoundingClientRect();
+                    const midpoint = rect.left + rect.width / 2;
+                    if (e.clientX < midpoint) {
+                        container.insertBefore(dragging, slot);
+                    } else {
+                        container.insertBefore(dragging, slot.nextSibling);
+                    }
+                }
+            });
+
+            slot.addEventListener('drop', (e) => {
+                e.preventDefault();
+                // Rebuild sequence from DOM order
+                const items = container.querySelectorAll('.sequence-slot-item');
+                const newSequence = [];
+                items.forEach(item => {
+                    const idx = parseInt(item.dataset.index);
+                    if (this.state.arpeggioSequence[idx]) {
+                        newSequence.push(this.state.arpeggioSequence[idx]);
+                    }
+                });
+                this.state.arpeggioSequence = newSequence;
+                this.renderArpeggioSequence();
+            });
+
+            container.appendChild(slot);
+        });
+    },
+
+    /**
+     * Generate combined tablature for arpeggio sequence
+     */
+    generateSequenceTablature() {
+        if (this.state.arpeggioSequence.length === 0) {
+            alert('Add some arpeggios to the sequence first!');
+            return;
+        }
+
+        const tabContainer = document.getElementById('sequence-tablature');
+        const tabContent = document.getElementById('sequence-tab-content');
+
+        if (!tabContainer || !tabContent) return;
+
+        // Generate combined tablature
+        const stringNames = ['e', 'B', 'G', 'D', 'A', 'E'];
+        const strings = [[], [], [], [], [], []];
+        const separator = '---';
+
+        this.state.arpeggioSequence.forEach((item, seqIndex) => {
+            const arpeggio = item.arpeggio;
+            if (!arpeggio || !arpeggio.pattern) return;
+
+            // Add separator between arpeggios (except first)
+            if (seqIndex > 0) {
+                for (let i = 0; i < 6; i++) {
+                    strings[i].push(separator);
+                }
+            }
+
+            // Build tab for this arpeggio pattern
+            arpeggio.pattern.forEach(step => {
+                const stringIdx = 6 - step.string; // Convert string number to array index
+                const fret = step.fret.toString().padStart(2, '-');
+
+                for (let i = 0; i < 6; i++) {
+                    if (i === stringIdx) {
+                        strings[i].push(fret);
+                    } else {
+                        strings[i].push('--');
+                    }
+                }
+            });
+        });
+
+        // Build tablature string
+        let tabString = '';
+        stringNames.forEach((name, idx) => {
+            tabString += `${name}|${strings[idx].join('-')}|\n`;
+        });
+
+        tabContent.textContent = tabString;
+        tabContainer.classList.remove('hidden');
     }
 };
 

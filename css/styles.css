@@ -247,8 +247,64 @@ h3 { font-size: var(--font-size-lg); }
     box-shadow: 0 2px 8px var(--shadow-color);
 }
 
+/* Compact Selection Panel */
+.selection-panel.compact {
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.selection-row {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
 .selection-controls {
-    margin-bottom: var(--spacing-lg);
+    flex: 1;
+    min-width: 150px;
+}
+
+.selector-dropdown {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    cursor: pointer;
+}
+
+.selector-dropdown:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.voicing-filter-compact {
+    display: flex;
+    align-items: center;
+}
+
+.theory-controls-compact {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.theory-controls-compact select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    cursor: pointer;
+}
+
+.show-chords-btn.compact {
+    width: auto;
+    max-width: none;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--font-size-base);
 }
 
 .selector-grid {
@@ -1125,4 +1181,338 @@ h3 { font-size: var(--font-size-lg); }
 .progression-practice-actions {
     display: flex;
     gap: var(--spacing-md);
+}
+
+/* Settings Panel */
+.settings-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 320px;
+    max-width: 100%;
+    height: 100vh;
+    background: var(--bg-primary);
+    box-shadow: -4px 0 20px var(--shadow-color);
+    z-index: 1000;
+    transform: translateX(100%);
+    transition: transform var(--transition-normal);
+}
+
+.settings-panel:not(.hidden) {
+    transform: translateX(0);
+}
+
+.settings-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-panel-header h3 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+}
+
+.settings-close-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: var(--transition-fast);
+}
+
+.settings-close-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.settings-panel-content {
+    padding: var(--spacing-lg);
+    overflow-y: auto;
+    height: calc(100vh - 70px);
+}
+
+.settings-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.settings-section h4 {
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+}
+
+.settings-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+}
+
+.settings-option label {
+    font-size: var(--font-size-base);
+    color: var(--text-primary);
+}
+
+.settings-option input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 999;
+}
+
+/* Collapsible Sections */
+.collapsible-section {
+    position: relative;
+}
+
+.section-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--spacing-lg);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-lg);
+}
+
+.section-toggle h2 {
+    margin: 0;
+    font-size: var(--font-size-xl);
+    color: var(--text-primary);
+}
+
+.section-toggle .toggle-icon {
+    transition: transform var(--transition-fast);
+}
+
+.collapsible-section.collapsed .section-toggle .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.collapsible-section .section-content {
+    display: block;
+}
+
+.collapsible-section.collapsed .section-content {
+    display: none;
+}
+
+.collapsible-section.collapsed .section-toggle {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+/* Dark Theme */
+.dark-theme {
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-card: #1a1a2e;
+    --text-primary: #eaeaea;
+    --text-secondary: #b0b0b0;
+    --text-muted: #777777;
+    --accent: #4a9eff;
+    --accent-hover: #3a8eef;
+    --accent-light: rgba(74, 158, 255, 0.15);
+    --border-color: #2d3748;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --fretboard-bg: #3d2914;
+    --fretboard-fret: #5c4a3a;
+    --fretboard-string: #a0a0a0;
+    --fretboard-nut: #f0f0f0;
+    --dot-color: #eaeaea;
+    --dot-root: #ff6b6b;
+}
+
+.dark-theme .difficulty-badge.beginner {
+    background-color: #1b4332;
+    color: #95d5b2;
+}
+
+.dark-theme .difficulty-badge.intermediate {
+    background-color: #4a3728;
+    color: #ffb366;
+}
+
+.dark-theme .difficulty-badge.advanced {
+    background-color: #4a2837;
+    color: #ff8fa3;
+}
+
+.dark-theme .settings-panel {
+    background: var(--bg-secondary);
+}
+
+/* Left-handed mode - flip diagrams */
+.left-handed .chord-diagram,
+.left-handed .arpeggio-diagram {
+    transform: scaleX(-1);
+}
+
+.left-handed .chord-diagram .finger-number,
+.left-handed .chord-diagram .string-label,
+.left-handed .chord-diagram .position-marker {
+    transform: scaleX(-1);
+}
+
+/* Arpeggio Sequence Builder */
+.arpeggio-sequence-builder {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.arpeggio-sequence-builder h4 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+}
+
+.builder-description {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.sequence-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    min-height: 50px;
+    padding: var(--spacing-md);
+    background: var(--bg-primary);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.sequence-slots:empty::before {
+    content: 'No arpeggios selected. Click "Add to Sequence" on arpeggios below.';
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: var(--spacing-sm);
+}
+
+.sequence-slot-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--accent-light);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    cursor: grab;
+    user-select: none;
+    transition: all var(--transition-fast);
+}
+
+.sequence-slot-item:active {
+    cursor: grabbing;
+}
+
+.sequence-slot-item.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.sequence-slot-item .slot-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.sequence-slot-item .slot-remove {
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    transition: var(--transition-fast);
+}
+
+.sequence-slot-item .slot-remove:hover {
+    background: #E63946;
+    color: white;
+}
+
+.sequence-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.sequence-tablature {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+}
+
+.sequence-tablature h4 {
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.sequence-tab-content {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre;
+    overflow-x: auto;
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+.arpeggio-divider {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: var(--spacing-lg) 0;
+}
+
+.arpeggio-content > h4 {
+    margin: 0 0 var(--spacing-md) 0;
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+}
+
+/* Add to sequence button in arpeggio cards */
+.add-to-sequence-btn {
+    margin-left: auto;
+}
+
+.add-to-sequence-btn.added {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+    color: white;
 }

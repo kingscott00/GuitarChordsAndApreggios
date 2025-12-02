@@ -233,23 +233,20 @@ const ArpeggioRenderer = {
 
         const y = dims.startY + dims.fretboardHeight + 20;
 
-        // Show fret number every few frets or at start
+        // Show all fret numbers without skipping
         for (let i = 0; i <= dims.numFrets; i++) {
             const fretNum = startFret + i;
-            // Show at nut, fret markers, and edges
-            if (fretNum === 0 || this.config.fretMarkers.includes(fretNum) || i === 0 || i === dims.numFrets) {
-                const x = dims.startX + (i * dims.fretWidth) - (i === 0 ? 0 : dims.fretWidth / 2);
+            const x = dims.startX + (i * dims.fretWidth) - (i === 0 ? 0 : dims.fretWidth / 2);
 
-                const text = this.createSVGElement('text');
-                text.setAttribute('x', x);
-                text.setAttribute('y', y);
-                text.setAttribute('fill', '#999');
-                text.setAttribute('font-size', '11');
-                text.setAttribute('font-family', 'sans-serif');
-                text.setAttribute('text-anchor', 'middle');
-                text.textContent = fretNum.toString();
-                group.appendChild(text);
-            }
+            const text = this.createSVGElement('text');
+            text.setAttribute('x', x);
+            text.setAttribute('y', y);
+            text.setAttribute('fill', '#999');
+            text.setAttribute('font-size', '11');
+            text.setAttribute('font-family', 'sans-serif');
+            text.setAttribute('text-anchor', 'middle');
+            text.textContent = fretNum.toString();
+            group.appendChild(text);
         }
 
         return group;

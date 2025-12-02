@@ -19,6 +19,7 @@ const App = {
         displayedChords: [],
         hasSearched: false,
         arpeggiosExpanded: false,
+        allInfoExpanded: false, // Track global expand/collapse state for More Info sections
         // Progression builder state
         progression: [],
         progressionTemplate: null, // Currently loaded template
@@ -244,6 +245,9 @@ const App = {
         // Clear previous selections and hide info banner
         this.clearSelections();
         this.hideSelectionInfo();
+
+        // Reset global info expanded state
+        this.resetAllInfoState();
     },
 
 
@@ -518,6 +522,514 @@ const App = {
     },
 
     /**
+     * Get note name for a given string and fret
+     */
+    getNoteAtFret(stringIndex, fret) {
+        // Standard tuning notes for each open string (index 0 = low E, index 5 = high e)
+        const openStrings = ['E', 'A', 'D', 'G', 'B', 'E'];
+        const chromaticNotes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        if (fret === -1) return null; // Muted string
+
+        const openNote = openStrings[stringIndex];
+        const openIndex = chromaticNotes.indexOf(openNote);
+        const noteIndex = (openIndex + fret) % 12;
+        return chromaticNotes[noteIndex];
+    },
+
+    /**
+     * Get interval name for a note relative to the chord root
+     */
+    getIntervalName(noteValue, rootValue) {
+        const chromaticNotes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        // Normalize note names (handle flats)
+        const normalizeNote = (note) => {
+            const flatToSharp = { 'Db': 'C#', 'Eb': 'D#', 'Fb': 'E', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#', 'Cb': 'B' };
+            return flatToSharp[note] || note;
+        };
+
+        const noteIdx = chromaticNotes.indexOf(normalizeNote(noteValue));
+        const rootIdx = chromaticNotes.indexOf(normalizeNote(rootValue));
+
+        if (noteIdx === -1 || rootIdx === -1) return '?';
+
+        const semitones = (noteIdx - rootIdx + 12) % 12;
+
+        const intervalNames = {
+            0: 'Root',
+            1: 'b2',
+            2: '2',
+            3: 'b3',
+            4: '3',
+            5: '4',
+            6: 'b5',
+            7: '5',
+            8: '#5',
+            9: '6',
+            10: 'b7',
+            11: '7'
+        };
+
+        return intervalNames[semitones];
+    },
+
+    /**
+     * Get string breakdown for a chord
+     */
+    getStringBreakdown(chord) {
+        const stringNames = ['6th', '5th', '4th', '3rd', '2nd', '1st'];
+        const breakdown = [];
+
+        for (let i = 0; i < 6; i++) {
+            const fret = chord.frets[i];
+            if (fret === -1) {
+                breakdown.push({ string: stringNames[i], note: null, interval: null, isMuted: true, isOpen: false });
+            } else {
+                const note = this.getNoteAtFret(i, fret);
+                const interval = this.getIntervalName(note, chord.root);
+                breakdown.push({
+                    string: stringNames[i],
+                    note: note,
+                    interval: interval,
+                    isMuted: false,
+                    isOpen: fret === 0
+                });
+            }
+        }
+
+        return breakdown;
+    },
+
+    /**
+     * Get all notes being played in a chord (in playing order)
+     */
+    getPlayedNotes(chord) {
+        const notes = [];
+        for (let i = 0; i < 6; i++) {
+            if (chord.frets[i] !== -1) {
+                notes.push(this.getNoteAtFret(i, chord.frets[i]));
+            }
+        }
+        return notes;
+    },
+
+    /**
+     * Get intervals being played in a chord (in playing order)
+     */
+    getPlayedIntervals(chord) {
+        const intervals = [];
+        const intervalToNumber = {
+            'Root': '1',
+            'b2': 'b2',
+            '2': '2',
+            'b3': 'b3',
+            '3': '3',
+            '4': '4',
+            'b5': 'b5',
+            '5': '5',
+            '#5': '#5',
+            '6': '6',
+            'b7': 'b7',
+            '7': '7'
+        };
+
+        for (let i = 0; i < 6; i++) {
+            if (chord.frets[i] !== -1) {
+                const note = this.getNoteAtFret(i, chord.frets[i]);
+                const interval = this.getIntervalName(note, chord.root);
+                intervals.push(intervalToNumber[interval] || interval);
+            }
+        }
+        return intervals;
+    },
+
+    /**
+     * Get sound character description based on chord type
+     */
+    getSoundCharacter(chord) {
+        const quality = chord.quality || '';
+        const intervals = chord.intervals || [];
+        const name = chord.name.toLowerCase();
+
+        // Check for specific chord types
+        if (name.includes('dim7') || name.includes('diminished 7')) {
+            return 'Dark, tense, diminished';
+        }
+        if (name.includes('dim') || quality === 'diminished') {
+            return 'Dark, unstable';
+        }
+        if (name.includes('aug') || quality === 'augmented') {
+            return 'Mysterious, tense';
+        }
+        if (name.includes('sus2')) {
+            return 'Open, airy';
+        }
+        if (name.includes('sus4') || name.includes('sus')) {
+            return 'Unresolved, suspended';
+        }
+        if (name.includes('add9') || name.includes('add2')) {
+            return 'Colorful, shimmering';
+        }
+        if (name.includes('add11') || name.includes('add4')) {
+            return 'Open, resonant';
+        }
+        if (name.includes('maj13') || name.includes('13')) {
+            return 'Lush, sophisticated';
+        }
+        if (name.includes('maj11') || name.includes('11')) {
+            return 'Expansive, modern';
+        }
+        if (name.includes('maj9')) {
+            return 'Dreamy, jazz-like';
+        }
+        if (name.includes('m9') || name.includes('min9')) {
+            return 'Smooth, soulful';
+        }
+        if (name.includes('9')) {
+            return 'Funky, rich';
+        }
+        if (name.includes('maj7')) {
+            return 'Warm, jazzy';
+        }
+        if (name.includes('m7') || name.includes('min7')) {
+            return 'Mellow, sophisticated';
+        }
+        if (name.includes('7') || quality === 'dominant') {
+            return 'Bluesy, driving';
+        }
+        if (name.includes('6') && !name.includes('b6')) {
+            return 'Sweet, nostalgic';
+        }
+        if (name.includes('power') || (intervals.length === 2 && intervals.includes('1') && intervals.includes('5'))) {
+            return 'Powerful, neutral';
+        }
+        if (quality === 'minor' || name.includes('minor') || name.includes(' m ')) {
+            return 'Melancholic, emotional';
+        }
+        if (quality === 'major' || name.includes('major')) {
+            return 'Bright, happy';
+        }
+
+        return 'Distinctive, unique';
+    },
+
+    /**
+     * Get common genres for a chord type
+     */
+    getCommonGenres(chord) {
+        const quality = chord.quality || '';
+        const name = chord.name.toLowerCase();
+        const intervals = chord.intervals || [];
+
+        // Extended chords (9, 11, 13)
+        if (name.includes('13') || name.includes('11') || name.includes('9')) {
+            if (name.includes('maj')) {
+                return 'Jazz, Neo-soul, R&B';
+            }
+            return 'Jazz, Funk, R&B';
+        }
+
+        // Seventh chords
+        if (name.includes('maj7')) {
+            return 'Jazz, Bossa Nova, Pop';
+        }
+        if (name.includes('m7') || name.includes('min7')) {
+            return 'Jazz, R&B, Soul';
+        }
+        if (name.includes('7') || quality === 'dominant') {
+            return 'Blues, Jazz, Rock';
+        }
+
+        // Diminished
+        if (name.includes('dim')) {
+            return 'Jazz, Classical, Film';
+        }
+
+        // Augmented
+        if (name.includes('aug')) {
+            return 'Jazz, Classical, Progressive';
+        }
+
+        // Suspended
+        if (name.includes('sus')) {
+            return 'Rock, Alternative, Ambient';
+        }
+
+        // Add chords
+        if (name.includes('add')) {
+            return 'Pop, Rock, Singer-songwriter';
+        }
+
+        // Power chords
+        if (name.includes('power') || (intervals.length === 2 && intervals.includes('1') && intervals.includes('5'))) {
+            return 'Rock, Metal, Punk';
+        }
+
+        // Sixth chords
+        if (name.includes('6') && !name.includes('b6')) {
+            return 'Jazz, Swing, Country';
+        }
+
+        // Basic triads
+        if (quality === 'minor') {
+            return 'Pop, Rock, Folk';
+        }
+        if (quality === 'major') {
+            return 'Pop, Rock, Folk';
+        }
+
+        return 'Various genres';
+    },
+
+    /**
+     * Get voicing info for a chord
+     */
+    getVoicingInfo(chord) {
+        const info = [];
+
+        // Count played notes
+        const playedNotes = chord.frets.filter(f => f !== -1).length;
+        info.push(`${playedNotes}-note voicing`);
+
+        // Check for barre
+        if (chord.barre) {
+            info.push('Full barre chord');
+        } else if (chord.categories?.isBarreChord) {
+            info.push('Barre chord');
+        }
+
+        // Position type
+        if (chord.categories?.isOpenChord) {
+            info.push('Open position');
+        } else if (chord.position >= 10) {
+            info.push('High position');
+        } else if (chord.position >= 5) {
+            info.push('Mid position');
+        } else {
+            info.push('Closed position');
+        }
+
+        return info.join(' · ');
+    },
+
+    /**
+     * Get enharmonic equivalent for a note/chord
+     */
+    getEnharmonicEquivalent(chord) {
+        const enharmonics = {
+            'C#': 'Db', 'Db': 'C#',
+            'D#': 'Eb', 'Eb': 'D#',
+            'F#': 'Gb', 'Gb': 'F#',
+            'G#': 'Ab', 'Ab': 'G#',
+            'A#': 'Bb', 'Bb': 'A#'
+        };
+
+        const root = chord.root;
+        if (enharmonics[root]) {
+            // Build alternative name
+            const altRoot = enharmonics[root];
+            const qualityPart = chord.name.replace(root, '').trim();
+            return `${altRoot}${qualityPart}`;
+        }
+
+        return null;
+    },
+
+    /**
+     * Copy chord data to clipboard
+     */
+    async copyChordToClipboard(chord, button) {
+        const notes = this.getPlayedNotes(chord).join(' ');
+        const fretString = chord.frets.map(f => f === -1 ? 'x' : f).join('');
+        const text = `${chord.name} (${fretString}) - Notes: ${notes}`;
+
+        try {
+            await navigator.clipboard.writeText(text);
+
+            // Show feedback
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="copied-text">Copied!</span>';
+            button.classList.add('copied');
+
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('copied');
+            }, 2000);
+        } catch (err) {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<span class="copied-text">Copied!</span>';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            } catch (e) {
+                console.error('Copy failed:', e);
+            }
+
+            document.body.removeChild(textArea);
+        }
+    },
+
+    /**
+     * Create the More Info section for a chord card
+     */
+    createMoreInfoSection(chord) {
+        const section = document.createElement('div');
+        section.className = 'more-info-section collapsed';
+
+        // Toggle button
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'more-info-toggle';
+        toggleBtn.innerHTML = `
+            <span class="toggle-arrow">&#9654;</span>
+            <span class="toggle-text">More Info</span>
+        `;
+        toggleBtn.addEventListener('click', () => {
+            const isCollapsed = section.classList.contains('collapsed');
+            section.classList.toggle('collapsed', !isCollapsed);
+            toggleBtn.querySelector('.toggle-arrow').innerHTML = isCollapsed ? '&#9660;' : '&#9654;';
+        });
+
+        // Content container
+        const content = document.createElement('div');
+        content.className = 'more-info-content';
+
+        // Get chord data
+        const playedNotes = this.getPlayedNotes(chord);
+        const playedIntervals = this.getPlayedIntervals(chord);
+        const enharmonic = this.getEnharmonicEquivalent(chord);
+        const soundCharacter = this.getSoundCharacter(chord);
+        const genres = this.getCommonGenres(chord);
+        const voicingInfo = this.getVoicingInfo(chord);
+        const stringBreakdown = this.getStringBreakdown(chord);
+
+        // Basic Theory Section
+        const theorySection = document.createElement('div');
+        theorySection.className = 'info-subsection theory-section';
+        theorySection.innerHTML = `
+            <h5 class="subsection-title">Basic Theory</h5>
+            <div class="info-row">
+                <span class="info-label">Notes:</span>
+                <span class="info-value">${playedNotes.join(' - ')}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Intervals:</span>
+                <span class="info-value">${playedIntervals.join(' - ')}</span>
+            </div>
+            ${enharmonic ? `
+            <div class="info-row">
+                <span class="info-label">Also known as:</span>
+                <span class="info-value enharmonic">${enharmonic}</span>
+            </div>
+            ` : ''}
+        `;
+
+        // String Breakdown Section (collapsible sub-section)
+        const stringSection = document.createElement('div');
+        stringSection.className = 'info-subsection string-section';
+
+        const stringToggle = document.createElement('button');
+        stringToggle.className = 'string-details-toggle collapsed';
+        stringToggle.innerHTML = `
+            <span class="toggle-arrow">&#9654;</span>
+            <span>String Details</span>
+        `;
+
+        const stringContent = document.createElement('div');
+        stringContent.className = 'string-details-content hidden';
+
+        let stringHTML = '<div class="string-breakdown">';
+        stringBreakdown.forEach(s => {
+            if (s.isMuted) {
+                stringHTML += `
+                    <div class="string-line muted">
+                        <span class="string-num">${s.string} string:</span>
+                        <span class="string-note">Muted (X)</span>
+                    </div>
+                `;
+            } else {
+                const openIndicator = s.isOpen ? ' (open)' : '';
+                stringHTML += `
+                    <div class="string-line">
+                        <span class="string-num">${s.string} string:</span>
+                        <span class="string-note">${s.note}${openIndicator}</span>
+                        <span class="string-interval">(${s.interval})</span>
+                    </div>
+                `;
+            }
+        });
+        stringHTML += '</div>';
+        stringContent.innerHTML = stringHTML;
+
+        stringToggle.addEventListener('click', () => {
+            const isCollapsed = stringToggle.classList.contains('collapsed');
+            stringToggle.classList.toggle('collapsed', !isCollapsed);
+            stringContent.classList.toggle('hidden', !isCollapsed);
+            stringToggle.querySelector('.toggle-arrow').innerHTML = isCollapsed ? '&#9660;' : '&#9654;';
+        });
+
+        stringSection.appendChild(stringToggle);
+        stringSection.appendChild(stringContent);
+
+        // Musical Context Section
+        const contextSection = document.createElement('div');
+        contextSection.className = 'info-subsection context-section';
+        contextSection.innerHTML = `
+            <h5 class="subsection-title">Musical Context</h5>
+            <div class="info-row">
+                <span class="info-label">Character:</span>
+                <span class="info-value character">${soundCharacter}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Common in:</span>
+                <span class="info-value genres">${genres}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Voicing:</span>
+                <span class="info-value voicing">${voicingInfo}</span>
+            </div>
+        `;
+
+        // Utility Section
+        const utilitySection = document.createElement('div');
+        utilitySection.className = 'info-subsection utility-section';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-chord-btn';
+        copyBtn.innerHTML = `<span class="copy-icon">&#128203;</span> Copy Chord`;
+        copyBtn.addEventListener('click', () => {
+            const currentChord = getChordById(section.closest('.chord-card').dataset.chordId);
+            this.copyChordToClipboard(currentChord, copyBtn);
+        });
+
+        utilitySection.appendChild(copyBtn);
+
+        // Assemble content
+        content.appendChild(theorySection);
+        content.appendChild(stringSection);
+        content.appendChild(contextSection);
+        content.appendChild(utilitySection);
+
+        section.appendChild(toggleBtn);
+        section.appendChild(content);
+
+        return section;
+    },
+
+    /**
      * Create a chord card element
      */
     createChordCard(chord) {
@@ -662,9 +1174,19 @@ const App = {
         actions.appendChild(playBtn);
         actions.appendChild(addBtn);
 
+        // More Info section
+        const moreInfoSection = this.createMoreInfoSection(chord);
+
+        // If global expand is active, expand this section
+        if (this.state.allInfoExpanded) {
+            moreInfoSection.classList.remove('collapsed');
+            moreInfoSection.querySelector('.toggle-arrow').innerHTML = '&#9660;';
+        }
+
         card.appendChild(header);
         card.appendChild(body);
         card.appendChild(actions);
+        card.appendChild(moreInfoSection);
 
         return card;
     },
@@ -699,6 +1221,18 @@ const App = {
         const oldFingerInfo = card.querySelector('.finger-info');
         const newFingerInfo = TabRenderer.renderFingerInfo(newChord);
         oldFingerInfo.replaceWith(newFingerInfo);
+
+        // Update More Info section
+        const oldMoreInfo = card.querySelector('.more-info-section');
+        if (oldMoreInfo) {
+            const wasExpanded = !oldMoreInfo.classList.contains('collapsed');
+            const newMoreInfo = this.createMoreInfoSection(newChord);
+            if (wasExpanded || this.state.allInfoExpanded) {
+                newMoreInfo.classList.remove('collapsed');
+                newMoreInfo.querySelector('.toggle-arrow').innerHTML = '&#9660;';
+            }
+            oldMoreInfo.replaceWith(newMoreInfo);
+        }
     },
 
     /**
@@ -745,6 +1279,48 @@ const App = {
                 chord => getArpeggioForChord(chord.id)
             );
             this.renderArpeggios(chordsWithArpeggios);
+        }
+    },
+
+    /**
+     * Toggle all More Info sections
+     */
+    toggleAllInfo() {
+        this.state.allInfoExpanded = !this.state.allInfoExpanded;
+
+        // Update button text
+        const btn = document.getElementById('expand-all-info-btn');
+        if (btn) {
+            if (this.state.allInfoExpanded) {
+                btn.innerHTML = '<span class="expand-icon">&#128213;</span> Collapse All Info';
+            } else {
+                btn.innerHTML = '<span class="expand-icon">&#128214;</span> Expand All Info';
+            }
+        }
+
+        // Toggle all More Info sections on visible cards
+        const cards = document.querySelectorAll('.chord-card .more-info-section');
+        cards.forEach(section => {
+            if (this.state.allInfoExpanded) {
+                section.classList.remove('collapsed');
+                const arrow = section.querySelector('.toggle-arrow');
+                if (arrow) arrow.innerHTML = '&#9660;';
+            } else {
+                section.classList.add('collapsed');
+                const arrow = section.querySelector('.toggle-arrow');
+                if (arrow) arrow.innerHTML = '&#9654;';
+            }
+        });
+    },
+
+    /**
+     * Reset global info expanded state (called when filters change)
+     */
+    resetAllInfoState() {
+        this.state.allInfoExpanded = false;
+        const btn = document.getElementById('expand-all-info-btn');
+        if (btn) {
+            btn.innerHTML = '<span class="expand-icon">&#128214;</span> Expand All Info';
         }
     },
 
@@ -2823,6 +3399,32 @@ const App = {
                         <li>"x" means don't play that string</li>
                         <li>Read tablature from left to right</li>
                     </ul>
+
+                    <h4>Chord "More Info" Section</h4>
+                    <p>Each chord card has a collapsible "More Info" section that provides detailed educational information about the chord. Click the "More Info" button below the Play/Add buttons to expand it.</p>
+
+                    <p><strong>What You'll Find:</strong></p>
+                    <ul>
+                        <li><strong>Basic Theory:</strong>
+                            <ul>
+                                <li><em>Notes:</em> The actual letter names of all notes being played (e.g., "C - E - G - C - E")</li>
+                                <li><em>Intervals:</em> The interval formula showing the chord structure (e.g., "1 - 3 - 5 - 1 - 3")</li>
+                                <li><em>Also known as:</em> Enharmonic equivalents for sharps/flats (e.g., "C# Major = Db Major")</li>
+                            </ul>
+                        </li>
+                        <li><strong>String Details:</strong> A collapsible breakdown showing exactly what note and interval is played on each string, including muted strings and open strings</li>
+                        <li><strong>Musical Context:</strong>
+                            <ul>
+                                <li><em>Character:</em> Brief description of the chord's sound (e.g., "Bright, happy" for major, "Melancholic, emotional" for minor)</li>
+                                <li><em>Common in:</em> Genres where this chord type is frequently used</li>
+                                <li><em>Voicing:</em> Information about the chord shape (open position, barre chord, number of notes)</li>
+                            </ul>
+                        </li>
+                        <li><strong>Copy Chord:</strong> Button to copy chord data to your clipboard for notes or sharing</li>
+                    </ul>
+
+                    <p><strong>Expand All Info:</strong></p>
+                    <p>Use the "Expand All Info" button in the selection info banner to expand or collapse all More Info sections at once. This is helpful when you want to compare theory information across multiple chords.</p>
                 </section>
 
                 <section class="about-section">

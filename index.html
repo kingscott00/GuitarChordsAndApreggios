@@ -385,6 +385,118 @@
             </div>
         </section>
 
+        <!-- Scale Builder (New Feature) -->
+        <section class="scale-builder collapsible-section" id="scale-builder">
+            <button class="section-toggle" onclick="App.toggleSection('scale-builder')">
+                <h2>Scale Builder</h2>
+                <svg class="toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="section-content">
+                <div class="scale-builder-header">
+                    <p class="scale-builder-description">
+                        See what notes you can play for lead guitar over your chord progression.
+                        Choose between a single scale for the whole progression or different modes for each chord.
+                    </p>
+                </div>
+
+                <!-- Scale Mode Toggle -->
+                <div class="scale-mode-selector">
+                    <div class="btn-group">
+                        <button class="filter-btn active" id="scale-mode-single" data-mode="single">One Scale for All</button>
+                        <button class="filter-btn" id="scale-mode-per-chord" data-mode="per-chord">Per-Chord Modes</button>
+                    </div>
+                </div>
+
+                <!-- Main Scale Section (One Scale for All) -->
+                <div class="main-scale-section" id="main-scale-section">
+                    <div class="scale-header">
+                        <div class="scale-info">
+                            <h3 id="main-scale-name">Select a chord progression first</h3>
+                            <p class="scale-description" id="main-scale-description"></p>
+                        </div>
+                        <div class="scale-controls">
+                            <label for="scale-type-select">Scale Type:</label>
+                            <select id="scale-type-select" class="scale-select">
+                                <option value="">-- Select Scale --</option>
+                                <optgroup label="Basic Scales">
+                                    <option value="major">Major (Ionian)</option>
+                                    <option value="natural-minor">Natural Minor (Aeolian)</option>
+                                    <option value="major-pentatonic">Major Pentatonic</option>
+                                    <option value="minor-pentatonic">Minor Pentatonic</option>
+                                    <option value="blues">Blues Scale</option>
+                                </optgroup>
+                                <optgroup label="Modes">
+                                    <option value="ionian">Ionian (Major)</option>
+                                    <option value="dorian">Dorian</option>
+                                    <option value="phrygian">Phrygian</option>
+                                    <option value="lydian">Lydian</option>
+                                    <option value="mixolydian">Mixolydian</option>
+                                    <option value="aeolian">Aeolian (Natural Minor)</option>
+                                    <option value="locrian">Locrian</option>
+                                </optgroup>
+                                <optgroup label="Advanced Scales">
+                                    <option value="harmonic-minor">Harmonic Minor</option>
+                                    <option value="melodic-minor">Melodic Minor</option>
+                                    <option value="whole-tone">Whole Tone</option>
+                                    <option value="diminished">Diminished</option>
+                                </optgroup>
+                            </select>
+                            <div class="scale-toggle-option">
+                                <label for="show-chord-tones-toggle">
+                                    <input type="checkbox" id="show-chord-tones-toggle">
+                                    Highlight Chord Tones
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="scale-diagram-container" id="main-scale-diagram">
+                        <!-- Scale diagram will be rendered here -->
+                    </div>
+                    <div class="alternative-scales" id="alternative-scales">
+                        <!-- Alternative scale suggestions will appear here -->
+                    </div>
+                </div>
+
+                <!-- Per-Chord Modes Section -->
+                <div class="per-chord-modes-section hidden" id="per-chord-modes-section">
+                    <div class="per-chord-header">
+                        <h3>Modal Playing Guide</h3>
+                        <p class="per-chord-description">
+                            Play a different mode over each chord for more advanced improvisation.
+                            Each scale below corresponds to the chord shown.
+                        </p>
+                        <div class="scale-toggle-option">
+                            <label for="show-chord-tones-per-chord-toggle">
+                                <input type="checkbox" id="show-chord-tones-per-chord-toggle">
+                                Highlight Chord Tones
+                            </label>
+                        </div>
+                    </div>
+                    <div class="per-chord-scales-list" id="per-chord-scales-list">
+                        <!-- Per-chord scale diagrams will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Position Patterns Section -->
+                <div class="position-patterns-section hidden" id="position-patterns-section">
+                    <!-- Position patterns will be rendered here for pentatonic scales -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="scale-empty-state" id="scale-empty-state">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 18V5l12-2v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                    <h3>No Progression Selected</h3>
+                    <p>Add chords to your Progression Builder above to see suggested scales for lead guitar.</p>
+                </div>
+            </div>
+        </section>
+
         <!-- Practice Tools (Phase 7) -->
         <section class="practice-tools collapsible-section" id="practice-tools">
             <button class="section-toggle" onclick="App.toggleSection('practice-tools')">
@@ -600,9 +712,11 @@
     <script src="js/data/styleMappings.js"></script>
     <script src="js/data/scaleData.js"></script>
     <script src="js/engines/selectionEngine.js"></script>
+    <script src="js/engines/scaleDetection.js"></script>
     <script src="js/renderers/chordRenderer.js"></script>
     <script src="js/renderers/tabRenderer.js"></script>
     <script src="js/renderers/arpeggioRenderer.js"></script>
+    <script src="js/renderers/scaleRenderer.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

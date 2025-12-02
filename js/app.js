@@ -77,7 +77,16 @@ const App = {
         // Favorites state
         favorites: [],
         // Arpeggio sequence state
-        arpeggioSequence: []
+        arpeggioSequence: [],
+        // Scale Builder state
+        scaleBuilder: {
+            mode: 'single', // 'single' or 'per-chord'
+            showChordTones: false,
+            currentScale: null,
+            alternativeScales: [],
+            perChordModes: [],
+            detectedKey: null
+        }
     },
 
     /**
@@ -91,6 +100,7 @@ const App = {
         this.initCollapsibleSections();
         this.initArpeggioSequenceBuilder();
         this.initProgressionBuilder();
+        this.initScaleBuilder();
         this.initPracticeTools();
         this.loadSavedProgressions();
         this.loadFavorites();
@@ -938,10 +948,14 @@ const App = {
             this.state.progression[index] = {
                 chordId: chord.id,
                 name: chord.name,
-                symbol: chord.symbol
+                symbol: chord.symbol,
+                root: chord.root
             };
             this.renderProgressionSlot(targetSlot, chord);
             targetSlot.classList.remove('selected');
+
+            // Update Scale Builder
+            this.updateScaleBuilder();
         }
     },
 
@@ -1046,7 +1060,8 @@ const App = {
             ...existingItem,
             chordId: newChord.id,
             name: newChord.name,
-            symbol: newChord.symbol
+            symbol: newChord.symbol,
+            root: newChord.root
         };
 
         // Re-render the slot
@@ -1054,6 +1069,9 @@ const App = {
         if (slot) {
             this.renderProgressionSlot(slot, newChord, slotIndex);
         }
+
+        // Update Scale Builder
+        this.updateScaleBuilder();
     },
 
     /**
@@ -1069,6 +1087,9 @@ const App = {
             slot.setAttribute('draggable', 'false');
             slot.innerHTML = '<span class="slot-placeholder">+</span>';
         }
+
+        // Update Scale Builder
+        this.updateScaleBuilder();
     },
 
     /**
@@ -1168,6 +1189,9 @@ const App = {
 
         // Hide tablature
         document.getElementById('progression-tablature')?.classList.add('hidden');
+
+        // Update Scale Builder
+        this.updateScaleBuilder();
     },
 
     /**
@@ -1287,6 +1311,9 @@ const App = {
                 }
             }
         });
+
+        // Update Scale Builder after loading template
+        this.updateScaleBuilder();
     },
 
     /**
@@ -2747,6 +2774,114 @@ const App = {
                 </section>
 
                 <section class="about-section">
+                    <h3>Scale Builder</h3>
+                    <p>The Scale Builder shows you what notes to play for lead guitar over your chord progression. It automatically detects the key and suggests appropriate scales!</p>
+
+                    <h4>How It Works</h4>
+                    <p>When you add chords to your Progression Builder, the Scale Builder analyzes them and:</p>
+                    <ul>
+                        <li>Detects the key your progression is in</li>
+                        <li>Suggests the best scale to use</li>
+                        <li>Offers alternative scale options</li>
+                        <li>Shows per-chord modes for advanced players</li>
+                    </ul>
+
+                    <h4>Two Modes of Operation</h4>
+                    <h5>One Scale for All (Recommended for Beginners)</h5>
+                    <p>Uses a single scale over the entire progression. This is the most common approach and works great for most music:</p>
+                    <ul>
+                        <li><strong>Main Scale:</strong> Automatically suggested based on your progression</li>
+                        <li><strong>Alternative Scales:</strong> Click to try different scales that also work</li>
+                        <li><strong>Scale Type Selector:</strong> Choose from major, minor, pentatonic, blues, modes, and more</li>
+                        <li><strong>Highlight Chord Tones:</strong> Toggle to see which notes are in your chords (blue dots)</li>
+                    </ul>
+
+                    <h5>Per-Chord Modes (Advanced)</h5>
+                    <p>Shows a different scale/mode for each chord in your progression. This is called "modal playing" and is used in jazz and advanced improvisation:</p>
+                    <ul>
+                        <li>Each chord gets its own mode (Ionian, Dorian, Mixolydian, etc.)</li>
+                        <li>Switch scales as the chord changes</li>
+                        <li>Creates more colorful, sophisticated solos</li>
+                    </ul>
+
+                    <h4>Understanding the Scale Diagrams</h4>
+                    <p>Scale diagrams show the entire guitar neck (0-24 frets):</p>
+                    <ul>
+                        <li><strong>Red dots:</strong> Root notes - the foundation of the scale</li>
+                        <li><strong>Blue dots:</strong> Chord tones (when "Highlight Chord Tones" is enabled)</li>
+                        <li><strong>Gray dots:</strong> Passing tones - notes that connect chord tones</li>
+                        <li><strong>Horizontal lines:</strong> Strings (top = high e, bottom = low E)</li>
+                        <li><strong>Vertical lines:</strong> Frets</li>
+                    </ul>
+
+                    <h4>Position Patterns (for Pentatonic & Blues)</h4>
+                    <p>When you select a pentatonic or blues scale, you'll see 5 position patterns (also called "boxes"). These are common fingering patterns that help you play the scale in different areas of the neck.</p>
+
+                    <h4>Complete Scale Reference</h4>
+
+                    <h5>Basic Scales (Great for Beginners)</h5>
+                    <ul>
+                        <li><strong>Major (Ionian):</strong> Happy, bright sound. 7 notes: 1-2-3-4-5-6-7. Use over major key progressions.</li>
+                        <li><strong>Natural Minor (Aeolian):</strong> Sad, dark sound. 7 notes: 1-2-b3-4-5-b6-b7. Use over minor key progressions.</li>
+                        <li><strong>Major Pentatonic:</strong> Simplified 5-note major scale. 1-2-3-5-6. Sounds happy, works everywhere in major keys. Great for country, rock.</li>
+                        <li><strong>Minor Pentatonic:</strong> Simplified 5-note minor scale. 1-b3-4-5-b7. The most popular scale in rock! Easy to learn, sounds great.</li>
+                        <li><strong>Blues Scale:</strong> Minor pentatonic + blue note. 1-b3-4-b5-5-b7. That bluesy, gritty sound. The b5 is the "blue note" that gives it character.</li>
+                    </ul>
+
+                    <h5>The Seven Modes (Intermediate/Advanced)</h5>
+                    <p>Modes are scales built from the major scale, each starting on a different note. They each have a unique character:</p>
+                    <ul>
+                        <li><strong>Ionian (Mode 1 - Major Scale):</strong> 1-2-3-4-5-6-7. Bright, happy, resolved. The "home base" major sound.</li>
+                        <li><strong>Dorian (Mode 2):</strong> 1-2-b3-4-5-6-b7. Minor with a brighter twist. Jazz, funk, Santana. Has that cool minor sound but not too dark.</li>
+                        <li><strong>Phrygian (Mode 3):</strong> 1-b2-b3-4-5-b6-b7. Dark, Spanish/flamenco flavor. The b2 makes it exotic and tense. Used in metal too.</li>
+                        <li><strong>Lydian (Mode 4):</strong> 1-2-3-#4-5-6-7. Dreamy, floating, magical. The #4 creates a mysterious, ethereal quality. Joe Satriani uses this a lot.</li>
+                        <li><strong>Mixolydian (Mode 5):</strong> 1-2-3-4-5-6-b7. Major with attitude. Bluesy rock sound. Think classic rock solos - it's the "7th chord" scale.</li>
+                        <li><strong>Aeolian (Mode 6 - Natural Minor):</strong> 1-2-b3-4-5-b6-b7. Pure minor sadness. Most common minor scale. Think sad ballads.</li>
+                        <li><strong>Locrian (Mode 7):</strong> 1-b2-b3-4-b5-b6-b7. Unstable, tense, rarely used. The diminished scale. Sounds unresolved, creates tension.</li>
+                    </ul>
+
+                    <h5>Advanced Scales</h5>
+                    <ul>
+                        <li><strong>Harmonic Minor:</strong> 1-2-b3-4-5-b6-7. Natural minor with major 7th. Classical, Egyptian sound. Very dramatic!</li>
+                        <li><strong>Melodic Minor:</strong> 1-2-b3-4-5-6-7. Natural minor with raised 6th and 7th. Jazz sound, smooth and sophisticated.</li>
+                        <li><strong>Whole Tone:</strong> 1-2-3-#4-#5-b7. All whole steps. Dreamy, floating, no resolution. Sounds like a dream sequence.</li>
+                        <li><strong>Diminished:</strong> Alternating whole and half steps. Tense, jazzy, symmetrical. Advanced jazz improvisation.</li>
+                    </ul>
+
+                    <h4>Practical Tips for Using Scales</h4>
+                    <ul>
+                        <li><strong>Start with pentatonics:</strong> They're the easiest and sound great everywhere</li>
+                        <li><strong>Learn one position at a time:</strong> Master one box before moving to the next</li>
+                        <li><strong>Focus on root notes:</strong> The red dots - always sound good when you land on them</li>
+                        <li><strong>Use chord tones:</strong> Blue dots when highlighted - these are the safest, strongest notes</li>
+                        <li><strong>Passing tones connect:</strong> Gray dots - use these to move between chord tones</li>
+                        <li><strong>Don't just run up and down:</strong> Mix note order, skip notes, create melodies</li>
+                        <li><strong>Match the chord:</strong> Land on chord tones when each chord changes</li>
+                        <li><strong>Start simple:</strong> Use "One Scale for All" mode first, then try "Per-Chord Modes" when comfortable</li>
+                    </ul>
+
+                    <h4>Why These Scales Work Over Your Progression</h4>
+                    <p>The Scale Builder uses music theory to find scales that contain all (or most) of the notes in your chord progression:</p>
+                    <ul>
+                        <li>If all your chords are from one key (diatonic), it suggests that key's scale</li>
+                        <li>For example: C-F-G-Am all come from C major, so it suggests C major scale</li>
+                        <li>Alternative scales offer different flavors (pentatonic for simplicity, blues for attitude)</li>
+                        <li>Per-chord modes let you emphasize each chord's character individually</li>
+                    </ul>
+
+                    <h4>When to Use Which Scale</h4>
+                    <ul>
+                        <li><strong>Rock/Pop:</strong> Minor pentatonic or blues scale (most common!)</li>
+                        <li><strong>Country:</strong> Major pentatonic or mixolydian</li>
+                        <li><strong>Blues:</strong> Blues scale (obviously!) or mixolydian</li>
+                        <li><strong>Jazz:</strong> Modes (dorian over minor chords, mixolydian over dominant 7ths)</li>
+                        <li><strong>Metal:</strong> Minor pentatonic, phrygian, or harmonic minor</li>
+                        <li><strong>Ballads:</strong> Natural minor or aeolian mode</li>
+                        <li><strong>Not sure?:</strong> Try the suggested scale, then experiment with alternatives</li>
+                    </ul>
+                </section>
+
+                <section class="about-section">
                     <h3>Practice Tools</h3>
 
                     <h4>Metronome</h4>
@@ -3184,6 +3319,304 @@ const App = {
             playBtn.classList.remove('playing');
             playBtn.innerHTML = originalContent;
         }, totalDuration);
+    },
+
+    // ==========================================
+    // SCALE BUILDER
+    // ==========================================
+
+    /**
+     * Initialize Scale Builder
+     */
+    initScaleBuilder() {
+        // Scale mode toggle
+        document.getElementById('scale-mode-single')?.addEventListener('click', () => {
+            this.setScaleMode('single');
+        });
+
+        document.getElementById('scale-mode-per-chord')?.addEventListener('click', () => {
+            this.setScaleMode('per-chord');
+        });
+
+        // Scale type selector
+        document.getElementById('scale-type-select')?.addEventListener('change', (e) => {
+            if (e.target.value && this.state.scaleBuilder.currentScale) {
+                this.state.scaleBuilder.currentScale.type = e.target.value;
+                this.renderMainScale();
+            }
+        });
+
+        // Chord tones toggle
+        document.getElementById('show-chord-tones-toggle')?.addEventListener('change', (e) => {
+            this.state.scaleBuilder.showChordTones = e.target.checked;
+            this.renderMainScale();
+        });
+
+        document.getElementById('show-chord-tones-per-chord-toggle')?.addEventListener('change', (e) => {
+            this.state.scaleBuilder.showChordTones = e.target.checked;
+            this.renderPerChordModes();
+        });
+
+        // Show empty state initially
+        this.showScaleEmptyState();
+    },
+
+    /**
+     * Set scale mode (single or per-chord)
+     */
+    setScaleMode(mode) {
+        this.state.scaleBuilder.mode = mode;
+
+        // Update button states
+        document.getElementById('scale-mode-single')?.classList.toggle('active', mode === 'single');
+        document.getElementById('scale-mode-per-chord')?.classList.toggle('active', mode === 'per-chord');
+
+        // Toggle sections
+        document.getElementById('main-scale-section')?.classList.toggle('hidden', mode !== 'single');
+        document.getElementById('per-chord-modes-section')?.classList.toggle('hidden', mode !== 'per-chord');
+
+        // Render appropriate content if progression exists
+        if (this.state.progression.length > 0) {
+            if (mode === 'single') {
+                this.renderMainScale();
+            } else {
+                this.renderPerChordModes();
+            }
+        }
+    },
+
+    /**
+     * Update Scale Builder when progression changes
+     */
+    updateScaleBuilder() {
+        if (this.state.progression.length === 0) {
+            this.showScaleEmptyState();
+            return;
+        }
+
+        // Hide empty state
+        document.getElementById('scale-empty-state')?.classList.add('hidden');
+
+        // Analyze progression
+        const analysis = ScaleDetection.analyzeProgression(this.state.progression);
+
+        this.state.scaleBuilder.currentScale = analysis.mainScale;
+        this.state.scaleBuilder.alternativeScales = analysis.alternativeScales;
+        this.state.scaleBuilder.perChordModes = analysis.perChordModes;
+        this.state.scaleBuilder.detectedKey = analysis.key;
+
+        // Update UI based on current mode
+        if (this.state.scaleBuilder.mode === 'single') {
+            this.renderMainScale();
+            this.renderAlternativeScales();
+        } else {
+            this.renderPerChordModes();
+        }
+    },
+
+    /**
+     * Show empty state
+     */
+    showScaleEmptyState() {
+        document.getElementById('scale-empty-state')?.classList.remove('hidden');
+        document.getElementById('main-scale-section')?.classList.add('hidden');
+        document.getElementById('per-chord-modes-section')?.classList.add('hidden');
+        document.getElementById('position-patterns-section')?.classList.add('hidden');
+    },
+
+    /**
+     * Render main scale (single scale for all)
+     */
+    renderMainScale() {
+        const scale = this.state.scaleBuilder.currentScale;
+        if (!scale) return;
+
+        // Show section
+        document.getElementById('main-scale-section')?.classList.remove('hidden');
+
+        // Update header
+        document.getElementById('main-scale-name').textContent = scale.name;
+        document.getElementById('main-scale-description').textContent = scale.description || '';
+
+        // Update scale type selector
+        const scaleSelect = document.getElementById('scale-type-select');
+        if (scaleSelect) {
+            scaleSelect.value = scale.type;
+        }
+
+        // Get chord tones from current progression
+        const chordTones = this.getProgressionChordTones();
+
+        // Render diagram
+        const diagramContainer = document.getElementById('main-scale-diagram');
+        if (diagramContainer) {
+            diagramContainer.innerHTML = '';
+            const diagram = ScaleRenderer.render(scale, {
+                showChordTones: this.state.scaleBuilder.showChordTones,
+                chordTones: chordTones
+            });
+            diagramContainer.appendChild(diagram);
+        }
+
+        // Render position patterns if it's a pentatonic or blues scale
+        if (scale.type.includes('pentatonic') || scale.type === 'blues') {
+            this.renderPositionPatterns(scale);
+        } else {
+            document.getElementById('position-patterns-section')?.classList.add('hidden');
+        }
+    },
+
+    /**
+     * Render alternative scales
+     */
+    renderAlternativeScales() {
+        const container = document.getElementById('alternative-scales');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (this.state.scaleBuilder.alternativeScales.length === 0) return;
+
+        const title = document.createElement('h4');
+        title.textContent = 'Alternative Scale Options';
+        title.style.marginTop = '30px';
+        title.style.marginBottom = '15px';
+        container.appendChild(title);
+
+        const altGrid = document.createElement('div');
+        altGrid.className = 'alternative-scales-grid';
+        altGrid.style.display = 'grid';
+        altGrid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(300px, 1fr))';
+        altGrid.style.gap = '15px';
+
+        this.state.scaleBuilder.alternativeScales.forEach(altScale => {
+            const card = document.createElement('div');
+            card.className = 'alternative-scale-card';
+            card.style.background = 'var(--bg-card)';
+            card.style.borderRadius = 'var(--radius-md)';
+            card.style.padding = 'var(--spacing-md)';
+            card.style.cursor = 'pointer';
+            card.style.border = '2px solid transparent';
+            card.style.transition = 'border-color 0.2s';
+
+            card.innerHTML = `
+                <h5 style="margin: 0 0 8px 0; color: var(--text-primary);">${altScale.name}</h5>
+                <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">${altScale.description}</p>
+            `;
+
+            card.addEventListener('click', () => {
+                this.state.scaleBuilder.currentScale = altScale;
+                this.renderMainScale();
+            });
+
+            card.addEventListener('mouseenter', () => {
+                card.style.borderColor = 'var(--primary-color)';
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.borderColor = 'transparent';
+            });
+
+            altGrid.appendChild(card);
+        });
+
+        container.appendChild(altGrid);
+    },
+
+    /**
+     * Render per-chord modes
+     */
+    renderPerChordModes() {
+        const container = document.getElementById('per-chord-scales-list');
+        if (!container) return;
+
+        // Show section
+        document.getElementById('per-chord-modes-section')?.classList.remove('hidden');
+
+        container.innerHTML = '';
+
+        if (this.state.scaleBuilder.perChordModes.length === 0) return;
+
+        this.state.scaleBuilder.perChordModes.forEach(modeData => {
+            const card = document.createElement('div');
+            card.className = 'per-chord-scale-card';
+            card.style.marginBottom = '30px';
+            card.style.background = 'var(--bg-card)';
+            card.style.borderRadius = 'var(--radius-lg)';
+            card.style.padding = 'var(--spacing-lg)';
+            card.style.boxShadow = '0 2px 8px var(--shadow-color)';
+
+            const header = document.createElement('div');
+            header.style.marginBottom = '15px';
+            header.innerHTML = `
+                <h4 style="margin: 0 0 5px 0; color: var(--primary-color);">
+                    Play over ${modeData.chordName}
+                </h4>
+                <h3 style="margin: 0 0 8px 0; color: var(--text-primary);">
+                    ${modeData.scale.name}
+                </h3>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 14px;">
+                    ${modeData.scale.description}
+                </p>
+            `;
+            card.appendChild(header);
+
+            const diagram = ScaleRenderer.render(modeData.scale, {
+                showChordTones: this.state.scaleBuilder.showChordTones,
+                chordTones: modeData.chordTones
+            });
+            card.appendChild(diagram);
+
+            container.appendChild(card);
+        });
+    },
+
+    /**
+     * Render position patterns for pentatonic scales
+     */
+    renderPositionPatterns(scale) {
+        const container = document.getElementById('position-patterns-section');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        const patterns = ScaleRenderer.renderPositionPatterns(scale);
+        if (patterns) {
+            container.appendChild(patterns);
+            container.classList.remove('hidden');
+        } else {
+            container.classList.add('hidden');
+        }
+    },
+
+    /**
+     * Get all chord tones from current progression
+     */
+    getProgressionChordTones() {
+        const allTones = new Set();
+
+        this.state.progression.forEach(chord => {
+            const tones = ScaleDetection.getChordTones(chord.root, this.parseChordQuality(chord));
+            tones.forEach(tone => allTones.add(tone));
+        });
+
+        return Array.from(allTones);
+    },
+
+    /**
+     * Parse chord quality from chord object
+     */
+    parseChordQuality(chord) {
+        const name = chord.name || '';
+
+        if (name.includes('m7') || name.includes('min7')) return 'minor7';
+        if (name.includes('m') || name.includes('min')) return 'minor';
+        if (name.includes('7') && !name.includes('maj7')) return 'dominant7';
+        if (name.includes('maj7') || name.includes('M7')) return 'major7';
+        if (name.includes('dim')) return 'diminished';
+        if (name.includes('aug')) return 'augmented';
+
+        return 'major';
     }
 };
 

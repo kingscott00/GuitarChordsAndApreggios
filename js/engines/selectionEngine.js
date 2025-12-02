@@ -162,6 +162,148 @@ const SelectionEngine = {
     },
 
     /**
+     * Filter chords by chord type
+     * @param {Array} chords - Array of chords to filter
+     * @param {string} type - The chord type filter value
+     * @returns {Array} - Filtered chords
+     */
+    filterByChordType(chords, type) {
+        if (type === 'all' || !type) return chords;
+
+        return chords.filter(chord => {
+            const intervals = chord.intervals;
+            const quality = chord.quality;
+            const name = chord.name.toLowerCase();
+
+            switch (type) {
+                case 'major-triads':
+                    return quality === 'major' && intervals.length === 3;
+
+                case 'minor-triads':
+                    return quality === 'minor' && intervals.length === 3;
+
+                case 'diminished-triads':
+                    return quality === 'diminished' && intervals.length === 3;
+
+                case 'augmented-triads':
+                    return quality === 'augmented' && intervals.length === 3;
+
+                case 'seventh-chords':
+                    return quality.includes('7') || intervals.includes('b7') || intervals.includes('7');
+
+                case 'extended-chords':
+                    return intervals.some(i => i.includes('9') || i.includes('11') || i.includes('13'));
+
+                case 'suspended':
+                    return quality.includes('sus') || name.includes('sus');
+
+                case 'add-chords':
+                    return quality.includes('add') || name.includes('add');
+
+                case 'power-chords':
+                    return quality === 'power' || name.includes('5') && intervals.length === 2;
+
+                default:
+                    return true;
+            }
+        });
+    },
+
+    /**
+     * Filter chords by voicing pattern
+     * @param {Array} chords - Array of chords to filter
+     * @param {string} pattern - The voicing pattern filter value
+     * @returns {Array} - Filtered chords
+     */
+    filterByVoicingPattern(chords, pattern) {
+        if (pattern === 'all' || !pattern) return chords;
+
+        return chords.filter(chord => {
+            const fingers = chord.fingers;
+            const frets = chord.frets;
+            const barre = chord.barre;
+
+            // Count how many strings use the same finger
+            const fingerCounts = {};
+            fingers.forEach(f => {
+                if (f > 0) {
+                    fingerCounts[f] = (fingerCounts[f] || 0) + 1;
+                }
+            });
+
+            // Check if any finger is used on 4+ strings (full barre)
+            const hasFullBarre = Object.values(fingerCounts).some(count => count >= 4);
+
+            // Check if any finger is used on 2-3 strings (partial barre)
+            const hasPartialBarre = Object.values(fingerCounts).some(count => count >= 2 && count < 4);
+
+            // Check for open strings
+            const hasOpenStrings = fingers.includes(0) && frets.some((f, i) => f === 0 && fingers[i] === 0);
+
+            // Get highest fret position
+            const maxFret = Math.max(...frets.filter(f => f > 0));
+
+            switch (pattern) {
+                case 'open-position':
+                    return hasOpenStrings;
+
+                case 'all-barre':
+                    return hasFullBarre || barre !== null;
+
+                case 'a-shape-barre':
+                    // A-shape: barre starting from A string (5th string) or higher
+                    // Typically the barre starts from string index 1 (A string) or 2 (D string)
+                    return barre && barre.fromString >= 1 && hasFullBarre;
+
+                case 'e-shape-barre':
+                    // E-shape: barre starting from low E string (6th string, index 0)
+                    return barre && barre.fromString === 0 && hasFullBarre;
+
+                case 'partial-barre':
+                    return hasPartialBarre && !hasFullBarre;
+
+                case 'closed-position':
+                    return !hasOpenStrings;
+
+                case 'high-position':
+                    return maxFret >= 10;
+
+                default:
+                    return true;
+            }
+        });
+    },
+
+    /**
+     * Filter chords by fret range
+     * @param {Array} chords - Array of chords to filter
+     * @param {string} range - The fret range filter value
+     * @returns {Array} - Filtered chords
+     */
+    filterByFretRange(chords, range) {
+        if (range === 'all' || !range) return chords;
+
+        return chords.filter(chord => {
+            const frets = chord.frets;
+            const maxFret = Math.max(...frets.filter(f => f > 0));
+
+            switch (range) {
+                case 'low-position':
+                    return maxFret >= 0 && maxFret <= 5;
+
+                case 'mid-position':
+                    return maxFret >= 5 && maxFret <= 9;
+
+                case 'high-position':
+                    return maxFret >= 10;
+
+                default:
+                    return true;
+            }
+        });
+    },
+
+    /**
      * Sort chords by various criteria
      * @param {Array} chords - Array of chords to sort
      * @param {string} sortBy - 'name', 'difficulty', 'root'

@@ -12,6 +12,9 @@ const App = {
         currentKey: 'C',
         currentMode: 'ionian',
         voicingFilter: 'all',
+        chordTypeFilter: 'all',
+        voicingPatternFilter: 'all',
+        fretRangeFilter: 'all',
         selectedChords: [],
         displayedChords: [],
         hasSearched: false,
@@ -176,6 +179,26 @@ const App = {
             btn.addEventListener('click', (e) => this.handleVoicingFilter(e));
         });
 
+        // Chord type filter
+        document.getElementById('chord-type-filter')?.addEventListener('change', (e) => {
+            this.handleChordTypeFilter(e);
+        });
+
+        // Voicing pattern filter
+        document.getElementById('voicing-pattern-filter')?.addEventListener('change', (e) => {
+            this.handleVoicingPatternFilter(e);
+        });
+
+        // Fret range filter
+        document.getElementById('fret-range-filter')?.addEventListener('change', (e) => {
+            this.handleFretRangeFilter(e);
+        });
+
+        // Clear all filters button
+        document.getElementById('clear-filters-btn')?.addEventListener('click', () => {
+            this.clearAllFilters();
+        });
+
         // Show Chords button
         document.getElementById('show-chords-btn')?.addEventListener('click', () => {
             this.showChords();
@@ -243,6 +266,81 @@ const App = {
     },
 
     /**
+     * Handle chord type filter change
+     */
+    handleChordTypeFilter(e) {
+        this.state.chordTypeFilter = e.target.value;
+
+        // Re-filter displayed chords if we have already searched
+        if (this.state.hasSearched) {
+            this.applyFiltersAndDisplay();
+        }
+    },
+
+    /**
+     * Handle voicing pattern filter change
+     */
+    handleVoicingPatternFilter(e) {
+        this.state.voicingPatternFilter = e.target.value;
+
+        // Re-filter displayed chords if we have already searched
+        if (this.state.hasSearched) {
+            this.applyFiltersAndDisplay();
+        }
+    },
+
+    /**
+     * Handle fret range filter change
+     */
+    handleFretRangeFilter(e) {
+        this.state.fretRangeFilter = e.target.value;
+
+        // Re-filter displayed chords if we have already searched
+        if (this.state.hasSearched) {
+            this.applyFiltersAndDisplay();
+        }
+    },
+
+    /**
+     * Clear all new filters
+     */
+    clearAllFilters() {
+        this.state.chordTypeFilter = 'all';
+        this.state.voicingPatternFilter = 'all';
+        this.state.fretRangeFilter = 'all';
+
+        // Reset dropdowns
+        const chordTypeDropdown = document.getElementById('chord-type-filter');
+        const voicingPatternDropdown = document.getElementById('voicing-pattern-filter');
+        const fretRangeDropdown = document.getElementById('fret-range-filter');
+
+        if (chordTypeDropdown) chordTypeDropdown.value = 'all';
+        if (voicingPatternDropdown) voicingPatternDropdown.value = 'all';
+        if (fretRangeDropdown) fretRangeDropdown.value = 'all';
+
+        // Re-filter displayed chords if we have already searched
+        if (this.state.hasSearched) {
+            this.applyFiltersAndDisplay();
+        }
+    },
+
+    /**
+     * Update chord count display
+     */
+    updateChordCount(count) {
+        const countElement = document.getElementById('filter-chord-count');
+        if (countElement) {
+            if (count === 0) {
+                countElement.textContent = 'No chords match your filters';
+                countElement.classList.add('no-results');
+            } else {
+                countElement.textContent = `Showing ${count} chord${count === 1 ? '' : 's'}`;
+                countElement.classList.remove('no-results');
+            }
+        }
+    },
+
+    /**
      * Clear all selections
      */
     clearSelections() {
@@ -262,6 +360,9 @@ const App = {
     showChords() {
         let chords = [];
         let selectionInfo = null;
+
+        // Reset the three new filters to "All" when mood/style/theory changes
+        this.clearAllFilters();
 
         // Get chords based on selection mode
         switch (this.state.selectionMode) {
@@ -305,6 +406,9 @@ const App = {
             this.hideSelectionInfo();
         }
 
+        // Show advanced filters section
+        this.showAdvancedFilters();
+
         this.applyFiltersAndDisplay();
     },
 
@@ -319,7 +423,7 @@ const App = {
     },
 
     /**
-     * Apply voicing filter and display chords
+     * Apply all filters and display chords
      */
     applyFiltersAndDisplay() {
         let chords = [...this.state.selectedChords];
@@ -327,11 +431,23 @@ const App = {
         // Apply voicing/difficulty filter
         chords = SelectionEngine.filterByDifficulty(chords, this.state.voicingFilter);
 
+        // Apply chord type filter
+        chords = SelectionEngine.filterByChordType(chords, this.state.chordTypeFilter);
+
+        // Apply voicing pattern filter
+        chords = SelectionEngine.filterByVoicingPattern(chords, this.state.voicingPatternFilter);
+
+        // Apply fret range filter
+        chords = SelectionEngine.filterByFretRange(chords, this.state.fretRangeFilter);
+
         // Sort chords
         chords = SelectionEngine.sortChords(chords, 'root');
 
         this.state.displayedChords = chords;
         this.renderChordGrid(chords);
+
+        // Update chord count
+        this.updateChordCount(chords.length);
 
         // Show arpeggio section and update if expanded
         this.showArpeggioSection(chords);
@@ -361,6 +477,26 @@ const App = {
     hideSelectionInfo() {
         const banner = document.getElementById('selection-info');
         banner.classList.add('hidden');
+    },
+
+    /**
+     * Show advanced filters section
+     */
+    showAdvancedFilters() {
+        const filtersSection = document.getElementById('advanced-filters-section');
+        if (filtersSection) {
+            filtersSection.classList.remove('hidden');
+        }
+    },
+
+    /**
+     * Hide advanced filters section
+     */
+    hideAdvancedFilters() {
+        const filtersSection = document.getElementById('advanced-filters-section');
+        if (filtersSection) {
+            filtersSection.classList.add('hidden');
+        }
     },
 
     /**
@@ -2629,6 +2765,40 @@ const App = {
                         <li><strong>All:</strong> Shows all available chord voicings</li>
                         <li><strong>Beginner:</strong> Shows only open position chords that are easier to play</li>
                         <li><strong>Advanced:</strong> Shows barre chords and higher position chords</li>
+                    </ul>
+
+                    <h4>Advanced Filters</h4>
+                    <p>After clicking "Show Chords", use these advanced filters to refine your results:</p>
+
+                    <p><strong>Chord Type Filter:</strong></p>
+                    <ul>
+                        <li><strong>Major Triads:</strong> Three-note chords built from the root, major third, and perfect fifth (e.g., C-E-G). They sound bright and stable.</li>
+                        <li><strong>Minor Triads:</strong> Three-note chords with a minor third (e.g., C-Eb-G). They sound darker and more somber than major chords.</li>
+                        <li><strong>Diminished Triads:</strong> Three-note chords with a minor third and diminished fifth (e.g., C-Eb-Gb). They create tension and instability.</li>
+                        <li><strong>Augmented Triads:</strong> Three-note chords with a major third and augmented fifth (e.g., C-E-G#). They sound suspended and unresolved.</li>
+                        <li><strong>Seventh Chords:</strong> Four-note chords that add a seventh interval above the root. Common in jazz, blues, and funk.</li>
+                        <li><strong>Extended Chords:</strong> Chords that extend beyond the seventh to include ninths, elevenths, or thirteenths. Used for rich, colorful harmonies.</li>
+                        <li><strong>Suspended:</strong> Chords where the third is replaced with a second or fourth, creating an open, unresolved sound.</li>
+                        <li><strong>Add Chords:</strong> Triads with an added note (like add9), giving extra color without changing the basic chord quality.</li>
+                        <li><strong>Power Chords:</strong> Two-note chords containing just the root and fifth. Popular in rock music for their strong, neutral sound.</li>
+                    </ul>
+
+                    <p><strong>Voicing Pattern Filter:</strong></p>
+                    <ul>
+                        <li><strong>Open Position:</strong> Chords that include open (unfretted) strings. Usually easier for beginners and sound bright.</li>
+                        <li><strong>All Barre Chords:</strong> Chords where one finger (usually the index) presses multiple strings across the fretboard. Moveable up and down the neck.</li>
+                        <li><strong>A-Shape Barre:</strong> Barre chords based on the open A chord shape, with the root on the A string.</li>
+                        <li><strong>E-Shape Barre:</strong> Barre chords based on the open E chord shape, with the root on the low E string.</li>
+                        <li><strong>Partial Barre:</strong> Chords where one finger covers 2-3 strings rather than the full barre. Easier than full barre chords.</li>
+                        <li><strong>Closed Position:</strong> Chords with no open strings, played entirely with fretted notes.</li>
+                        <li><strong>High Position:</strong> Chords played at the 10th fret or higher, producing brighter tones.</li>
+                    </ul>
+
+                    <p><strong>Fret Range Filter:</strong></p>
+                    <ul>
+                        <li><strong>Low Position (frets 0-5):</strong> Chords near the headstock, including most open chords. Great for beginners.</li>
+                        <li><strong>Mid Position (frets 5-9):</strong> Chords in the middle of the neck, common for rhythm playing and transitions.</li>
+                        <li><strong>High Position (frets 10+):</strong> Chords higher up the neck with brighter, more focused tones. Used in lead playing and jazz.</li>
                     </ul>
 
                     <h4>Reading Chord Diagrams</h4>

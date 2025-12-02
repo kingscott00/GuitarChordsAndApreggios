@@ -206,6 +206,55 @@
             </div>
         </section>
 
+        <!-- Advanced Filters Section -->
+        <section class="advanced-filters-section hidden" id="advanced-filters-section">
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label for="chord-type-filter">Chord Type</label>
+                    <select id="chord-type-filter" class="filter-dropdown">
+                        <option value="all">All Types</option>
+                        <option value="major-triads">Major Triads</option>
+                        <option value="minor-triads">Minor Triads</option>
+                        <option value="diminished-triads">Diminished Triads</option>
+                        <option value="augmented-triads">Augmented Triads</option>
+                        <option value="seventh-chords">Seventh Chords</option>
+                        <option value="extended-chords">Extended Chords</option>
+                        <option value="suspended">Suspended</option>
+                        <option value="add-chords">Add Chords</option>
+                        <option value="power-chords">Power Chords</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="voicing-pattern-filter">Voicing Pattern</label>
+                    <select id="voicing-pattern-filter" class="filter-dropdown">
+                        <option value="all">All Voicings</option>
+                        <option value="open-position">Open Position</option>
+                        <option value="all-barre">All Barre Chords</option>
+                        <option value="a-shape-barre">A-Shape Barre</option>
+                        <option value="e-shape-barre">E-Shape Barre</option>
+                        <option value="partial-barre">Partial Barre</option>
+                        <option value="closed-position">Closed Position</option>
+                        <option value="high-position">High Position</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="fret-range-filter">Fret Range</label>
+                    <select id="fret-range-filter" class="filter-dropdown">
+                        <option value="all">All Positions</option>
+                        <option value="low-position">Low Position (frets 0-5)</option>
+                        <option value="mid-position">Mid Position (frets 5-9)</option>
+                        <option value="high-position">High Position (frets 10+)</option>
+                    </select>
+                </div>
+
+                <button class="clear-filters-btn" id="clear-filters-btn">Clear All Filters</button>
+
+                <div class="filter-chord-count" id="filter-chord-count"></div>
+            </div>
+        </section>
+
         <!-- Selection Info Banner -->
         <section class="selection-info hidden" id="selection-info">
             <div class="selection-info-content">

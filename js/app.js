@@ -1534,7 +1534,8 @@ const App = {
             return {
                 chordId: chord.id,
                 name: chord.name,
-                symbol: chord.symbol
+                symbol: chord.symbol,
+                root: chord.root
             };
         });
     },
@@ -3353,6 +3354,14 @@ const App = {
             this.setScaleMode('per-chord');
         });
 
+        // Scale key selector
+        document.getElementById('scale-key-select')?.addEventListener('change', (e) => {
+            if (this.state.scaleBuilder.currentScale) {
+                this.state.scaleBuilder.currentScale.root = e.target.value;
+                this.renderMainScale();
+            }
+        });
+
         // Scale type selector
         document.getElementById('scale-type-select')?.addEventListener('change', (e) => {
             if (e.target.value && this.state.scaleBuilder.currentScale) {
@@ -3453,15 +3462,23 @@ const App = {
         // Show section
         document.getElementById('main-scale-section')?.classList.remove('hidden');
 
-        // Update header
-        document.getElementById('main-scale-name').textContent = scale.name;
-        document.getElementById('main-scale-description').textContent = scale.description || '';
+        // Update key selector
+        const keySelect = document.getElementById('scale-key-select');
+        if (keySelect && scale.root) {
+            keySelect.value = scale.root;
+        }
 
         // Update scale type selector
         const scaleSelect = document.getElementById('scale-type-select');
         if (scaleSelect) {
             scaleSelect.value = scale.type;
         }
+
+        // Update scale name with clear key display
+        const scaleTypeName = this.getScaleTypeName(scale.type);
+        const scaleName = `${scale.root} ${scaleTypeName}`;
+        document.getElementById('main-scale-name').textContent = scaleName;
+        document.getElementById('main-scale-description').textContent = scale.description || '';
 
         // Get chord tones from current progression
         const chordTones = this.getProgressionChordTones();
@@ -3483,6 +3500,31 @@ const App = {
         } else {
             document.getElementById('position-patterns-section')?.classList.add('hidden');
         }
+    },
+
+    /**
+     * Get human-readable scale type name
+     */
+    getScaleTypeName(scaleType) {
+        const scaleNames = {
+            'major': 'Major (Ionian)',
+            'natural-minor': 'Natural Minor (Aeolian)',
+            'major-pentatonic': 'Major Pentatonic',
+            'minor-pentatonic': 'Minor Pentatonic',
+            'blues': 'Blues Scale',
+            'ionian': 'Ionian (Major)',
+            'dorian': 'Dorian',
+            'phrygian': 'Phrygian',
+            'lydian': 'Lydian',
+            'mixolydian': 'Mixolydian',
+            'aeolian': 'Aeolian (Natural Minor)',
+            'locrian': 'Locrian',
+            'harmonic-minor': 'Harmonic Minor',
+            'melodic-minor': 'Melodic Minor',
+            'whole-tone': 'Whole Tone',
+            'diminished': 'Diminished'
+        };
+        return scaleNames[scaleType] || scaleType;
     },
 
     /**

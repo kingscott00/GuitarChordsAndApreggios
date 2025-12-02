@@ -519,6 +519,7 @@ const ScaleRenderer = {
         svg.appendChild(this.renderFretboard(dims));
         svg.appendChild(this.renderStrings(dims));
         svg.appendChild(this.renderFrets(dims, startFret));
+        svg.appendChild(this.renderFretNumbers(dims, startFret));
         svg.appendChild(this.renderNotes(dims, filteredNotes, startFret, scale.root));
         svg.appendChild(this.renderStringLabels(dims));
 

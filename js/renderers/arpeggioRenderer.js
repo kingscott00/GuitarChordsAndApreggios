@@ -131,7 +131,7 @@ const ArpeggioRenderer = {
         const group = this.createSVGElement('g');
         group.setAttribute('class', 'strings-group');
 
-        const stringWidths = [3, 2.5, 2, 1.5, 1.2, 1]; // Low E to high e
+        const stringWidths = [1, 1.2, 1.5, 2, 2.5, 3]; // High e to low E (reversed)
 
         for (let i = 0; i < this.config.numStrings; i++) {
             const y = dims.startY + (i * dims.stringSpacing);
@@ -263,7 +263,8 @@ const ArpeggioRenderer = {
         group.setAttribute('class', 'notes-group');
 
         for (const note of arpeggio.pattern) {
-            const stringY = dims.startY + (note.string * dims.stringSpacing);
+            // Reverse string index to match high-to-low display order
+            const stringY = dims.startY + ((5 - note.string) * dims.stringSpacing);
             const fretIndex = note.fret - startFret;
 
             // Calculate X position (in middle of fret space, or at nut for open strings)
@@ -316,7 +317,7 @@ const ArpeggioRenderer = {
         const group = this.createSVGElement('g');
         group.setAttribute('class', 'string-labels-group');
 
-        const labels = ['E', 'A', 'D', 'G', 'B', 'e'];
+        const labels = ['e', 'B', 'G', 'D', 'A', 'E'];
         const x = dims.startX - 30;
 
         for (let i = 0; i < labels.length; i++) {
@@ -384,7 +385,7 @@ const ArpeggioRenderer = {
         const sortedPattern = [...arpeggio.pattern].sort((a, b) => {
             // Sort by string (low to high: 0 is low E)
             // Then by fret (low to high)
-            if (a.string !== b.string) return b.string - a.string;
+            if (a.string !== b.string) return a.string - b.string;
             return a.fret - b.fret;
         });
 

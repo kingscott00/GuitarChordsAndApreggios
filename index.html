@@ -64,14 +64,25 @@
         </div>
         <div class="settings-panel-content">
             <div class="settings-section">
-                <h4>Display Options</h4>
+                <h4>Chord Display</h4>
                 <div class="settings-option">
-                    <label for="show-tab-toggle">Show Tablature</label>
+                    <label for="show-tab-toggle">Show Chord Tabs</label>
                     <input type="checkbox" id="show-tab-toggle" checked>
                 </div>
                 <div class="settings-option">
                     <label for="show-finger-toggle">Show Finger Positions</label>
                     <input type="checkbox" id="show-finger-toggle" checked>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h4>Arpeggio Display</h4>
+                <div class="settings-option">
+                    <label for="show-arpeggio-tab-toggle">Show Arpeggio Tabs</label>
+                    <input type="checkbox" id="show-arpeggio-tab-toggle" checked>
+                </div>
+                <div class="settings-option">
+                    <label for="show-arpeggio-tips-toggle">Show Arpeggio Tips</label>
+                    <input type="checkbox" id="show-arpeggio-tips-toggle" checked>
                 </div>
             </div>
             <div class="settings-section">
@@ -204,7 +215,14 @@
                     </div>
                     <div class="sequence-actions">
                         <button class="btn secondary" id="clear-sequence">Clear All</button>
-                        <button class="btn" id="generate-sequence-tab">Generate Tablature</button>
+                        <button class="btn secondary" id="random-sequence">Random (4-8)</button>
+                        <button class="btn" id="generate-sequence-tab">Generate Tabs</button>
+                        <button class="btn" id="play-sequence-tab" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                            Play Sequence
+                        </button>
                     </div>
                     <div class="sequence-tablature hidden" id="sequence-tablature">
                         <h4>Combined Tablature</h4>
@@ -235,13 +253,43 @@
                     <label for="template-select">Templates:</label>
                     <select id="template-select">
                         <option value="">Select a template...</option>
-                        <option value="i-iv-v-i">I - IV - V - I (Basic)</option>
-                        <option value="i-v-vi-iv">I - V - vi - IV (Pop)</option>
-                        <option value="ii-v-i">ii - V - I (Jazz)</option>
-                        <option value="i-vi-iv-v">I - vi - IV - V (50s)</option>
-                        <option value="12-bar-blues">12-Bar Blues</option>
-                        <option value="i-iv-i-v">I - IV - I - V (Country)</option>
+                        <optgroup label="Basic">
+                            <option value="i-iv-v-i">I - IV - V - I (Basic)</option>
+                            <option value="i-iv-v">I - IV - V (Three Chord)</option>
+                        </optgroup>
+                        <optgroup label="Pop">
+                            <option value="i-v-vi-iv">I - V - vi - IV (Pop)</option>
+                            <option value="i-vi-iv-v">I - vi - IV - V (50s)</option>
+                            <option value="vi-iv-i-v">vi - IV - I - V (Sad Pop)</option>
+                        </optgroup>
+                        <optgroup label="Country/Folk">
+                            <option value="i-iv-i-v">I - IV - I - V (Country)</option>
+                            <option value="i-v-i-iv">I - V - I - IV (Folk)</option>
+                        </optgroup>
+                        <optgroup label="Jazz">
+                            <option value="ii-v-i">ii - V - I (Jazz)</option>
+                            <option value="i-vi-ii-v">I - vi - ii - V (Rhythm Changes)</option>
+                            <option value="iii-vi-ii-v">iii - vi - ii - V (Jazz Turnaround)</option>
+                        </optgroup>
+                        <optgroup label="Blues">
+                            <option value="12-bar-blues">12-Bar Blues</option>
+                            <option value="8-bar-blues">8-Bar Blues</option>
+                        </optgroup>
+                        <optgroup label="Rock">
+                            <option value="i-bvii-iv">I - bVII - IV (Rock)</option>
+                            <option value="i-iii-iv">I - iii - IV (Rock Ballad)</option>
+                        </optgroup>
+                        <optgroup label="Modal">
+                            <option value="i-bvii-bvi-bvii">i - bVII - bVI - bVII (Aeolian)</option>
+                            <option value="i-iv-bvii-i">i - IV - bVII - i (Dorian)</option>
+                        </optgroup>
+                        <optgroup label="Emotional">
+                            <option value="i-v-iv-i">I - V - IV - I (Triumphant)</option>
+                            <option value="vi-iv-v-i">vi - IV - V - I (Hopeful)</option>
+                            <option value="i-iv-vi-v">I - IV - vi - V (Uplifting)</option>
+                        </optgroup>
                     </select>
+                    <button class="btn secondary small" id="random-progression" title="Randomize chords in template">Random</button>
                 </div>
             </div>
             <div class="progression-slots" id="progression-slots">
@@ -288,6 +336,7 @@
                 </button>
                 <button class="btn secondary" id="clear-progression">Clear</button>
                 <button class="btn secondary" id="add-slot">+ Add Slot</button>
+                <button class="btn secondary" id="generate-progression-tabs">Generate Tabs</button>
                 <button class="btn secondary" id="save-progression">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
@@ -296,6 +345,12 @@
                     </svg>
                     Save
                 </button>
+            </div>
+            <div class="progression-tablature hidden" id="progression-tablature">
+                <h4>Progression Tablature</h4>
+                <div class="progression-tab-content" id="progression-tab-content">
+                    <!-- Combined tablature will be generated here -->
+                </div>
             </div>
             <div class="saved-progressions hidden" id="saved-progressions">
                 <h3>Saved Progressions</h3>

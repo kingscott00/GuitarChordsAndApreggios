@@ -568,7 +568,8 @@
 .arpeggio-header-left {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
 }
 
 .arpeggio-play-btn {
@@ -579,6 +580,26 @@
     font-size: var(--font-size-lg);
     font-weight: 600;
     color: var(--text-primary);
+}
+
+.arpeggio-notes-inline {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.arpeggio-notes-inline .note-badge {
+    font-size: var(--font-size-xs);
+    padding: 2px 6px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+}
+
+.arpeggio-notes-inline .note-badge.root {
+    background: var(--accent-light);
+    color: var(--accent);
+    font-weight: 600;
 }
 
 .arpeggio-position {
@@ -706,5 +727,14 @@
 }
 
 .hide-finger-info .finger-info {
+    display: none !important;
+}
+
+/* Hidden arpeggio elements based on settings */
+.hide-arpeggio-tab .arpeggio-tab-container {
+    display: none !important;
+}
+
+.hide-arpeggio-tips .arpeggio-tips {
     display: none !important;
 }

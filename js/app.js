@@ -18,6 +18,8 @@ const App = {
         arpeggiosExpanded: false,
         // Progression builder state
         progression: [],
+        progressionTemplate: null, // Currently loaded template
+        progressionDegrees: [], // Roman numeral degrees for each slot
         progressionPlaying: false,
         progressionPlaybackIndex: 0,
         progressionPlaybackTimer: null,
@@ -66,6 +68,8 @@ const App = {
         settings: {
             showTab: true,
             showFingerInfo: true,
+            showArpeggioTab: true,
+            showArpeggioTips: true,
             darkTheme: false,
             leftHanded: false
         },
@@ -473,26 +477,6 @@ const App = {
             this.playChord(currentChord, e.currentTarget);
         });
 
-        const favBtn = document.createElement('button');
-        const isFavorite = this.isFavorite(chord.id);
-        favBtn.className = `action-btn fav-btn${isFavorite ? ' active' : ''}`;
-        favBtn.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="${isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-            </svg>
-            <span>${isFavorite ? 'Favorited' : 'Favorite'}</span>
-        `;
-        favBtn.title = 'Toggle favorite';
-        favBtn.addEventListener('click', () => {
-            const currentChord = getChordById(card.dataset.chordId);
-            if (currentChord) {
-                const nowFavorite = this.toggleFavorite(currentChord.id);
-                favBtn.classList.toggle('active', nowFavorite);
-                favBtn.querySelector('svg').setAttribute('fill', nowFavorite ? 'currentColor' : 'none');
-                favBtn.querySelector('span').textContent = nowFavorite ? 'Favorited' : 'Favorite';
-            }
-        });
-
         const addBtn = document.createElement('button');
         addBtn.className = 'action-btn add-btn';
         addBtn.innerHTML = `
@@ -514,7 +498,6 @@ const App = {
         });
 
         actions.appendChild(playBtn);
-        actions.appendChild(favBtn);
         actions.appendChild(addBtn);
 
         card.appendChild(header);
@@ -644,11 +627,22 @@ const App = {
         name.className = 'arpeggio-name';
         name.textContent = arpeggio.name;
 
+        // Notes inline with name
+        const notesInline = document.createElement('span');
+        notesInline.className = 'arpeggio-notes-inline';
+        arpeggio.notes.forEach((note, index) => {
+            const badge = document.createElement('span');
+            badge.className = `note-badge${index === 0 ? ' root' : ''}`;
+            badge.textContent = note;
+            notesInline.appendChild(badge);
+        });
+
         const position = document.createElement('span');
         position.className = 'arpeggio-position';
         position.textContent = arpeggio.position;
 
         headerLeft.appendChild(name);
+        headerLeft.appendChild(notesInline);
         headerLeft.appendChild(position);
 
         // Button container
@@ -695,17 +689,6 @@ const App = {
         header.appendChild(headerLeft);
         header.appendChild(buttonContainer);
 
-        // Notes display
-        const notesContainer = document.createElement('div');
-        notesContainer.className = 'arpeggio-notes';
-
-        arpeggio.notes.forEach((note, index) => {
-            const badge = document.createElement('span');
-            badge.className = `note-badge${index === 0 ? ' root' : ''}`;
-            badge.textContent = note;
-            notesContainer.appendChild(badge);
-        });
-
         // Diagram container
         const diagramContainer = document.createElement('div');
         diagramContainer.className = 'arpeggio-diagram-container';
@@ -722,7 +705,6 @@ const App = {
         tips.innerHTML = `<span class="arpeggio-tips-label">Tip:</span>${arpeggio.fingeringTips}`;
 
         card.appendChild(header);
-        card.appendChild(notesContainer);
         card.appendChild(diagramContainer);
         card.appendChild(tab);
         card.appendChild(tips);
@@ -847,6 +829,8 @@ const App = {
         document.getElementById('clear-progression')?.addEventListener('click', () => this.clearProgression());
         document.getElementById('add-slot')?.addEventListener('click', () => this.addProgressionSlot());
         document.getElementById('save-progression')?.addEventListener('click', () => this.promptSaveProgression());
+        document.getElementById('random-progression')?.addEventListener('click', () => this.randomizeProgression());
+        document.getElementById('generate-progression-tabs')?.addEventListener('click', () => this.generateProgressionTablature());
 
         // Initialize slot listeners
         this.initProgressionSlots();
@@ -947,14 +931,34 @@ const App = {
     /**
      * Render a filled progression slot
      */
-    renderProgressionSlot(slot, chord) {
+    renderProgressionSlot(slot, chord, index) {
         slot.classList.remove('empty');
         slot.classList.add('filled');
         slot.setAttribute('draggable', 'true');
 
+        const slotIndex = index !== undefined ? index : parseInt(slot.dataset.index);
+        const progressionItem = this.state.progression[slotIndex];
+        const romanNumeral = progressionItem?.romanNumeral || '';
+
+        // Get available chords for this slot (chords that fit this degree)
+        const availableChords = this.getAvailableChordsForSlot(slotIndex);
+
+        let dropdownHTML = '';
+        if (availableChords.length > 1) {
+            dropdownHTML = `
+                <select class="slot-chord-select" data-index="${slotIndex}">
+                    ${availableChords.map(c =>
+                        `<option value="${c.id}" ${c.id === chord.id ? 'selected' : ''}>${c.name} (${c.symbol})</option>`
+                    ).join('')}
+                </select>
+            `;
+        }
+
         slot.innerHTML = `
+            ${romanNumeral ? `<span class="slot-roman-numeral">${romanNumeral}</span>` : ''}
             <span class="slot-chord-name">${chord.name}</span>
             <span class="slot-chord-symbol">${chord.symbol}</span>
+            ${dropdownHTML}
             <button class="slot-remove" title="Remove chord">&times;</button>
         `;
 
@@ -964,6 +968,75 @@ const App = {
             e.stopPropagation();
             this.removeFromProgression(parseInt(slot.dataset.index));
         });
+
+        // Add dropdown change listener
+        const dropdown = slot.querySelector('.slot-chord-select');
+        if (dropdown) {
+            dropdown.addEventListener('change', (e) => {
+                e.stopPropagation();
+                this.changeProgressionChord(slotIndex, e.target.value);
+            });
+        }
+    },
+
+    /**
+     * Get available chords for a progression slot based on its degree
+     */
+    getAvailableChordsForSlot(slotIndex) {
+        const progressionItem = this.state.progression[slotIndex];
+        if (!progressionItem || !progressionItem.degree) {
+            // No template - return currently displayed chords
+            return this.state.displayedChords.slice(0, 20);
+        }
+
+        // Get chords that match this scale degree
+        const key = this.state.currentKey;
+        const degree = progressionItem.degree;
+        const templates = this.getProgressionTemplates();
+        const template = templates[this.state.progressionTemplate];
+
+        const isMinor = template?.minorDegrees?.includes(degree) || template?.rootMinor;
+
+        // Get the root note for this degree
+        const noteOrder = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const majorIntervals = [0, 2, 4, 5, 7, 9, 11];
+        const keyIndex = noteOrder.indexOf(key);
+        const noteIndex = (keyIndex + majorIntervals[degree - 1]) % 12;
+        const rootNote = noteOrder[noteIndex];
+
+        // Find all chords with this root
+        const allChords = getAllChords();
+        const matchingChords = allChords.filter(chord => {
+            if (chord.root !== rootNote) return false;
+            if (isMinor && chord.quality !== 'minor' && chord.quality !== 'minor7') return false;
+            if (!isMinor && chord.quality !== 'major' && chord.quality !== 'major7' && chord.quality !== 'dominant7') return false;
+            return true;
+        });
+
+        return matchingChords.length > 0 ? matchingChords : [getChordById(progressionItem.chordId)].filter(Boolean);
+    },
+
+    /**
+     * Change the chord in a progression slot
+     */
+    changeProgressionChord(slotIndex, newChordId) {
+        const newChord = getChordById(newChordId);
+        if (!newChord) return;
+
+        // Update the progression state
+        const existingItem = this.state.progression[slotIndex];
+        this.state.progression[slotIndex] = {
+            ...existingItem,
+            chordId: newChord.id,
+            name: newChord.name,
+            symbol: newChord.symbol
+        };
+
+        // Re-render the slot
+        const slot = document.querySelector(`.progression-slot[data-index="${slotIndex}"]`);
+        if (slot) {
+            this.renderProgressionSlot(slot, newChord, slotIndex);
+        }
     },
 
     /**
@@ -1075,12 +1148,78 @@ const App = {
         // Reset template selector
         const templateSelect = document.getElementById('template-select');
         if (templateSelect) templateSelect.value = '';
+
+        // Hide tablature
+        document.getElementById('progression-tablature')?.classList.add('hidden');
+    },
+
+    /**
+     * Generate tablature for the progression
+     */
+    generateProgressionTablature() {
+        if (this.state.progression.length === 0) {
+            alert('Add some chords to the progression first!');
+            return;
+        }
+
+        const tabContainer = document.getElementById('progression-tablature');
+        const tabContent = document.getElementById('progression-tab-content');
+
+        if (!tabContainer || !tabContent) return;
+
+        // Generate combined tablature
+        const stringNames = ['e', 'B', 'G', 'D', 'A', 'E'];
+        const strings = [[], [], [], [], [], []];
+        const separator = '--|';
+
+        this.state.progression.forEach((chordData, chordIndex) => {
+            const chord = getChordById(chordData.chordId);
+            if (!chord) return;
+
+            // Add separator between chords (except first)
+            if (chordIndex > 0) {
+                for (let i = 0; i < 6; i++) {
+                    strings[i].push(separator);
+                }
+            }
+
+            // Build tab for this chord
+            for (let stringIdx = 0; stringIdx < 6; stringIdx++) {
+                const fret = chord.frets[stringIdx];
+                if (fret === -1) {
+                    strings[stringIdx].push('--');
+                } else {
+                    strings[stringIdx].push(fret.toString().padStart(2, '-'));
+                }
+            }
+        });
+
+        // Build tablature string with chord labels
+        let tabString = '';
+
+        // Add chord names row
+        tabString += '   ';
+        this.state.progression.forEach((chordData, idx) => {
+            const chord = getChordById(chordData.chordId);
+            if (chord) {
+                const label = chord.symbol.padEnd(5, ' ');
+                tabString += (idx > 0 ? '   ' : '') + label;
+            }
+        });
+        tabString += '\n';
+
+        stringNames.forEach((name, idx) => {
+            tabString += `${name}|${strings[idx].join('-')}|\n`;
+        });
+
+        tabContent.textContent = tabString;
+        tabContainer.classList.remove('hidden');
     },
 
     /**
      * Load a progression template
      */
-    loadTemplate(templateId) {
+    loadTemplate(templateId, randomize = false) {
         if (!templateId) return;
 
         // Clear current progression first
@@ -1093,17 +1232,27 @@ const App = {
 
         if (!template) return;
 
+        // Store the template info
+        this.state.progressionTemplate = templateId;
+        this.state.progressionDegrees = template.degrees.map((degree, idx) => {
+            const isMinor = template.minorDegrees?.includes(degree) || template.rootMinor;
+            const isFlat = template.flatDegrees?.includes(degree);
+            return this.getDegreeRomanNumeral(degree, isMinor, isFlat);
+        });
+
         // Get scale degrees and find matching chords
-        const scaleChords = this.getChordsForKey(key, template.degrees);
+        const scaleChords = this.getChordsForKey(key, template.degrees, template, randomize);
 
         scaleChords.forEach((chordInfo, index) => {
             if (chordInfo && index < document.querySelectorAll('.progression-slot').length) {
                 const slot = document.querySelector(`.progression-slot[data-index="${index}"]`);
                 if (slot) {
                     this.state.progression[index] = chordInfo;
+                    this.state.progression[index].degree = template.degrees[index];
+                    this.state.progression[index].romanNumeral = this.state.progressionDegrees[index];
                     const chord = getChordById(chordInfo.chordId);
                     if (chord) {
-                        this.renderProgressionSlot(slot, chord);
+                        this.renderProgressionSlot(slot, chord, index);
                     }
                 }
             } else if (chordInfo) {
@@ -1112,9 +1261,11 @@ const App = {
                 const slot = document.querySelector(`.progression-slot[data-index="${index}"]`);
                 if (slot) {
                     this.state.progression[index] = chordInfo;
+                    this.state.progression[index].degree = template.degrees[index];
+                    this.state.progression[index].romanNumeral = this.state.progressionDegrees[index];
                     const chord = getChordById(chordInfo.chordId);
                     if (chord) {
-                        this.renderProgressionSlot(slot, chord);
+                        this.renderProgressionSlot(slot, chord, index);
                     }
                 }
             }
@@ -1122,36 +1273,146 @@ const App = {
     },
 
     /**
+     * Get roman numeral for a scale degree
+     */
+    getDegreeRomanNumeral(degree, isMinor = false, isFlat = false) {
+        const numerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+        let numeral = numerals[degree - 1] || degree.toString();
+        if (isFlat) numeral = 'b' + numeral;
+        if (isMinor) numeral = numeral.toLowerCase();
+        return numeral;
+    },
+
+    /**
+     * Randomize progression with current template
+     */
+    randomizeProgression() {
+        const templateId = this.state.progressionTemplate || document.getElementById('template-select')?.value;
+        if (templateId) {
+            this.loadTemplate(templateId, true);
+        }
+    },
+
+    /**
      * Get progression template definitions
      */
     getProgressionTemplates() {
         return {
+            // Basic Templates
             'i-iv-v-i': {
                 name: 'I - IV - V - I (Basic)',
-                degrees: [1, 4, 5, 1]
+                degrees: [1, 4, 5, 1],
+                category: 'basic'
+            },
+            'i-iv-v': {
+                name: 'I - IV - V (Three Chord)',
+                degrees: [1, 4, 5],
+                category: 'basic'
             },
             'i-v-vi-iv': {
                 name: 'I - V - vi - IV (Pop)',
                 degrees: [1, 5, 6, 4],
-                minorDegrees: [6] // 6th degree is minor
-            },
-            'ii-v-i': {
-                name: 'ii - V - I (Jazz)',
-                degrees: [2, 5, 1],
-                minorDegrees: [2]
+                minorDegrees: [6],
+                category: 'pop'
             },
             'i-vi-iv-v': {
                 name: 'I - vi - IV - V (50s)',
                 degrees: [1, 6, 4, 5],
-                minorDegrees: [6]
+                minorDegrees: [6],
+                category: 'pop'
             },
-            '12-bar-blues': {
-                name: '12-Bar Blues',
-                degrees: [1, 1, 1, 1, 4, 4, 1, 1, 5, 4, 1, 5]
+            'vi-iv-i-v': {
+                name: 'vi - IV - I - V (Sad Pop)',
+                degrees: [6, 4, 1, 5],
+                minorDegrees: [6],
+                category: 'pop'
             },
+            // Country/Folk Templates
             'i-iv-i-v': {
                 name: 'I - IV - I - V (Country)',
-                degrees: [1, 4, 1, 5]
+                degrees: [1, 4, 1, 5],
+                category: 'country'
+            },
+            'i-v-i-iv': {
+                name: 'I - V - I - IV (Folk)',
+                degrees: [1, 5, 1, 4],
+                category: 'folk'
+            },
+            // Jazz Templates
+            'ii-v-i': {
+                name: 'ii - V - I (Jazz)',
+                degrees: [2, 5, 1],
+                minorDegrees: [2],
+                category: 'jazz'
+            },
+            'i-vi-ii-v': {
+                name: 'I - vi - ii - V (Rhythm Changes)',
+                degrees: [1, 6, 2, 5],
+                minorDegrees: [6, 2],
+                category: 'jazz'
+            },
+            'iii-vi-ii-v': {
+                name: 'iii - vi - ii - V (Jazz Turnaround)',
+                degrees: [3, 6, 2, 5],
+                minorDegrees: [3, 6, 2],
+                category: 'jazz'
+            },
+            // Blues Templates
+            '12-bar-blues': {
+                name: '12-Bar Blues',
+                degrees: [1, 1, 1, 1, 4, 4, 1, 1, 5, 4, 1, 5],
+                category: 'blues'
+            },
+            '8-bar-blues': {
+                name: '8-Bar Blues',
+                degrees: [1, 5, 4, 4, 1, 5, 1, 5],
+                category: 'blues'
+            },
+            // Rock Templates
+            'i-bvii-iv': {
+                name: 'I - bVII - IV (Rock)',
+                degrees: [1, 7, 4],
+                flatDegrees: [7],
+                category: 'rock'
+            },
+            'i-iii-iv': {
+                name: 'I - iii - IV (Rock Ballad)',
+                degrees: [1, 3, 4],
+                minorDegrees: [3],
+                category: 'rock'
+            },
+            // Modal Templates
+            'i-bvii-bvi-bvii': {
+                name: 'i - bVII - bVI - bVII (Aeolian)',
+                degrees: [1, 7, 6, 7],
+                flatDegrees: [7, 6],
+                rootMinor: true,
+                category: 'modal'
+            },
+            'i-iv-bvii-i': {
+                name: 'i - IV - bVII - i (Dorian)',
+                degrees: [1, 4, 7, 1],
+                flatDegrees: [7],
+                rootMinor: true,
+                category: 'modal'
+            },
+            // Emotional Templates
+            'i-v-iv-i': {
+                name: 'I - V - IV - I (Triumphant)',
+                degrees: [1, 5, 4, 1],
+                category: 'emotional'
+            },
+            'vi-iv-v-i': {
+                name: 'vi - IV - V - I (Hopeful)',
+                degrees: [6, 4, 5, 1],
+                minorDegrees: [6],
+                category: 'emotional'
+            },
+            'i-iv-vi-v': {
+                name: 'I - IV - vi - V (Uplifting)',
+                degrees: [1, 4, 6, 5],
+                minorDegrees: [6],
+                category: 'emotional'
             }
         };
     },
@@ -1159,7 +1420,7 @@ const App = {
     /**
      * Get chords for a key based on scale degrees
      */
-    getChordsForKey(key, degrees) {
+    getChordsForKey(key, degrees, template = null, randomize = false) {
         // Major scale notes
         const noteOrder = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         const majorIntervals = [0, 2, 4, 5, 7, 9, 11]; // Intervals for major scale
@@ -1178,44 +1439,58 @@ const App = {
             const root = scaleNotes[noteIndex];
 
             // Determine if this degree should be minor
-            // In major scale: ii, iii, vi are minor
-            const minorDegrees = [2, 3, 6];
-            const isMinor = minorDegrees.includes(degree);
+            // Check template first, then default scale rules
+            let isMinor = false;
+            if (template?.minorDegrees?.includes(degree)) {
+                isMinor = true;
+            } else if (template?.rootMinor && degree === 1) {
+                isMinor = true;
+            } else {
+                // Default: in major scale ii, iii, vi are minor
+                const defaultMinorDegrees = [2, 3, 6];
+                isMinor = defaultMinorDegrees.includes(degree);
+            }
 
-            // Find a chord matching this root
+            // Find all matching chords for this root
             const allChords = getAllChords();
-            let chord;
+            let matchingChords = [];
 
             if (isMinor) {
-                // Look for minor chord
-                chord = allChords.find(c =>
-                    c.name === root + 'm' ||
-                    (c.name.startsWith(root) && c.symbol === 'm')
+                // Look for minor chords
+                matchingChords = allChords.filter(c =>
+                    c.root === root && (c.quality === 'minor' || c.quality === 'minor7')
+                );
+            } else {
+                // Look for major/dominant chords
+                matchingChords = allChords.filter(c =>
+                    c.root === root && (c.quality === 'major' || c.quality === 'dominant7' || c.quality === 'major7')
                 );
             }
 
-            if (!chord) {
-                // Look for major chord
-                chord = allChords.find(c =>
-                    c.name === root ||
-                    (c.name === root && c.symbol === '')
-                );
+            // Fallback: find any chord with this root
+            if (matchingChords.length === 0) {
+                matchingChords = allChords.filter(c => c.root === root);
             }
 
-            if (!chord) {
-                // Fallback: find any chord with this root
-                chord = allChords.find(c => c.name.startsWith(root));
+            if (matchingChords.length === 0) {
+                return null;
             }
 
-            if (chord) {
-                return {
-                    chordId: chord.id,
-                    name: chord.name,
-                    symbol: chord.symbol
-                };
+            // Select chord - random or first (easiest)
+            let chord;
+            if (randomize && matchingChords.length > 1) {
+                chord = matchingChords[Math.floor(Math.random() * matchingChords.length)];
+            } else {
+                // Sort by difficulty and pick the easiest
+                matchingChords.sort((a, b) => a.difficulty - b.difficulty);
+                chord = matchingChords[0];
             }
 
-            return null;
+            return {
+                chordId: chord.id,
+                name: chord.name,
+                symbol: chord.symbol
+            };
         });
     },
 
@@ -2120,6 +2395,13 @@ const App = {
             chordGrid.classList.toggle('hide-finger-info', !this.state.settings.showFingerInfo);
         }
 
+        // Apply arpeggio visibility
+        const arpeggioContent = document.getElementById('arpeggio-content');
+        if (arpeggioContent) {
+            arpeggioContent.classList.toggle('hide-arpeggio-tab', !this.state.settings.showArpeggioTab);
+            arpeggioContent.classList.toggle('hide-arpeggio-tips', !this.state.settings.showArpeggioTips);
+        }
+
         // Apply dark theme
         document.body.classList.toggle('dark-theme', this.state.settings.darkTheme);
 
@@ -2129,11 +2411,15 @@ const App = {
         // Update settings panel checkboxes
         const showTabToggle = document.getElementById('show-tab-toggle');
         const showFingerToggle = document.getElementById('show-finger-toggle');
+        const showArpeggioTabToggle = document.getElementById('show-arpeggio-tab-toggle');
+        const showArpeggioTipsToggle = document.getElementById('show-arpeggio-tips-toggle');
         const darkThemeToggle = document.getElementById('dark-theme-toggle');
         const leftHandedToggle = document.getElementById('left-handed-toggle');
 
         if (showTabToggle) showTabToggle.checked = this.state.settings.showTab;
         if (showFingerToggle) showFingerToggle.checked = this.state.settings.showFingerInfo;
+        if (showArpeggioTabToggle) showArpeggioTabToggle.checked = this.state.settings.showArpeggioTab;
+        if (showArpeggioTipsToggle) showArpeggioTipsToggle.checked = this.state.settings.showArpeggioTips;
         if (darkThemeToggle) darkThemeToggle.checked = this.state.settings.darkTheme;
         if (leftHandedToggle) leftHandedToggle.checked = this.state.settings.leftHanded;
     },
@@ -2162,6 +2448,18 @@ const App = {
 
         document.getElementById('show-finger-toggle')?.addEventListener('change', (e) => {
             this.state.settings.showFingerInfo = e.target.checked;
+            this.applySettings();
+            this.saveSettings();
+        });
+
+        document.getElementById('show-arpeggio-tab-toggle')?.addEventListener('change', (e) => {
+            this.state.settings.showArpeggioTab = e.target.checked;
+            this.applySettings();
+            this.saveSettings();
+        });
+
+        document.getElementById('show-arpeggio-tips-toggle')?.addEventListener('change', (e) => {
+            this.state.settings.showArpeggioTips = e.target.checked;
             this.applySettings();
             this.saveSettings();
         });
@@ -2301,6 +2599,8 @@ const App = {
     initArpeggioSequenceBuilder() {
         document.getElementById('clear-sequence')?.addEventListener('click', () => this.clearArpeggioSequence());
         document.getElementById('generate-sequence-tab')?.addEventListener('click', () => this.generateSequenceTablature());
+        document.getElementById('random-sequence')?.addEventListener('click', () => this.randomArpeggioSequence());
+        document.getElementById('play-sequence-tab')?.addEventListener('click', () => this.playSequenceTablature());
     },
 
     /**
@@ -2455,6 +2755,122 @@ const App = {
 
         tabContent.textContent = tabString;
         tabContainer.classList.remove('hidden');
+
+        // Enable play button
+        const playBtn = document.getElementById('play-sequence-tab');
+        if (playBtn) {
+            playBtn.disabled = false;
+        }
+    },
+
+    /**
+     * Random arpeggio sequence - select 4-8 random arpeggios from displayed chords
+     */
+    randomArpeggioSequence() {
+        // Get displayed chords that have arpeggios
+        const availableArpeggios = [];
+
+        this.state.displayedChords.forEach(chord => {
+            const arpeggio = getArpeggioForChord(chord.id);
+            if (arpeggio) {
+                availableArpeggios.push({
+                    id: arpeggio.chordId,
+                    name: arpeggio.name,
+                    arpeggio: arpeggio
+                });
+            }
+        });
+
+        if (availableArpeggios.length === 0) {
+            alert('No arpeggios available. Please show some chords first!');
+            return;
+        }
+
+        // Random count between 4 and 8
+        const count = Math.floor(Math.random() * 5) + 4; // 4 to 8
+        const actualCount = Math.min(count, availableArpeggios.length);
+
+        // Shuffle and pick
+        const shuffled = [...availableArpeggios].sort(() => Math.random() - 0.5);
+
+        // Clear current sequence and add random arpeggios
+        this.state.arpeggioSequence = shuffled.slice(0, actualCount);
+        this.renderArpeggioSequence();
+
+        // Hide tablature and disable play button (need to regenerate)
+        document.getElementById('sequence-tablature')?.classList.add('hidden');
+        const playBtn = document.getElementById('play-sequence-tab');
+        if (playBtn) {
+            playBtn.disabled = true;
+        }
+    },
+
+    /**
+     * Play the arpeggio sequence tablature
+     */
+    async playSequenceTablature() {
+        if (this.state.arpeggioSequence.length === 0) return;
+
+        const playBtn = document.getElementById('play-sequence-tab');
+        if (!playBtn || playBtn.disabled) return;
+
+        // Prevent multiple plays
+        if (AudioEngine.isPlaying) return;
+
+        // Update button to show playing state
+        playBtn.classList.add('playing');
+        const originalContent = playBtn.innerHTML;
+        playBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <rect x="6" y="4" width="4" height="16"></rect>
+                <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+            Playing...
+        `;
+
+        await AudioEngine.init();
+        await AudioEngine.resume();
+
+        AudioEngine.isPlaying = true;
+
+        const bpm = AudioEngine.settings.arpeggioTempo || 120;
+        const beatDuration = 60 / bpm;
+        const noteDuration = beatDuration * 0.8;
+        const startTime = AudioEngine.context.currentTime + 0.05;
+
+        let noteIndex = 0;
+        const gapBetweenArpeggios = 2; // 2 beat gap between arpeggios
+
+        // Play each arpeggio in sequence
+        this.state.arpeggioSequence.forEach((item, seqIndex) => {
+            const arpeggio = item.arpeggio;
+            if (!arpeggio || !arpeggio.pattern) return;
+
+            // Calculate start time for this arpeggio (including gaps)
+            const arpeggioStartOffset = noteIndex * beatDuration * 0.5;
+
+            // Play each note in the pattern
+            arpeggio.pattern.forEach((note, idx) => {
+                const frequency = AudioEngine.getFrequency(note.string, note.fret);
+                const noteTime = startTime + arpeggioStartOffset + (idx * beatDuration * 0.5);
+                const velocity = note.interval === 'R' ? 0.85 : 0.7;
+
+                AudioEngine.playNote(frequency, noteTime, noteDuration, velocity);
+            });
+
+            // Update note index (pattern length + gap)
+            noteIndex += arpeggio.pattern.length + gapBetweenArpeggios;
+        });
+
+        // Calculate total duration
+        const totalDuration = (noteIndex * beatDuration * 0.5 * 1000) + 500;
+
+        // Reset button after playback
+        setTimeout(() => {
+            AudioEngine.isPlaying = false;
+            playBtn.classList.remove('playing');
+            playBtn.innerHTML = originalContent;
+        }, totalDuration);
     }
 };
 

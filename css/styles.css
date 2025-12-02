@@ -499,6 +499,11 @@ h3 { font-size: var(--font-size-lg); }
     background: var(--border-color);
 }
 
+.btn.small {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+}
+
 .btn-small {
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: var(--font-size-sm);
@@ -720,6 +725,34 @@ h3 { font-size: var(--font-size-lg); }
     background: #C1121F;
 }
 
+.slot-roman-numeral {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    background: var(--accent-light);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.slot-chord-select {
+    width: 100%;
+    margin-top: var(--spacing-xs);
+    padding: 4px 6px;
+    font-size: var(--font-size-xs);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.slot-chord-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
 .progression-settings {
     display: flex;
     gap: var(--spacing-xl);
@@ -780,6 +813,29 @@ h3 { font-size: var(--font-size-lg); }
 
 .play-progression-btn.playing:hover {
     background: #C1121F;
+}
+
+/* Progression Tablature */
+.progression-tablature {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.progression-tablature h4 {
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.progression-tab-content {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre;
+    overflow-x: auto;
+    padding: var(--spacing-md);
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
 }
 
 /* Saved Progressions */
@@ -1468,8 +1524,30 @@ h3 { font-size: var(--font-size-lg); }
 
 .sequence-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--spacing-sm);
     margin-bottom: var(--spacing-md);
+}
+
+.sequence-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sequence-actions .btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.sequence-actions .btn.playing {
+    background: var(--accent-color);
+    cursor: default;
+}
+
+.sequence-actions .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .sequence-tablature {

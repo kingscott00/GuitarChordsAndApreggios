@@ -85,12 +85,36 @@ const ChordRenderer = {
             svg.appendChild(this.renderPositionMarker(dims, chord.position));
         }
 
-        // Render barre if present
-        if (chord.barre) {
-            svg.appendChild(this.renderBarre(dims, chord.barre));
+        // Render barre if present and valid
+        // Only render barre if it's actually a barre chord (barre spans multiple strings)
+        if (chord.barre && this.shouldRenderBarre(chord)) {
+            svg.appendChild(this.renderBarre(dims, chord.barre, chord.position));
         }
 
         return svg;
+    },
+
+    /**
+     * Determine if a barre should be rendered
+     * Barre should only render if there are actually multiple fretted notes at the barre fret
+     */
+    shouldRenderBarre(chord) {
+        if (!chord.barre) return false;
+
+        const barreFret = chord.barre.fret;
+        const fromString = chord.barre.fromString;
+        const toString = chord.barre.toString;
+
+        // Count how many strings in the barre range are actually fretted at the barre fret
+        let barredCount = 0;
+        for (let i = fromString; i <= toString; i++) {
+            if (chord.frets[i] === barreFret) {
+                barredCount++;
+            }
+        }
+
+        // Only render barre if at least 2 strings are barred
+        return barredCount >= 2;
     },
 
     /**
@@ -302,23 +326,33 @@ const ChordRenderer = {
     /**
      * Render barre indicator
      */
-    renderBarre(dims, barre) {
+    renderBarre(dims, barre, chordPosition = 1) {
         const group = this.createSVGElement('g');
         group.setAttribute('class', 'barre-group');
 
         const fromX = dims.startX + (barre.fromString * dims.stringSpacing);
         const toX = dims.startX + (barre.toString * dims.stringSpacing);
-        const y = dims.startY + ((barre.fret - 0.5) * dims.fretSpacing);
 
+        // Adjust barre fret for chord position (same as finger dots)
+        let displayFret = barre.fret;
+        if (chordPosition > 1) {
+            displayFret = barre.fret - chordPosition + 1;
+        }
+
+        const y = dims.startY + ((displayFret - 0.5) * dims.fretSpacing);
+
+        // Use a semi-transparent curved bar that doesn't cover finger dots
         const rect = this.createSVGElement('rect');
         rect.setAttribute('class', 'barre');
         rect.setAttribute('x', fromX);
-        rect.setAttribute('y', y - 8);
+        rect.setAttribute('y', y - 6);
         rect.setAttribute('width', toX - fromX);
-        rect.setAttribute('height', 16);
-        rect.setAttribute('fill', this.config.colors.dot);
-        rect.setAttribute('rx', 8);
-        rect.setAttribute('ry', 8);
+        rect.setAttribute('height', 12);
+        rect.setAttribute('fill', 'rgba(255, 255, 255, 0.85)');
+        rect.setAttribute('stroke', this.config.colors.dot);
+        rect.setAttribute('stroke-width', '2');
+        rect.setAttribute('rx', 6);
+        rect.setAttribute('ry', 6);
 
         group.appendChild(rect);
         return group;

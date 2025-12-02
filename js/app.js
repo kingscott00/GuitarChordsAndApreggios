@@ -72,7 +72,8 @@ const App = {
             showArpeggioTips: true,
             showAllArpeggioNotes: false,
             darkTheme: false,
-            leftHanded: false
+            leftHanded: false,
+            newspaperMode: false
         },
         // Favorites state
         favorites: [],
@@ -2452,6 +2453,9 @@ const App = {
         // Apply left-handed mode
         document.body.classList.toggle('left-handed', this.state.settings.leftHanded);
 
+        // Apply newspaper mode
+        document.body.classList.toggle('newspaper-mode', this.state.settings.newspaperMode);
+
         // Update settings panel checkboxes
         const showTabToggle = document.getElementById('show-tab-toggle');
         const showFingerToggle = document.getElementById('show-finger-toggle');
@@ -2460,6 +2464,7 @@ const App = {
         const showAllArpeggioNotesToggle = document.getElementById('show-all-arpeggio-notes-toggle');
         const darkThemeToggle = document.getElementById('dark-theme-toggle');
         const leftHandedToggle = document.getElementById('left-handed-toggle');
+        const newspaperModeToggle = document.getElementById('newspaper-mode-toggle');
 
         if (showTabToggle) showTabToggle.checked = this.state.settings.showTab;
         if (showFingerToggle) showFingerToggle.checked = this.state.settings.showFingerInfo;
@@ -2468,6 +2473,7 @@ const App = {
         if (showAllArpeggioNotesToggle) showAllArpeggioNotesToggle.checked = this.state.settings.showAllArpeggioNotes;
         if (darkThemeToggle) darkThemeToggle.checked = this.state.settings.darkTheme;
         if (leftHandedToggle) leftHandedToggle.checked = this.state.settings.leftHanded;
+        if (newspaperModeToggle) newspaperModeToggle.checked = this.state.settings.newspaperMode;
     },
 
     /**
@@ -2537,6 +2543,12 @@ const App = {
             if (this.state.displayedChords.length > 0) {
                 this.renderChordGrid(this.state.displayedChords);
             }
+        });
+
+        document.getElementById('newspaper-mode-toggle')?.addEventListener('change', (e) => {
+            this.state.settings.newspaperMode = e.target.checked;
+            this.applySettings();
+            this.saveSettings();
         });
     },
 

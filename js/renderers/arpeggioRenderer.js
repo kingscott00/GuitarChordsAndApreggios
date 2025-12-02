@@ -80,10 +80,21 @@ const ArpeggioRenderer = {
 
     /**
      * Render arpeggio diagram
+     * @param {Object} arpeggio - Arpeggio data object
+     * @param {Object} options - Rendering options (optional)
+     * @param {boolean} options.showAllNotes - Show all note instances across entire fretboard
      */
-    render(arpeggio) {
-        const startFret = Math.max(0, arpeggio.startFret - 1);
-        const endFret = arpeggio.endFret + 1;
+    render(arpeggio, options = {}) {
+        const showAllNotes = options.showAllNotes || false;
+
+        // If showing all notes, use extended fretboard (0-15)
+        const startFret = showAllNotes ? 0 : Math.max(0, arpeggio.startFret - 1);
+        const endFret = showAllNotes ? 15 : arpeggio.endFret + 1;
+
+        // Generate pattern with all notes if needed
+        const pattern = showAllNotes ? this.generateAllNotes(arpeggio) : arpeggio.pattern;
+        const modifiedArpeggio = { ...arpeggio, pattern };
+
         const dims = this.getDimensions(startFret, endFret);
 
         const svg = this.createSVGElement('svg');
@@ -99,10 +110,101 @@ const ArpeggioRenderer = {
         svg.appendChild(this.renderFrets(dims, startFret));
         svg.appendChild(this.renderFretMarkers(dims, startFret));
         svg.appendChild(this.renderFretNumbers(dims, startFret));
-        svg.appendChild(this.renderNotes(dims, arpeggio, startFret));
+        svg.appendChild(this.renderNotes(dims, modifiedArpeggio, startFret));
         svg.appendChild(this.renderStringLabels(dims));
 
         return svg;
+    },
+
+    /**
+     * Generate all instances of arpeggio notes across the fretboard
+     * @param {Object} arpeggio - Original arpeggio object
+     * @returns {Array} - Extended pattern with all note instances
+     */
+    generateAllNotes(arpeggio) {
+        // Get the unique intervals used in the arpeggio
+        const intervalsUsed = [...new Set(arpeggio.pattern.map(n => n.interval))];
+
+        // Map intervals to semitones from root
+        const intervalToSemitones = {
+            'R': 0, '1': 0,
+            'b2': 1, '2': 2,
+            'b3': 3, '3': 4,
+            '4': 5,
+            'b5': 6, '5': 7,
+            'b6': 8, '6': 9,
+            'b7': 10, '7': 11, 'M7': 11
+        };
+
+        // Get the note names for this arpeggio (e.g., C, E, G for C major)
+        const allNotes = [];
+        const numFrets = 15; // Show up to 15th fret
+
+        // For each string (0=low E, 5=high e)
+        for (let string = 0; string < 6; string++) {
+            // For each fret on this string
+            for (let fret = 0; fret <= numFrets; fret++) {
+                // Calculate what note is at this position
+                const note = this.getNoteAtStringFret(string, fret);
+
+                // Check if this note is in the arpeggio
+                const matchingInterval = intervalsUsed.find(interval => {
+                    return arpeggio.notes.includes(note);
+                });
+
+                if (arpeggio.notes.includes(note)) {
+                    // Determine which interval this note represents
+                    let interval = 'R'; // default
+
+                    // Find the interval by comparing with arpeggio notes
+                    const noteIndex = arpeggio.notes.indexOf(note);
+                    if (noteIndex >= 0 && noteIndex < arpeggio.pattern.length) {
+                        // Try to find a matching interval from the original pattern
+                        const originalNote = arpeggio.pattern.find(p => {
+                            const patternNote = this.getNoteAtStringFret(p.string, p.fret);
+                            return patternNote === note;
+                        });
+
+                        if (originalNote) {
+                            interval = originalNote.interval;
+                        } else {
+                            // Assign interval based on position in notes array
+                            if (noteIndex === 0) interval = 'R';
+                            else if (noteIndex === 1) interval = arpeggio.quality === 'minor' ? 'b3' : '3';
+                            else if (noteIndex === 2) interval = '5';
+                            else if (noteIndex === 3) interval = arpeggio.quality.includes('7') ?
+                                (arpeggio.quality.includes('maj') ? 'M7' : 'b7') : '7';
+                        }
+                    }
+
+                    allNotes.push({
+                        string,
+                        fret,
+                        finger: 0, // No specific fingering for all notes view
+                        interval
+                    });
+                }
+            }
+        }
+
+        return allNotes;
+    },
+
+    /**
+     * Get the note name at a specific string and fret
+     * @param {number} stringIndex - String index (0=low E, 5=high e)
+     * @param {number} fret - Fret number
+     * @returns {string} - Note name
+     */
+    getNoteAtStringFret(stringIndex, fret) {
+        const openStrings = ['E', 'A', 'D', 'G', 'B', 'E']; // Low E to high e
+        const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        const openNote = openStrings[stringIndex];
+        const openNoteIndex = notes.indexOf(openNote);
+        const noteIndex = (openNoteIndex + fret) % 12;
+
+        return notes[noteIndex];
     },
 
     /**

@@ -398,13 +398,6 @@
                 </svg>
             </button>
             <div class="section-content">
-                <div class="scale-builder-header">
-                    <p class="scale-builder-description">
-                        See what notes you can play for lead guitar over your chord progression.
-                        Choose between a single scale for the whole progression or different modes for each chord.
-                    </p>
-                </div>
-
                 <!-- Scale Mode Toggle -->
                 <div class="scale-mode-selector">
                     <div class="btn-group">
@@ -421,6 +414,21 @@
                             <p class="scale-description" id="main-scale-description"></p>
                         </div>
                         <div class="scale-controls">
+                            <label for="scale-key-select">Key:</label>
+                            <select id="scale-key-select" class="scale-select">
+                                <option value="C">C</option>
+                                <option value="C#">C#/Db</option>
+                                <option value="D">D</option>
+                                <option value="D#">D#/Eb</option>
+                                <option value="E">E</option>
+                                <option value="F">F</option>
+                                <option value="F#">F#/Gb</option>
+                                <option value="G">G</option>
+                                <option value="G#">G#/Ab</option>
+                                <option value="A">A</option>
+                                <option value="A#">A#/Bb</option>
+                                <option value="B">B</option>
+                            </select>
                             <label for="scale-type-select">Scale Type:</label>
                             <select id="scale-type-select" class="scale-select">
                                 <option value="">-- Select Scale --</option>

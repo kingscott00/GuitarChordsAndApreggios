@@ -422,13 +422,9 @@ const ScaleRenderer = {
     },
 
     /**
-     * Render position patterns for pentatonic scales
+     * Render position patterns for scales
      */
     renderPositionPatterns(scale) {
-        if (!scale.type.includes('pentatonic') && scale.type !== 'blues') {
-            return null;
-        }
-
         const container = document.createElement('div');
         container.className = 'position-patterns-container';
 

@@ -70,6 +70,7 @@ const App = {
             showFingerInfo: true,
             showArpeggioTab: true,
             showArpeggioTips: true,
+            showAllArpeggioNotes: false,
             darkTheme: false,
             leftHanded: false
         },
@@ -172,6 +173,20 @@ const App = {
         // Arpeggio toggle
         document.getElementById('arpeggio-toggle')?.addEventListener('click', () => {
             this.toggleArpeggios();
+        });
+
+        // About modal
+        document.getElementById('about-btn')?.addEventListener('click', () => {
+            this.showAboutModal();
+        });
+        document.getElementById('about-close')?.addEventListener('click', () => {
+            this.closeAboutModal();
+        });
+        // Close modal when clicking outside
+        document.getElementById('about-modal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'about-modal') {
+                this.closeAboutModal();
+            }
         });
     },
 
@@ -693,7 +708,9 @@ const App = {
         const diagramContainer = document.createElement('div');
         diagramContainer.className = 'arpeggio-diagram-container';
 
-        const diagram = ArpeggioRenderer.render(arpeggio);
+        const diagram = ArpeggioRenderer.render(arpeggio, {
+            showAllNotes: this.state.settings.showAllArpeggioNotes
+        });
         diagramContainer.appendChild(diagram);
 
         // Tab
@@ -2413,6 +2430,7 @@ const App = {
         const showFingerToggle = document.getElementById('show-finger-toggle');
         const showArpeggioTabToggle = document.getElementById('show-arpeggio-tab-toggle');
         const showArpeggioTipsToggle = document.getElementById('show-arpeggio-tips-toggle');
+        const showAllArpeggioNotesToggle = document.getElementById('show-all-arpeggio-notes-toggle');
         const darkThemeToggle = document.getElementById('dark-theme-toggle');
         const leftHandedToggle = document.getElementById('left-handed-toggle');
 
@@ -2420,6 +2438,7 @@ const App = {
         if (showFingerToggle) showFingerToggle.checked = this.state.settings.showFingerInfo;
         if (showArpeggioTabToggle) showArpeggioTabToggle.checked = this.state.settings.showArpeggioTab;
         if (showArpeggioTipsToggle) showArpeggioTipsToggle.checked = this.state.settings.showArpeggioTips;
+        if (showAllArpeggioNotesToggle) showAllArpeggioNotesToggle.checked = this.state.settings.showAllArpeggioNotes;
         if (darkThemeToggle) darkThemeToggle.checked = this.state.settings.darkTheme;
         if (leftHandedToggle) leftHandedToggle.checked = this.state.settings.leftHanded;
     },
@@ -2464,6 +2483,16 @@ const App = {
             this.saveSettings();
         });
 
+        document.getElementById('show-all-arpeggio-notes-toggle')?.addEventListener('change', (e) => {
+            this.state.settings.showAllArpeggioNotes = e.target.checked;
+            this.applySettings();
+            this.saveSettings();
+            // Re-render arpeggios if any are displayed
+            if (this.state.displayedChords.length > 0) {
+                this.renderArpeggios();
+            }
+        });
+
         document.getElementById('dark-theme-toggle')?.addEventListener('change', (e) => {
             this.state.settings.darkTheme = e.target.checked;
             this.applySettings();
@@ -2499,6 +2528,290 @@ const App = {
         if (panel) {
             panel.classList.add('hidden');
         }
+    },
+
+    /**
+     * Show About modal with documentation
+     */
+    showAboutModal() {
+        const modal = document.getElementById('about-modal');
+        if (!modal) return;
+
+        // Populate content if not already done
+        const modalBody = modal.querySelector('.about-modal-body');
+        if (modalBody && modalBody.children.length === 0) {
+            modalBody.innerHTML = this.getAboutContent();
+        }
+
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    },
+
+    /**
+     * Close About modal
+     */
+    closeAboutModal() {
+        const modal = document.getElementById('about-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+    },
+
+    /**
+     * Get About page content
+     */
+    getAboutContent() {
+        return `
+            <div class="about-content">
+                <section class="about-section">
+                    <h3>Welcome to Guitar Chord Explorer</h3>
+                    <p>Guitar Chord Explorer is a comprehensive tool for discovering, learning, and practicing guitar chords and arpeggios. Whether you're a beginner or an advanced player, this app helps you find the perfect chords for your musical needs through mood, style, or music theory.</p>
+                </section>
+
+                <section class="about-section">
+                    <h3>How to Use This App</h3>
+
+                    <h4>Finding Chords</h4>
+                    <p>There are three ways to discover chords:</p>
+                    <ul>
+                        <li><strong>Mood Mode:</strong> Select a mood (Happy, Sad, Dreamy, etc.) to get chords that evoke that emotion</li>
+                        <li><strong>Style Mode:</strong> Choose a musical style (Blues, Jazz, Rock, etc.) to get chords commonly used in that genre</li>
+                        <li><strong>Theory Mode:</strong> Select a key and mode to see all chords that belong to that scale</li>
+                    </ul>
+
+                    <h4>Filtering Options</h4>
+                    <p>Use the filter buttons to narrow down chord results:</p>
+                    <ul>
+                        <li><strong>All:</strong> Shows all available chord voicings</li>
+                        <li><strong>Beginner:</strong> Shows only open position chords that are easier to play</li>
+                        <li><strong>Advanced:</strong> Shows barre chords and higher position chords</li>
+                    </ul>
+
+                    <h4>Reading Chord Diagrams</h4>
+                    <p>Chord diagrams show:</p>
+                    <ul>
+                        <li><strong>Vertical lines:</strong> Represent the six guitar strings (thickest on left = low E, thinnest on right = high e)</li>
+                        <li><strong>Horizontal lines:</strong> Represent frets on the guitar neck</li>
+                        <li><strong>Dots:</strong> Show where to place your fingers</li>
+                        <li><strong>Numbers in dots:</strong> Indicate which finger to use (1=index, 2=middle, 3=ring, 4=pinky)</li>
+                        <li><strong>Red dots:</strong> Indicate root notes of the chord</li>
+                        <li><strong>"o" above nut:</strong> Play that string open (unfretted)</li>
+                        <li><strong>"x" above nut:</strong> Don't play that string (muted)</li>
+                        <li><strong>Position number (e.g., "5fr"):</strong> Shows what fret position the chord starts at</li>
+                    </ul>
+
+                    <h4>Reading Tablature (Tab)</h4>
+                    <p>Tablature is a simple notation system for guitar:</p>
+                    <ul>
+                        <li>Six lines represent the six strings (top line = high e, bottom line = low E)</li>
+                        <li>Numbers on the lines show which fret to press</li>
+                        <li>"0" means play the open string</li>
+                        <li>"x" means don't play that string</li>
+                        <li>Read tablature from left to right</li>
+                    </ul>
+                </section>
+
+                <section class="about-section">
+                    <h3>Arpeggios</h3>
+
+                    <h4>What Are Arpeggios?</h4>
+                    <p>An arpeggio is a chord played one note at a time instead of all together. Arpeggios are essential for:</p>
+                    <ul>
+                        <li>Creating melodic lines that follow the harmony</li>
+                        <li>Playing fingerstyle patterns</li>
+                        <li>Soloing over chord progressions</li>
+                        <li>Understanding chord tones and their locations on the fretboard</li>
+                    </ul>
+
+                    <h4>Understanding Arpeggio Diagrams</h4>
+                    <p>Arpeggio diagrams use a horizontal fretboard layout:</p>
+                    <ul>
+                        <li><strong>Horizontal lines:</strong> Represent the six strings (top = high e, bottom = low E)</li>
+                        <li><strong>Vertical lines:</strong> Represent frets</li>
+                        <li><strong>Colored dots:</strong> Show arpeggio notes with their intervals:
+                            <ul>
+                                <li><span style="color: #E63946">Red = Root (R)</span> - The fundamental note of the chord</li>
+                                <li><span style="color: #457B9D">Blue = 3rd</span> - Defines if the chord is major or minor</li>
+                                <li><span style="color: #2A9D8F">Green = 5th</span> - Provides stability to the chord</li>
+                                <li><span style="color: #E9C46A">Yellow = 7th</span> - Adds color and tension</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h4>Show All Arpeggio Notes</h4>
+                    <p>In Settings, you can enable "Show All Arpeggio Notes" to see every instance of the arpeggio notes across the entire fretboard (up to the 15th fret). This helps you:</p>
+                    <ul>
+                        <li>Visualize all possible positions for the arpeggio</li>
+                        <li>Connect different positions and create smooth transitions</li>
+                        <li>Understand the complete layout of chord tones</li>
+                    </ul>
+
+                    <h4>Arpeggio Sequence Builder</h4>
+                    <p>Use this feature to:</p>
+                    <ul>
+                        <li>Select multiple arpeggios and arrange them in order</li>
+                        <li>Generate tablature for the entire sequence</li>
+                        <li>Play the sequence back to hear how it sounds</li>
+                        <li>Practice transitioning between different arpeggios</li>
+                    </ul>
+                </section>
+
+                <section class="about-section">
+                    <h3>Music Theory Explained</h3>
+
+                    <h4>Keys and Scales</h4>
+                    <p>A <strong>key</strong> is a group of notes that work well together. When you select a key like "C" in Theory Mode, you're choosing C as the tonal center.</p>
+
+                    <h4>Modes (The Seven Church Modes)</h4>
+                    <p>Modes are different scales built from the major scale. Each has its own unique character:</p>
+
+                    <h5>Ionian (Major Scale)</h5>
+                    <p>The standard major scale - bright and happy. Example: C Ionian = C, D, E, F, G, A, B</p>
+                    <p><strong>Why these chords appear:</strong> When you select C Ionian, you get chords built from each note of the C major scale: C major, D minor, E minor, F major, G major, A minor, B diminished. These are called "diatonic chords" - they all belong to the same key.</p>
+
+                    <h5>Dorian</h5>
+                    <p>Minor scale with a raised 6th - jazzy and sophisticated. Example: D Dorian = D, E, F, G, A, B, C</p>
+                    <p><strong>Why these chords appear:</strong> D Dorian contains the same notes as C major, but starts on D. You'll see D minor as the tonic (home) chord, with other chords that emphasize the Dorian flavor.</p>
+
+                    <h5>Phrygian</h5>
+                    <p>Minor scale with a lowered 2nd - dark and Spanish/flamenco flavored. Example: E Phrygian = E, F, G, A, B, C, D</p>
+                    <p><strong>Why these chords appear:</strong> E Phrygian is the C major scale starting on E. The E minor chord is home, and the lowered 2nd (F) creates its distinctive dark sound.</p>
+
+                    <h5>Lydian</h5>
+                    <p>Major scale with a raised 4th - dreamy and ethereal. Example: F Lydian = F, G, A, B, C, D, E</p>
+                    <p><strong>Why these chords appear:</strong> F Lydian is the C major scale starting on F. F major is the tonic, and the raised 4th (B natural) gives it a floating, magical quality.</p>
+
+                    <h5>Mixolydian</h5>
+                    <p>Major scale with a lowered 7th - bluesy and rock-oriented. Example: G Mixolydian = G, A, B, C, D, E, F</p>
+                    <p><strong>Why these chords appear:</strong> G Mixolydian is the C major scale starting on G. G major (or G7) is the tonic. This mode is common in rock, blues, and folk music.</p>
+
+                    <h5>Aeolian (Natural Minor)</h5>
+                    <p>The standard minor scale - sad and introspective. Example: A Aeolian = A, B, C, D, E, F, G</p>
+                    <p><strong>Why these chords appear:</strong> A Aeolian contains the same notes as C major. A minor is the tonic, and you get the "relative minor" chords that create a melancholy sound.</p>
+
+                    <h5>Locrian</h5>
+                    <p>Diminished scale - unstable and tense. Example: B Locrian = B, C, D, E, F, G, A</p>
+                    <p><strong>Why these chords appear:</strong> B Locrian is the C major scale starting on B. B diminished is the tonic. This mode is the most dissonant and rarely used as a tonal center.</p>
+
+                    <h4>Chord Construction</h4>
+                    <p>Chords are built by stacking intervals (distances between notes):</p>
+                    <ul>
+                        <li><strong>Major chord:</strong> Root + major 3rd + perfect 5th (e.g., C + E + G = C major)</li>
+                        <li><strong>Minor chord:</strong> Root + minor 3rd + perfect 5th (e.g., C + Eb + G = C minor)</li>
+                        <li><strong>Dominant 7th:</strong> Major chord + minor 7th (e.g., G + B + D + F = G7)</li>
+                        <li><strong>Major 7th:</strong> Major chord + major 7th (e.g., C + E + G + B = Cmaj7)</li>
+                        <li><strong>Minor 7th:</strong> Minor chord + minor 7th (e.g., D + F + A + C = Dm7)</li>
+                        <li><strong>Diminished:</strong> Root + minor 3rd + diminished 5th (e.g., B + D + F = Bdim)</li>
+                    </ul>
+
+                    <h4>Understanding Intervals</h4>
+                    <p>Intervals are the building blocks of music:</p>
+                    <ul>
+                        <li><strong>Root (R or 1):</strong> The foundation note</li>
+                        <li><strong>Minor 2nd (b2):</strong> 1 semitone - very tense</li>
+                        <li><strong>Major 2nd (2):</strong> 2 semitones</li>
+                        <li><strong>Minor 3rd (b3):</strong> 3 semitones - gives minor quality</li>
+                        <li><strong>Major 3rd (3):</strong> 4 semitones - gives major quality</li>
+                        <li><strong>Perfect 4th (4):</strong> 5 semitones</li>
+                        <li><strong>Diminished 5th (b5):</strong> 6 semitones - tense</li>
+                        <li><strong>Perfect 5th (5):</strong> 7 semitones - stable</li>
+                        <li><strong>Minor 6th (b6):</strong> 8 semitones</li>
+                        <li><strong>Major 6th (6):</strong> 9 semitones</li>
+                        <li><strong>Minor 7th (b7 or 7):</strong> 10 semitones - bluesy</li>
+                        <li><strong>Major 7th (M7):</strong> 11 semitones - jazzy</li>
+                    </ul>
+                </section>
+
+                <section class="about-section">
+                    <h3>Progression Builder</h3>
+                    <p>Create chord progressions by:</p>
+                    <ul>
+                        <li>Clicking the "+" slots to add chords from your current selection</li>
+                        <li>Choosing from preset templates (I-IV-V, I-V-vi-IV, etc.)</li>
+                        <li>Adjusting tempo and beats per chord</li>
+                        <li>Playing back the progression to hear how it sounds</li>
+                        <li>Generating tablature for the entire progression</li>
+                        <li>Saving progressions for later practice</li>
+                    </ul>
+
+                    <h4>Roman Numeral Notation</h4>
+                    <p>Chord progressions use Roman numerals to show relationships:</p>
+                    <ul>
+                        <li>Uppercase (I, IV, V) = major chords</li>
+                        <li>Lowercase (ii, iii, vi) = minor chords</li>
+                        <li>Lowercase with ° (vii°) = diminished chord</li>
+                        <li>Numbers like bVII mean lowered 7th scale degree</li>
+                    </ul>
+                    <p>Example in C major: I=C, ii=Dm, iii=Em, IV=F, V=G, vi=Am, vii°=Bdim</p>
+                </section>
+
+                <section class="about-section">
+                    <h3>Practice Tools</h3>
+
+                    <h4>Metronome</h4>
+                    <p>Use the metronome to:</p>
+                    <ul>
+                        <li>Build timing and rhythm skills</li>
+                        <li>Practice chord changes at different tempos</li>
+                        <li>Gradually increase speed as you improve</li>
+                        <li>Use different time signatures (4/4, 3/4, 6/8, 2/4)</li>
+                        <li>Enable "Accent First Beat" to hear the downbeat emphasized</li>
+                    </ul>
+
+                    <h4>Chord Drill</h4>
+                    <p>The Chord Drill randomly selects chords for you to practice:</p>
+                    <ul>
+                        <li>Choose difficulty level (beginner/intermediate/advanced)</li>
+                        <li>Set how long to spend on each chord (2-8 seconds)</li>
+                        <li>Enable sound to hear the chord when it changes</li>
+                        <li>See the next chord coming to prepare your fingers</li>
+                        <li>Track your progress with session statistics</li>
+                    </ul>
+
+                    <h4>Progression Practice</h4>
+                    <p>Practice your saved progressions with:</p>
+                    <ul>
+                        <li>Synchronized metronome</li>
+                        <li>Visual beat counter</li>
+                        <li>Loop mode for continuous practice</li>
+                        <li>Progress bar showing position in progression</li>
+                    </ul>
+                </section>
+
+                <section class="about-section">
+                    <h3>Settings</h3>
+                    <p>Customize your experience:</p>
+                    <ul>
+                        <li><strong>Show Chord Tabs:</strong> Toggle chord tablature display</li>
+                        <li><strong>Show Finger Positions:</strong> Toggle finger numbers in chord diagrams</li>
+                        <li><strong>Show Arpeggio Tabs:</strong> Toggle arpeggio tablature display</li>
+                        <li><strong>Show Arpeggio Tips:</strong> Toggle fingering tips for arpeggios</li>
+                        <li><strong>Show All Arpeggio Notes:</strong> Display all instances of arpeggio notes across the fretboard</li>
+                        <li><strong>Dark Mode:</strong> Switch to a darker color scheme</li>
+                        <li><strong>Left-Handed Mode:</strong> Flip diagrams for left-handed players</li>
+                    </ul>
+                </section>
+
+                <section class="about-section">
+                    <h3>Tips for Success</h3>
+                    <ul>
+                        <li><strong>Start slow:</strong> Use the metronome at a comfortable tempo and gradually increase</li>
+                        <li><strong>Practice transitions:</strong> Focus on moving smoothly between chords</li>
+                        <li><strong>Use arpeggios:</strong> Playing chord tones individually helps you learn their locations</li>
+                        <li><strong>Experiment with modes:</strong> Try the same chord progression in different modes to hear how the mood changes</li>
+                        <li><strong>Build progressions:</strong> Use the Progression Builder to create and save your own sequences</li>
+                        <li><strong>Learn theory gradually:</strong> Understanding why chords work together will make you a better musician</li>
+                    </ul>
+                </section>
+
+                <section class="about-section">
+                    <h3>Credits</h3>
+                    <p>Guitar Chord Explorer uses the Web Audio API for sound generation and SVG for diagram rendering. All chord diagrams and tablature are generated programmatically.</p>
+                    <p>This app is designed to be a comprehensive learning tool for guitarists of all levels. We hope it helps you on your musical journey!</p>
+                </section>
+            </div>
+        `;
     },
 
     // ==========================================

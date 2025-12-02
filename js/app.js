@@ -3400,7 +3400,41 @@ const App = {
         // Analyze progression
         const analysis = ScaleDetection.analyzeProgression(this.state.progression);
 
-        this.state.scaleBuilder.currentScale = analysis.mainScale;
+        // Preserve user's scale type preference if they had selected one
+        const previousScaleType = this.state.scaleBuilder.currentScale?.type;
+        const newKey = analysis.key;
+        
+        // If user had selected a specific scale type, try to maintain it with the new key
+        if (previousScaleType && newKey) {
+            // Check if the previous scale type exists in alternatives or if it's the main scale type
+            const matchingAlternative = analysis.alternativeScales.find(s => s.type === previousScaleType);
+            
+            if (matchingAlternative) {
+                // User had selected an alternative scale type, maintain it
+                this.state.scaleBuilder.currentScale = matchingAlternative;
+            } else if (previousScaleType === analysis.mainScale.type) {
+                // User's selection matches the new main scale, use it
+                this.state.scaleBuilder.currentScale = analysis.mainScale;
+            } else {
+                // Try to create a scale with the same type but new key
+                const scaleTypeName = this.getScaleTypeName(previousScaleType);
+                if (scaleTypeName) {
+                    this.state.scaleBuilder.currentScale = {
+                        root: newKey.note,
+                        type: previousScaleType,
+                        name: `${newKey.note} ${scaleTypeName}`,
+                        description: this.getScaleDescription(previousScaleType)
+                    };
+                } else {
+                    // Fall back to main scale if we can't preserve the type
+                    this.state.scaleBuilder.currentScale = analysis.mainScale;
+                }
+            }
+        } else {
+            // No previous scale or first time, use the analyzed main scale
+            this.state.scaleBuilder.currentScale = analysis.mainScale;
+        }
+        
         this.state.scaleBuilder.alternativeScales = analysis.alternativeScales;
         this.state.scaleBuilder.perChordModes = analysis.perChordModes;
         this.state.scaleBuilder.detectedKey = analysis.key;
@@ -3458,12 +3492,8 @@ const App = {
             diagramContainer.appendChild(diagram);
         }
 
-        // Render position patterns if it's a pentatonic or blues scale
-        if (scale.type.includes('pentatonic') || scale.type === 'blues') {
-            this.renderPositionPatterns(scale);
-        } else {
-            document.getElementById('position-patterns-section')?.classList.add('hidden');
-        }
+        // Render position patterns for all scales
+        this.renderPositionPatterns(scale);
     },
 
     /**
@@ -3617,6 +3647,56 @@ const App = {
         if (name.includes('aug')) return 'augmented';
 
         return 'major';
+    },
+
+    /**
+     * Get human-readable name for a scale type
+     */
+    getScaleTypeName(type) {
+        const scaleNames = {
+            'major': 'Major',
+            'ionian': 'Ionian',
+            'dorian': 'Dorian',
+            'phrygian': 'Phrygian',
+            'lydian': 'Lydian',
+            'mixolydian': 'Mixolydian',
+            'aeolian': 'Aeolian',
+            'locrian': 'Locrian',
+            'natural-minor': 'Natural Minor',
+            'harmonic-minor': 'Harmonic Minor',
+            'melodic-minor': 'Melodic Minor',
+            'major-pentatonic': 'Major Pentatonic',
+            'minor-pentatonic': 'Minor Pentatonic',
+            'blues': 'Blues',
+            'whole-tone': 'Whole Tone',
+            'diminished': 'Diminished'
+        };
+        return scaleNames[type] || null;
+    },
+
+    /**
+     * Get description for a scale type
+     */
+    getScaleDescription(type) {
+        const descriptions = {
+            'major-pentatonic': 'Simplified 5-note version - great for beginners, sounds good everywhere',
+            'minor-pentatonic': 'Simplified 5-note minor scale - perfect for blues and rock',
+            'blues': 'Adds bluesy flavor with the "blue note" (b5)',
+            'dorian': 'Minor scale with a brighter sound - great for jazz and funk',
+            'mixolydian': 'Major scale with a b7 - perfect for blues and rock',
+            'major': 'Contains all the chords in your progression',
+            'natural-minor': 'Contains all the chords in your progression',
+            'ionian': 'The major scale - bright and happy',
+            'aeolian': 'The natural minor scale - melancholic',
+            'phrygian': 'Exotic Spanish/Middle Eastern sound',
+            'lydian': 'Dreamy, floating sound with raised 4th',
+            'locrian': 'Dark and unstable - rarely used',
+            'harmonic-minor': 'Classical minor sound with raised 7th',
+            'melodic-minor': 'Jazz minor scale',
+            'whole-tone': 'Dreamy, ambiguous sound',
+            'diminished': 'Symmetrical scale for diminished chords'
+        };
+        return descriptions[type] || 'Play these notes over your progression';
     }
 };
 

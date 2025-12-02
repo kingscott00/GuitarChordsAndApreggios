@@ -162,7 +162,7 @@ const SelectionEngine = {
     },
 
     /**
-     * Filter chords by chord type
+     * Filter chords by chord type (analyzing intervals)
      * @param {Array} chords - Array of chords to filter
      * @param {string} type - The chord type filter value
      * @returns {Array} - Filtered chords
@@ -177,31 +177,54 @@ const SelectionEngine = {
 
             switch (type) {
                 case 'major-triads':
-                    return quality === 'major' && intervals.length === 3;
+                    // Major triad: root (1), major third (3), perfect fifth (5)
+                    return intervals.length === 3 &&
+                           intervals.includes('1') &&
+                           intervals.includes('3') &&
+                           intervals.includes('5');
 
                 case 'minor-triads':
-                    return quality === 'minor' && intervals.length === 3;
+                    // Minor triad: root (1), minor third (b3), perfect fifth (5)
+                    return intervals.length === 3 &&
+                           intervals.includes('1') &&
+                           intervals.includes('b3') &&
+                           intervals.includes('5');
 
                 case 'diminished-triads':
-                    return quality === 'diminished' && intervals.length === 3;
+                    // Diminished triad: root (1), minor third (b3), diminished fifth (b5)
+                    return intervals.length === 3 &&
+                           intervals.includes('1') &&
+                           intervals.includes('b3') &&
+                           intervals.includes('b5');
 
                 case 'augmented-triads':
-                    return quality === 'augmented' && intervals.length === 3;
+                    // Augmented triad: root (1), major third (3), augmented fifth (#5)
+                    return intervals.length === 3 &&
+                           intervals.includes('1') &&
+                           intervals.includes('3') &&
+                           intervals.includes('#5');
 
                 case 'seventh-chords':
-                    return quality.includes('7') || intervals.includes('b7') || intervals.includes('7');
+                    // Any chord with a seventh interval (7, b7, maj7)
+                    return intervals.some(i => i === '7' || i === 'b7' || i === 'maj7');
 
                 case 'extended-chords':
+                    // Chords with 9th, 11th, or 13th extensions
                     return intervals.some(i => i.includes('9') || i.includes('11') || i.includes('13'));
 
                 case 'suspended':
+                    // Suspended chords replace the 3rd with 2nd or 4th
                     return quality.includes('sus') || name.includes('sus');
 
                 case 'add-chords':
+                    // Chords with added notes
                     return quality.includes('add') || name.includes('add');
 
                 case 'power-chords':
-                    return quality === 'power' || name.includes('5') && intervals.length === 2;
+                    // Power chord: root (1) and fifth (5) only
+                    return intervals.length === 2 &&
+                           intervals.includes('1') &&
+                           intervals.includes('5');
 
                 default:
                     return true;

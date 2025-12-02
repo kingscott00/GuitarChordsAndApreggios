@@ -3492,12 +3492,8 @@ const App = {
             diagramContainer.appendChild(diagram);
         }
 
-        // Render position patterns if it's a pentatonic or blues scale
-        if (scale.type.includes('pentatonic') || scale.type === 'blues') {
-            this.renderPositionPatterns(scale);
-        } else {
-            document.getElementById('position-patterns-section')?.classList.add('hidden');
-        }
+        // Render position patterns for all scales
+        this.renderPositionPatterns(scale);
     },
 
     /**

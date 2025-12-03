@@ -11,6 +11,7 @@ const App = {
         currentStyle: null,
         currentKey: 'C',
         currentMode: 'ionian',
+        currentRootNote: null,
         voicingFilter: 'all',
         chordTypeFilter: 'all',
         voicingPatternFilter: 'all',
@@ -197,9 +198,19 @@ const App = {
             this.handleFretRangeFilter(e);
         });
 
-        // Root note filter
+        // Root note filter (old - deprecated)
         document.getElementById('root-note-filter')?.addEventListener('change', (e) => {
             this.handleRootNoteFilter(e);
+        });
+
+        // Root note selector (new tab)
+        document.getElementById('root-note-select')?.addEventListener('change', (e) => {
+            this.state.currentRootNote = e.target.value || null;
+        });
+
+        // Chords toggle
+        document.getElementById('chords-toggle')?.addEventListener('click', () => {
+            this.toggleChords();
         });
 
         // Clear all filters button
@@ -248,6 +259,7 @@ const App = {
         document.getElementById('mood-selector').classList.toggle('hidden', mode !== 'mood');
         document.getElementById('style-selector').classList.toggle('hidden', mode !== 'style');
         document.getElementById('theory-selector').classList.toggle('hidden', mode !== 'theory');
+        document.getElementById('root-note-selector')?.classList.toggle('hidden', mode !== 'root-note');
 
         // Clear previous selections and hide info banner
         this.clearSelections();
@@ -564,8 +576,10 @@ const App = {
         let chords = [];
         let selectionInfo = null;
 
-        // Reset root note filter when mood/style/theory is used
-        this.resetRootNoteFilter();
+        // Reset root note filter when mood/style/theory is used (not in root-note mode)
+        if (this.state.selectionMode !== 'root-note') {
+            this.resetRootNoteFilter();
+        }
 
         // Reset the three new filters to "All" when mood/style/theory changes
         this.clearAllFilters();
@@ -598,6 +612,21 @@ const App = {
                 if (selectionInfo) {
                     selectionInfo.name = `${this.state.currentKey} ${selectionInfo.name}`;
                     selectionInfo.icon = '🎼';
+                }
+                break;
+
+            case 'root-note':
+                if (this.state.currentRootNote) {
+                    // Get all chords and filter by root note
+                    chords = SelectionEngine.filterByRootNote(getAllChords(), this.state.currentRootNote);
+                    selectionInfo = {
+                        name: `${this.state.currentRootNote} Chords`,
+                        description: `All chord voicings with ${this.state.currentRootNote} as the root note`,
+                        icon: '🎵'
+                    };
+                } else {
+                    // No root note selected, show all
+                    chords = getAllChords();
                 }
                 break;
         }
@@ -1247,7 +1276,7 @@ const App = {
         toggleBtn.className = 'related-chords-toggle';
         toggleBtn.innerHTML = `
             <span class="toggle-arrow">&#9654;</span>
-            <span class="toggle-text">Related Chords (${relatedChords.length})</span>
+            <span class="toggle-text">Related Chords</span>
         `;
         toggleBtn.addEventListener('click', () => {
             const isCollapsed = section.classList.contains('collapsed');
@@ -1444,37 +1473,14 @@ const App = {
         const headerRight = document.createElement('div');
         headerRight.className = 'chord-header-right';
 
-        const symbol = document.createElement('span');
-        symbol.className = 'chord-symbol';
-        symbol.textContent = chord.symbol;
-
-        // Difficulty badge
-        const difficultyBadge = document.createElement('span');
-        difficultyBadge.className = `difficulty-badge ${this.getDifficultyClass(chord.difficulty)}`;
-        difficultyBadge.textContent = this.getDifficultyLabel(chord.difficulty);
-
-        headerRight.appendChild(symbol);
-        headerRight.appendChild(difficultyBadge);
-
-        header.appendChild(nameContainer);
-        header.appendChild(headerRight);
-
-        // Body
-        const body = document.createElement('div');
-        body.className = 'chord-card-body';
-
-        // Voicing selector (only show if multiple voicings exist)
+        // Voicing selector in header (only show if multiple voicings exist)
         if (voicings.length > 1) {
             const voicingSelector = document.createElement('div');
-            voicingSelector.className = 'voicing-selector';
-
-            const voicingLabel = document.createElement('label');
-            voicingLabel.textContent = 'Voicing:';
-            voicingLabel.setAttribute('for', `voicing-${chord.id}`);
+            voicingSelector.className = 'voicing-selector-compact';
 
             const voicingSelect = document.createElement('select');
             voicingSelect.id = `voicing-${chord.id}`;
-            voicingSelect.className = 'voicing-select';
+            voicingSelect.className = 'voicing-select-compact';
 
             voicings.forEach(v => {
                 const option = document.createElement('option');
@@ -1490,10 +1496,23 @@ const App = {
                 this.handleVoicingChange(e.target.value, card);
             });
 
-            voicingSelector.appendChild(voicingLabel);
             voicingSelector.appendChild(voicingSelect);
-            body.appendChild(voicingSelector);
+            headerRight.appendChild(voicingSelector);
         }
+
+        // Difficulty badge
+        const difficultyBadge = document.createElement('span');
+        difficultyBadge.className = `difficulty-badge ${this.getDifficultyClass(chord.difficulty)}`;
+        difficultyBadge.textContent = this.getDifficultyLabel(chord.difficulty);
+
+        headerRight.appendChild(difficultyBadge);
+
+        header.appendChild(nameContainer);
+        header.appendChild(headerRight);
+
+        // Body
+        const body = document.createElement('div');
+        body.className = 'chord-card-body';
 
         // Chord diagram container
         const diagramContainer = document.createElement('div');
@@ -1660,6 +1679,28 @@ const App = {
     /**
      * Toggle arpeggio section visibility
      */
+    toggleChords() {
+        const toggle = document.getElementById('chords-toggle');
+        const content = document.getElementById('chords-content');
+
+        if (!toggle || !content) return;
+
+        const isExpanded = toggle.classList.contains('expanded');
+
+        toggle.classList.toggle('expanded', !isExpanded);
+        content.classList.toggle('hidden', isExpanded);
+
+        // Update toggle text
+        const toggleText = toggle.querySelector('span');
+        if (toggleText) {
+            const chordCount = this.state.displayedChords?.length || 0;
+            toggleText.textContent = isExpanded ? `Show Chords (${chordCount})` : 'Available Chords';
+        }
+    },
+
+    /**
+     * Toggle arpeggio section visibility
+     */
     toggleArpeggios() {
         const toggle = document.getElementById('arpeggio-toggle');
         const content = document.getElementById('arpeggio-content');
@@ -1735,9 +1776,8 @@ const App = {
         // Set up global sweep style selector
         this.setupGlobalSweepStyleSelector();
 
-        // Add legend at the top
-        const legend = ArpeggioRenderer.renderLegend();
-        arpeggioList.appendChild(legend);
+        // Add legend inline with header
+        this.setupInlineArpeggioLegend();
 
         // Render each arpeggio
         chords.forEach(chord => {
@@ -1746,6 +1786,30 @@ const App = {
                 const card = this.createArpeggioCard(arpeggio);
                 arpeggioList.appendChild(card);
             }
+        });
+    },
+
+    /**
+     * Set up the inline arpeggio legend next to the Available Arpeggios header
+     */
+    setupInlineArpeggioLegend() {
+        const container = document.getElementById('arpeggio-legend-inline');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        const items = [
+            { label: 'Root', color: ArpeggioRenderer.config.colors.root },
+            { label: '3rd', color: ArpeggioRenderer.config.colors.third },
+            { label: '5th', color: ArpeggioRenderer.config.colors.fifth },
+            { label: '7th', color: ArpeggioRenderer.config.colors.seventh }
+        ];
+
+        items.forEach(item => {
+            const legendItem = document.createElement('span');
+            legendItem.className = 'legend-item';
+            legendItem.innerHTML = `<span class="legend-dot" style="background-color: ${item.color}"></span>${item.label}`;
+            container.appendChild(legendItem);
         });
     },
 

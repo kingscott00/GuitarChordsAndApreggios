@@ -34,9 +34,36 @@
 
 .chord-header-right {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: var(--spacing-xs);
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* Compact voicing selector for header */
+.voicing-selector-compact {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.voicing-selector-compact .voicing-select-compact {
+    padding: 2px 6px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 11px;
+    cursor: pointer;
+    max-width: 110px;
+}
+
+.voicing-selector-compact .voicing-select-compact:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.voicing-selector-compact .voicing-select-compact:hover {
+    border-color: var(--accent);
 }
 
 .chord-name {
@@ -530,6 +557,7 @@
 
 .arpeggio-toggle svg {
     transition: transform var(--transition-fast);
+    stroke: var(--text-primary);
 }
 
 .arpeggio-toggle.expanded svg {
@@ -542,6 +570,99 @@
     border-top: none;
     border-radius: 0 0 var(--radius-md) var(--radius-md);
     padding: var(--spacing-xl);
+}
+
+/* Chords Section - Collapsible */
+.chords-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.chords-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.chords-toggle:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+.chords-toggle.expanded {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    border-bottom: none;
+}
+
+.chords-toggle svg {
+    transition: transform var(--transition-fast);
+    stroke: var(--text-primary);
+}
+
+.chords-toggle.expanded svg {
+    transform: rotate(180deg);
+}
+
+.chords-content {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    padding: var(--spacing-xl);
+}
+
+.chords-content.hidden {
+    display: none;
+}
+
+/* Arpeggio Controls with inline legend */
+.arpeggio-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.arpeggio-controls-left {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+.arpeggio-controls-left h4 {
+    margin: 0;
+}
+
+/* Inline arpeggio legend next to header */
+.arpeggio-legend-inline {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+.arpeggio-legend-inline .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.arpeggio-legend-inline .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
 }
 
 /* Arpeggio Card */
@@ -1051,6 +1172,12 @@
     background: var(--bg-secondary);
 }
 
+/* Match Related Chords background - both sections should look the same when expanded */
+.more-info-section,
+.related-chords-section {
+    background: var(--bg-secondary);
+}
+
 /* More Info Toggle Button */
 .more-info-toggle {
     display: flex;
@@ -1525,6 +1652,39 @@
     color: white;
 }
 
+/* Dark theme - Compact voicing selector */
+.dark-theme .voicing-selector-compact .voicing-select-compact {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.dark-theme .voicing-selector-compact .voicing-select-compact:hover,
+.dark-theme .voicing-selector-compact .voicing-select-compact:focus {
+    border-color: var(--accent);
+}
+
+/* Dark theme - Chords section toggle */
+.dark-theme .chords-toggle {
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+}
+
+.dark-theme .chords-toggle:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent);
+}
+
+.dark-theme .chords-content {
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+}
+
+/* Dark theme - Inline arpeggio legend */
+.dark-theme .arpeggio-legend-inline .legend-item {
+    color: var(--text-secondary);
+}
+
 /* Responsive adjustments for diagram display toggle */
 @media (max-width: 768px) {
     .diagram-display-toggle {
@@ -1800,18 +1960,28 @@
 }
 
 /* ============================================
-   Root Note Filter
+   Root Note Filter (Now a Tab)
    ============================================ */
 
-/* Root Note Filter Row - separate row above other filters */
-.root-note-filter-row {
+/* Root Note selector content - shown when Root Note tab is active */
+.root-note-selector {
     display: flex;
     align-items: center;
-    gap: var(--spacing-lg);
-    padding: var(--spacing-md) var(--spacing-lg);
-    background: linear-gradient(135deg, rgba(var(--accent-rgb, 33, 150, 243), 0.05), rgba(var(--accent-rgb, 33, 150, 243), 0.1));
-    border-bottom: 1px solid var(--border-color);
-    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.root-note-selector label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.root-note-selector .selector-dropdown {
+    min-width: 160px;
+}
+
+/* Root Note Filter Row - DEPRECATED - kept for backwards compatibility */
+.root-note-filter-row {
+    display: none; /* Hidden - root note is now a tab */
 }
 
 .root-note-group {

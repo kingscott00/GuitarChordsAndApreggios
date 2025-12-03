@@ -1009,6 +1009,185 @@ h3 { font-size: var(--font-size-lg); }
     padding: var(--spacing-lg);
 }
 
+/* Scale Builder Controls */
+.scale-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    align-items: flex-start;
+}
+
+.scale-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.scale-info h3 {
+    margin: 0 0 var(--spacing-xs) 0;
+    color: var(--text-primary);
+}
+
+.scale-description {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    margin: 0;
+}
+
+.scale-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+.scale-controls label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+/* Scale select dropdowns - match filter-dropdown styling */
+.scale-select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-width: 120px;
+}
+
+.scale-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.scale-select:hover {
+    border-color: var(--accent);
+}
+
+/* Scale toggle option - checkbox styling */
+.scale-toggle-option {
+    display: flex;
+    align-items: center;
+}
+
+.scale-toggle-option label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+}
+
+.scale-toggle-option input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+/* Scale mode selector */
+.scale-mode-selector {
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Scale diagram container */
+.scale-diagram-container {
+    overflow-x: auto;
+    margin-bottom: var(--spacing-lg);
+}
+
+.scale-diagram-container svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Position Patterns Section - Fix overflow */
+.position-patterns-section {
+    margin-top: var(--spacing-lg);
+}
+
+.position-patterns-container {
+    overflow-x: auto;
+}
+
+.position-patterns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.position-pattern-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    box-shadow: 0 2px 4px var(--shadow-color);
+    overflow: hidden;
+}
+
+.position-pattern-card svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Per-chord modes section */
+.per-chord-header {
+    margin-bottom: var(--spacing-lg);
+}
+
+.per-chord-header h3 {
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.per-chord-description {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.per-chord-scales-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+/* Alternative scales */
+.alternative-scales {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+/* Scale empty state */
+.scale-empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-muted);
+}
+
+.scale-empty-state svg {
+    opacity: 0.5;
+    margin-bottom: var(--spacing-md);
+}
+
+.scale-empty-state h3 {
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--text-secondary);
+}
+
+.scale-empty-state p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+}
+
 /* Practice Tools */
 .practice-tools {
     background: var(--bg-primary);
@@ -1457,9 +1636,13 @@ h3 { font-size: var(--font-size-lg); }
     z-index: 999;
 }
 
-/* Collapsible Sections */
+/* Collapsible Sections - Match Arpeggio Toggle Styling */
 .collapsible-section {
     position: relative;
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 8px var(--shadow-color);
+    overflow: hidden;
 }
 
 .section-toggle {
@@ -1467,31 +1650,51 @@ h3 { font-size: var(--font-size-lg); }
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: var(--spacing-lg);
-    background: none;
-    border: none;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
     cursor: pointer;
     text-align: left;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: var(--spacing-lg);
+    transition: all var(--transition-fast);
+}
+
+.section-toggle:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
 }
 
 .section-toggle h2 {
     margin: 0;
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
     color: var(--text-primary);
 }
 
 .section-toggle .toggle-icon {
     transition: transform var(--transition-fast);
+    stroke: var(--text-primary);
+}
+
+.collapsible-section:not(.collapsed) .section-toggle {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    border-bottom: none;
+}
+
+.collapsible-section:not(.collapsed) .section-toggle .toggle-icon {
+    transform: rotate(180deg);
 }
 
 .collapsible-section.collapsed .section-toggle .toggle-icon {
-    transform: rotate(-90deg);
+    transform: rotate(0deg);
 }
 
 .collapsible-section .section-content {
     display: block;
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    padding: var(--spacing-lg);
 }
 
 .collapsible-section.collapsed .section-content {
@@ -1499,8 +1702,7 @@ h3 { font-size: var(--font-size-lg); }
 }
 
 .collapsible-section.collapsed .section-toggle {
-    border-bottom: none;
-    margin-bottom: 0;
+    border-radius: var(--radius-md);
 }
 
 /* Dark Theme */
@@ -1541,6 +1743,43 @@ h3 { font-size: var(--font-size-lg); }
 
 .dark-theme .settings-panel {
     background: var(--bg-secondary);
+}
+
+/* Dark theme - Scale Builder */
+.dark-theme .scale-select {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.dark-theme .scale-select:hover,
+.dark-theme .scale-select:focus {
+    border-color: var(--accent);
+}
+
+.dark-theme .scale-toggle-option label {
+    color: var(--text-primary);
+}
+
+.dark-theme .position-pattern-card {
+    background: var(--bg-card);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark theme - Collapsible sections */
+.dark-theme .section-toggle {
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+}
+
+.dark-theme .section-toggle:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent);
+}
+
+.dark-theme .section-content {
+    background: var(--bg-primary);
+    border-color: var(--border-color);
 }
 
 /* Newspaper Mode - Black & White High Contrast */

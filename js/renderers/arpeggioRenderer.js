@@ -159,26 +159,84 @@ const ArpeggioRenderer = {
     },
 
     /**
+     * Enharmonic equivalents map - sharps to flats and vice versa
+     */
+    enharmonicMap: {
+        'C#': 'Db', 'Db': 'C#',
+        'D#': 'Eb', 'Eb': 'D#',
+        'F#': 'Gb', 'Gb': 'F#',
+        'G#': 'Ab', 'Ab': 'G#',
+        'A#': 'Bb', 'Bb': 'A#'
+    },
+
+    /**
+     * Check if two note names are the same pitch (handles enharmonic equivalents)
+     */
+    notesMatch(note1, note2) {
+        if (note1 === note2) return true;
+        return this.enharmonicMap[note1] === note2 || this.enharmonicMap[note2] === note1;
+    },
+
+    /**
+     * Find a note in an array, handling enharmonic equivalents
+     */
+    findNoteInArray(note, notesArray) {
+        for (let i = 0; i < notesArray.length; i++) {
+            if (this.notesMatch(note, notesArray[i])) {
+                return i;
+            }
+        }
+        return -1;
+    },
+
+    /**
      * Generate all instances of arpeggio notes across the fretboard
      * @param {Object} arpeggio - Original arpeggio object
      * @returns {Array} - Extended pattern with all note instances
      */
     generateAllNotes(arpeggio) {
-        // Get the unique intervals used in the arpeggio
-        const intervalsUsed = [...new Set(arpeggio.pattern.map(n => n.interval))];
+        // Build a map from note name to interval using the original pattern
+        const noteToInterval = {};
+        arpeggio.pattern.forEach(p => {
+            const noteName = this.getNoteAtStringFret(p.string, p.fret);
+            // Store both sharp and flat versions
+            noteToInterval[noteName] = p.interval;
+            if (this.enharmonicMap[noteName]) {
+                noteToInterval[this.enharmonicMap[noteName]] = p.interval;
+            }
+        });
 
-        // Map intervals to semitones from root
-        const intervalToSemitones = {
-            'R': 0, '1': 0,
-            'b2': 1, '2': 2,
-            'b3': 3, '3': 4,
-            '4': 5,
-            'b5': 6, '5': 7,
-            'b6': 8, '6': 9,
-            'b7': 10, '7': 11, 'M7': 11
-        };
+        // Also map from arpeggio.notes array to ensure coverage
+        // Build interval mapping based on arpeggio quality
+        const arpeggioNotes = arpeggio.notes;
+        arpeggioNotes.forEach((noteName, idx) => {
+            if (!noteToInterval[noteName]) {
+                // Determine interval based on position and quality
+                let interval;
+                if (idx === 0) {
+                    interval = 'R';
+                } else if (idx === 1) {
+                    // Second note is the 3rd (major or minor)
+                    interval = (arpeggio.quality === 'minor' || arpeggio.quality === 'minor7' ||
+                               arpeggio.quality === 'diminished' || arpeggio.quality === 'diminished7' ||
+                               arpeggio.quality === 'min7b5') ? 'b3' : '3';
+                } else if (idx === 2) {
+                    // Third note is the 5th (perfect or altered)
+                    interval = (arpeggio.quality === 'diminished' || arpeggio.quality === 'diminished7' ||
+                               arpeggio.quality === 'min7b5') ? 'b5' :
+                              (arpeggio.quality === 'augmented') ? '#5' : '5';
+                } else if (idx === 3) {
+                    // Fourth note is the 7th
+                    interval = (arpeggio.quality === 'major7') ? 'M7' :
+                              (arpeggio.quality === 'diminished7') ? 'bb7' : 'b7';
+                }
+                noteToInterval[noteName] = interval;
+                if (this.enharmonicMap[noteName]) {
+                    noteToInterval[this.enharmonicMap[noteName]] = interval;
+                }
+            }
+        });
 
-        // Get the note names for this arpeggio (e.g., C, E, G for C major)
         const allNotes = [];
         const numFrets = 15; // Show up to 15th fret
 
@@ -186,38 +244,17 @@ const ArpeggioRenderer = {
         for (let string = 0; string < 6; string++) {
             // For each fret on this string
             for (let fret = 0; fret <= numFrets; fret++) {
-                // Calculate what note is at this position
-                const note = this.getNoteAtStringFret(string, fret);
+                // Calculate what note is at this position (returns sharp notation)
+                const noteAtPosition = this.getNoteAtStringFret(string, fret);
 
-                // Check if this note is in the arpeggio
-                const matchingInterval = intervalsUsed.find(interval => {
-                    return arpeggio.notes.includes(note);
-                });
+                // Check if this note is in the arpeggio (handle enharmonic equivalents)
+                const noteIndex = this.findNoteInArray(noteAtPosition, arpeggio.notes);
 
-                if (arpeggio.notes.includes(note)) {
-                    // Determine which interval this note represents
-                    let interval = 'R'; // default
-
-                    // Find the interval by comparing with arpeggio notes
-                    const noteIndex = arpeggio.notes.indexOf(note);
-                    if (noteIndex >= 0 && noteIndex < arpeggio.pattern.length) {
-                        // Try to find a matching interval from the original pattern
-                        const originalNote = arpeggio.pattern.find(p => {
-                            const patternNote = this.getNoteAtStringFret(p.string, p.fret);
-                            return patternNote === note;
-                        });
-
-                        if (originalNote) {
-                            interval = originalNote.interval;
-                        } else {
-                            // Assign interval based on position in notes array
-                            if (noteIndex === 0) interval = 'R';
-                            else if (noteIndex === 1) interval = arpeggio.quality === 'minor' ? 'b3' : '3';
-                            else if (noteIndex === 2) interval = '5';
-                            else if (noteIndex === 3) interval = arpeggio.quality.includes('7') ?
-                                (arpeggio.quality.includes('maj') ? 'M7' : 'b7') : '7';
-                        }
-                    }
+                if (noteIndex !== -1) {
+                    // Get the interval for this note
+                    const interval = noteToInterval[noteAtPosition] ||
+                                    noteToInterval[this.enharmonicMap[noteAtPosition]] ||
+                                    'R';
 
                     allNotes.push({
                         string,
@@ -236,7 +273,7 @@ const ArpeggioRenderer = {
      * Get the note name at a specific string and fret
      * @param {number} stringIndex - String index (0=low E, 5=high e)
      * @param {number} fret - Fret number
-     * @returns {string} - Note name
+     * @returns {string} - Note name (in sharp notation)
      */
     getNoteAtStringFret(stringIndex, fret) {
         const openStrings = ['E', 'A', 'D', 'G', 'B', 'E']; // Low E to high e

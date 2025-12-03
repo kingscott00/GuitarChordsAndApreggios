@@ -3696,8 +3696,8 @@ const ChordLibrary = {
         }
     },
 
-    c#_minor_barre: {
-        id: "c#_minor_barre",
+    csharp_minor_barre: {
+        id: "csharp_minor_barre",
         name: "C# Minor",
         symbol: "C#m",
         altSymbols: ["C#min"],
@@ -3720,8 +3720,8 @@ const ChordLibrary = {
         }
     },
 
-    f#_minor_barre: {
-        id: "f#_minor_barre",
+    fsharp_minor_barre: {
+        id: "fsharp_minor_barre",
         name: "F# Minor",
         symbol: "F#m",
         altSymbols: ["F#min"],
@@ -3963,8 +3963,8 @@ const ChordLibrary = {
         }
     },
 
-    c#m7_barre: {
-        id: "c#m7_barre",
+    csharpm7_barre: {
+        id: "csharpm7_barre",
         name: "C# Minor 7",
         symbol: "C#m7",
         altSymbols: ["C#min7", "C#-7"],
@@ -3987,8 +3987,8 @@ const ChordLibrary = {
         }
     },
 
-    f#m7_barre: {
-        id: "f#m7_barre",
+    fsharpm7_barre: {
+        id: "fsharpm7_barre",
         name: "F# Minor 7",
         symbol: "F#m7",
         altSymbols: ["F#min7", "F#-7"],
@@ -4159,8 +4159,8 @@ const ChordLibrary = {
 
     // ===== ADDITIONAL PRACTICAL VOICINGS =====
     // More open position variations
-    f#m_open: {
-        id: "f#m_open",
+    fsharpm_open: {
+        id: "fsharpm_open",
         name: "F# Minor",
         symbol: "F#m",
         altSymbols: ["F#min"],
@@ -4183,8 +4183,8 @@ const ChordLibrary = {
         }
     },
 
-    c#m_open: {
-        id: "c#m_open",
+    csharpm_open: {
+        id: "csharpm_open",
         name: "C# Minor",
         symbol: "C#m",
         altSymbols: ["C#min"],
@@ -4578,8 +4578,8 @@ const ChordLibrary = {
     },
 
     // ===== MORE PRACTICAL BARRE POSITIONS =====
-    f#_major_barre: {
-        id: "f#_major_barre",
+    fsharp_major_barre: {
+        id: "fsharp_major_barre",
         name: "F# Major",
         symbol: "F#",
         altSymbols: ["F#maj"],
@@ -4627,8 +4627,8 @@ const ChordLibrary = {
     },
 
     // ===== ADDITIONAL 7TH VOICINGS =====
-    f#7_barre: {
-        id: "f#7_barre",
+    fsharp7_barre: {
+        id: "fsharp7_barre",
         name: "F# Dominant 7",
         symbol: "F#7",
         altSymbols: ["F#dom7"],
@@ -4651,8 +4651,8 @@ const ChordLibrary = {
         }
     },
 
-    c#7_barre: {
-        id: "c#7_barre",
+    csharp7_barre: {
+        id: "csharp7_barre",
         name: "C# Dominant 7",
         symbol: "C#7",
         altSymbols: ["C#dom7"],

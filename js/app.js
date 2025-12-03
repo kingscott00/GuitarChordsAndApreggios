@@ -1337,6 +1337,9 @@ const App = {
         // Initialize pattern style from localStorage
         ArpeggioRenderer.initPatternStyle();
 
+        // Set up global sweep style selector
+        this.setupGlobalSweepStyleSelector();
+
         // Add legend at the top
         const legend = ArpeggioRenderer.renderLegend();
         arpeggioList.appendChild(legend);
@@ -1349,6 +1352,69 @@ const App = {
                 arpeggioList.appendChild(card);
             }
         });
+    },
+
+    /**
+     * Set up the global sweep style selector
+     */
+    setupGlobalSweepStyleSelector() {
+        const container = document.getElementById('global-sweep-style');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        const selector = document.createElement('div');
+        selector.className = 'pattern-style-selector';
+
+        const label = document.createElement('label');
+        label.className = 'pattern-style-label';
+        label.textContent = 'Sweep Style:';
+        selector.appendChild(label);
+
+        const selectWrapper = document.createElement('div');
+        selectWrapper.className = 'pattern-style-select-wrapper';
+
+        const select = document.createElement('select');
+        select.className = 'pattern-style-select';
+        select.id = 'global-pattern-style-select';
+
+        Object.values(ArpeggioRenderer.patternStyles).forEach(style => {
+            const option = document.createElement('option');
+            option.value = style.id;
+            option.textContent = style.name;
+            if (style.id === ArpeggioRenderer.currentPatternStyle) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+
+        select.addEventListener('change', (e) => {
+            ArpeggioRenderer.setPatternStyle(e.target.value);
+            this.updateAllArpeggioTabs(e.target.value);
+        });
+
+        selectWrapper.appendChild(select);
+
+        // Info button with tooltip
+        const infoBtn = document.createElement('button');
+        infoBtn.className = 'pattern-style-info-btn';
+        infoBtn.type = 'button';
+        infoBtn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+        `;
+        infoBtn.title = ArpeggioRenderer.patternStyles[ArpeggioRenderer.currentPatternStyle].description;
+
+        select.addEventListener('change', () => {
+            infoBtn.title = ArpeggioRenderer.patternStyles[select.value].description;
+        });
+
+        selectWrapper.appendChild(infoBtn);
+        selector.appendChild(selectWrapper);
+        container.appendChild(selector);
     },
 
     /**
@@ -1440,26 +1506,16 @@ const App = {
         });
         diagramContainer.appendChild(diagram);
 
-        // Tab container (will hold selector and tab)
+        // Tab container
         const tabSection = document.createElement('div');
         tabSection.className = 'arpeggio-tab-section';
 
-        // Pattern style selector
-        const styleSelector = ArpeggioRenderer.renderPatternStyleSelector(arpeggio, (newStyle) => {
-            // Update the tab when style changes
-            const tabContainer = tabSection.querySelector('.arpeggio-tab-container');
-            if (tabContainer) {
-                const newTab = ArpeggioRenderer.renderTab(arpeggio, newStyle);
-                tabContainer.replaceWith(newTab);
-            }
-            // Update all other arpeggio tabs to match
-            this.updateAllArpeggioTabs(newStyle);
-        });
-        tabSection.appendChild(styleSelector);
-
-        // Tab
+        // Tab (using current global pattern style)
         const tab = ArpeggioRenderer.renderTab(arpeggio);
         tabSection.appendChild(tab);
+
+        // Store arpeggio data on card for later updates
+        card.dataset.arpeggioId = arpeggio.id;
 
         // Tips
         const tips = document.createElement('div');
@@ -1478,13 +1534,21 @@ const App = {
      * Update all arpeggio tabs when style changes
      */
     updateAllArpeggioTabs(newStyle) {
-        // Update all selectors to match
-        document.querySelectorAll('.pattern-style-select').forEach(select => {
-            select.value = newStyle;
-        });
-        // Update all info button tooltips
-        document.querySelectorAll('.pattern-style-info-btn').forEach(btn => {
-            btn.title = ArpeggioRenderer.patternStyles[newStyle].description;
+        // Update all arpeggio tabs with the new style
+        document.querySelectorAll('.arpeggio-card').forEach(card => {
+            const arpeggioId = card.dataset.arpeggioId;
+            if (!arpeggioId) return;
+
+            // Find the arpeggio data using the global function
+            const arpeggio = typeof getArpeggioById === 'function' ? getArpeggioById(arpeggioId) : null;
+            if (!arpeggio) return;
+
+            // Find and replace the tab container
+            const tabContainer = card.querySelector('.arpeggio-tab-container');
+            if (tabContainer) {
+                const newTab = ArpeggioRenderer.renderTab(arpeggio, newStyle);
+                tabContainer.replaceWith(newTab);
+            }
         });
     },
 

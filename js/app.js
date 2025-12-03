@@ -3776,6 +3776,18 @@ const App = {
             this.saveSettings();
         });
 
+        // Tuning offset controls
+        document.getElementById('tuning-down-btn')?.addEventListener('click', () => {
+            this.adjustTuningOffset(-1);
+        });
+
+        document.getElementById('tuning-up-btn')?.addEventListener('click', () => {
+            this.adjustTuningOffset(1);
+        });
+
+        // Initialize tuning offset from localStorage
+        this.initTuningOffset();
+
         // Diagram display mode toggle (fingers vs intervals)
         document.getElementById('display-fingers-btn')?.addEventListener('click', () => {
             this.setDiagramDisplayMode('fingers');
@@ -3799,6 +3811,123 @@ const App = {
         // Re-render chords with new display mode
         if (this.state.displayedChords.length > 0) {
             this.renderChordGrid(this.state.displayedChords);
+        }
+    },
+
+    /**
+     * Initialize tuning offset from localStorage and update display
+     */
+    initTuningOffset() {
+        // Load saved tuning offset
+        AudioEngine.loadTuningOffset();
+        // Update the display
+        this.updateTuningDisplay();
+        // Update tuning indicator
+        this.updateTuningIndicator();
+    },
+
+    /**
+     * Adjust tuning offset by delta
+     * @param {number} delta - Amount to change (+1 or -1 semitone)
+     */
+    adjustTuningOffset(delta) {
+        const currentOffset = AudioEngine.getTuningOffset();
+        const newOffset = currentOffset + delta;
+
+        // Check bounds
+        if (newOffset < -6 || newOffset > 6) return;
+
+        // Apply the new offset
+        AudioEngine.setTuningOffset(newOffset);
+
+        // Update display
+        this.updateTuningDisplay();
+
+        // Update tuning indicator on play buttons
+        this.updateTuningIndicator();
+    },
+
+    /**
+     * Update the tuning offset display in settings
+     */
+    updateTuningDisplay() {
+        const { value, label } = AudioEngine.getTuningDisplayText();
+
+        const valueElement = document.getElementById('tuning-value');
+        const labelElement = document.getElementById('tuning-label');
+
+        if (valueElement) {
+            valueElement.textContent = value;
+        }
+
+        if (labelElement) {
+            labelElement.textContent = label;
+            labelElement.classList.toggle('hidden', !label);
+        }
+
+        // Update button states (disable at bounds)
+        const offset = AudioEngine.getTuningOffset();
+        const downBtn = document.getElementById('tuning-down-btn');
+        const upBtn = document.getElementById('tuning-up-btn');
+
+        if (downBtn) {
+            downBtn.disabled = offset <= -6;
+            downBtn.classList.toggle('disabled', offset <= -6);
+        }
+        if (upBtn) {
+            upBtn.disabled = offset >= 6;
+            upBtn.classList.toggle('disabled', offset >= 6);
+        }
+    },
+
+    /**
+     * Update tuning indicator on chord cards
+     */
+    updateTuningIndicator() {
+        const offset = AudioEngine.getTuningOffset();
+        const indicator = document.getElementById('tuning-offset-indicator');
+
+        if (offset !== 0) {
+            // Show indicator in header
+            if (!indicator) {
+                this.createTuningIndicator(offset);
+            } else {
+                const badge = indicator.querySelector('.tuning-indicator-badge');
+                if (badge) {
+                    badge.textContent = offset > 0 ? `+${offset}` : `${offset}`;
+                }
+                indicator.classList.remove('hidden');
+            }
+        } else {
+            // Hide indicator
+            if (indicator) {
+                indicator.classList.add('hidden');
+            }
+        }
+    },
+
+    /**
+     * Create the tuning indicator element
+     */
+    createTuningIndicator(offset) {
+        const header = document.querySelector('.header-actions');
+        if (!header) return;
+
+        const indicator = document.createElement('div');
+        indicator.id = 'tuning-offset-indicator';
+        indicator.className = 'tuning-offset-indicator';
+        indicator.title = 'Audio pitch adjusted - click Settings to change';
+        indicator.innerHTML = `
+            <span class="tuning-indicator-icon">🎵</span>
+            <span class="tuning-indicator-badge">${offset > 0 ? '+' + offset : offset}</span>
+        `;
+
+        // Insert before the settings button
+        const settingsBtn = document.getElementById('settings-btn');
+        if (settingsBtn) {
+            header.insertBefore(indicator, settingsBtn);
+        } else {
+            header.appendChild(indicator);
         }
     },
 
@@ -4291,6 +4420,50 @@ const App = {
                         <li><strong>Ballads:</strong> Natural minor or aeolian mode</li>
                         <li><strong>Not sure?:</strong> Try the suggested scale, then experiment with alternatives</li>
                     </ul>
+                </section>
+
+                <section class="about-section">
+                    <h3>Sound Settings</h3>
+
+                    <h4>Tuning Offset</h4>
+                    <p>The Tuning Offset feature lets you adjust the pitch of all audio playback to match alternate guitar tunings.</p>
+
+                    <p><strong>Why use this?</strong></p>
+                    <p>Many guitarists tune their instruments down from standard tuning for various reasons:</p>
+                    <ul>
+                        <li>Half step down (Eb tuning) - Popular in rock/metal for heavier sound</li>
+                        <li>Full step down (D tuning) - Even heavier, looser strings</li>
+                        <li>Drop tunings for easier power chords</li>
+                        <li>To match vocal range or other instruments</li>
+                    </ul>
+
+                    <p><strong>How it works:</strong></p>
+                    <ul>
+                        <li>Open Settings and find the "Sound Settings" section</li>
+                        <li>Use the [-] and [+] buttons to adjust the offset (-6 to +6 semitones)</li>
+                        <li>Common tuning labels are shown (e.g., "Eb tuning" for -1)</li>
+                        <li>When active, a small indicator appears in the header showing the offset</li>
+                    </ul>
+
+                    <p><strong>What changes:</strong></p>
+                    <ul>
+                        <li>All chord playback sounds at the adjusted pitch</li>
+                        <li>All arpeggio playback sounds at the adjusted pitch</li>
+                        <li>Any other audio in the app is pitch-shifted</li>
+                    </ul>
+
+                    <p><strong>What does NOT change:</strong></p>
+                    <ul>
+                        <li>Chord names still display as written (E Major stays "E Major")</li>
+                        <li>Fret diagrams remain unchanged</li>
+                        <li>Tab notation remains unchanged</li>
+                        <li>Intervals and theory information remain unchanged</li>
+                    </ul>
+
+                    <p><strong>Example:</strong></p>
+                    <p>If you tune your guitar down a half step and set the offset to -1, when you play an "E Major" chord diagram, the app will play audio that sounds like Eb Major - matching what your guitar actually produces when you play that E Major shape.</p>
+
+                    <p>Your tuning offset setting is automatically saved and will persist across sessions.</p>
                 </section>
 
                 <section class="about-section">

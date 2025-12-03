@@ -195,47 +195,28 @@ const ArpeggioRenderer = {
      * @returns {Array} - Extended pattern with all note instances
      */
     generateAllNotes(arpeggio) {
-        // Build a map from note name to interval using the original pattern
-        const noteToInterval = {};
-        arpeggio.pattern.forEach(p => {
-            const noteName = this.getNoteAtStringFret(p.string, p.fret);
-            // Store both sharp and flat versions
-            noteToInterval[noteName] = p.interval;
-            if (this.enharmonicMap[noteName]) {
-                noteToInterval[this.enharmonicMap[noteName]] = p.interval;
+        // Determine intervals based on arpeggio quality and note position
+        const getIntervalForNoteIndex = (idx, quality) => {
+            if (idx === 0) return 'R';
+            if (idx === 1) {
+                // Second note is the 3rd
+                return (quality === 'minor' || quality === 'minor7' ||
+                        quality === 'diminished' || quality === 'diminished7' ||
+                        quality === 'min7b5') ? 'b3' : '3';
             }
-        });
-
-        // Also map from arpeggio.notes array to ensure coverage
-        // Build interval mapping based on arpeggio quality
-        const arpeggioNotes = arpeggio.notes;
-        arpeggioNotes.forEach((noteName, idx) => {
-            if (!noteToInterval[noteName]) {
-                // Determine interval based on position and quality
-                let interval;
-                if (idx === 0) {
-                    interval = 'R';
-                } else if (idx === 1) {
-                    // Second note is the 3rd (major or minor)
-                    interval = (arpeggio.quality === 'minor' || arpeggio.quality === 'minor7' ||
-                               arpeggio.quality === 'diminished' || arpeggio.quality === 'diminished7' ||
-                               arpeggio.quality === 'min7b5') ? 'b3' : '3';
-                } else if (idx === 2) {
-                    // Third note is the 5th (perfect or altered)
-                    interval = (arpeggio.quality === 'diminished' || arpeggio.quality === 'diminished7' ||
-                               arpeggio.quality === 'min7b5') ? 'b5' :
-                              (arpeggio.quality === 'augmented') ? '#5' : '5';
-                } else if (idx === 3) {
-                    // Fourth note is the 7th
-                    interval = (arpeggio.quality === 'major7') ? 'M7' :
-                              (arpeggio.quality === 'diminished7') ? 'bb7' : 'b7';
-                }
-                noteToInterval[noteName] = interval;
-                if (this.enharmonicMap[noteName]) {
-                    noteToInterval[this.enharmonicMap[noteName]] = interval;
-                }
+            if (idx === 2) {
+                // Third note is the 5th
+                return (quality === 'diminished' || quality === 'diminished7' ||
+                        quality === 'min7b5') ? 'b5' :
+                       (quality === 'augmented') ? '#5' : '5';
             }
-        });
+            if (idx === 3) {
+                // Fourth note is the 7th
+                return (quality === 'major7') ? 'M7' :
+                       (quality === 'diminished7') ? 'bb7' : 'b7';
+            }
+            return 'R';
+        };
 
         const allNotes = [];
         const numFrets = 15; // Show up to 15th fret
@@ -251,10 +232,8 @@ const ArpeggioRenderer = {
                 const noteIndex = this.findNoteInArray(noteAtPosition, arpeggio.notes);
 
                 if (noteIndex !== -1) {
-                    // Get the interval for this note
-                    const interval = noteToInterval[noteAtPosition] ||
-                                    noteToInterval[this.enharmonicMap[noteAtPosition]] ||
-                                    'R';
+                    // Get interval directly from note position in arpeggio
+                    const interval = getIntervalForNoteIndex(noteIndex, arpeggio.quality);
 
                     allNotes.push({
                         string,

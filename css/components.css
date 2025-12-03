@@ -1798,3 +1798,140 @@
         transform: translateX(0) translateY(0);
     }
 }
+
+/* ============================================
+   Root Note Filter
+   ============================================ */
+
+/* Root Note Filter Row - separate row above other filters */
+.root-note-filter-row {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: linear-gradient(135deg, rgba(var(--accent-rgb, 33, 150, 243), 0.05), rgba(var(--accent-rgb, 33, 150, 243), 0.1));
+    border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+
+.root-note-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.root-note-group label {
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.root-note-dropdown {
+    min-width: 140px;
+    font-weight: 500;
+}
+
+/* Root Note Indicator */
+.root-note-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: rgba(var(--accent-rgb, 33, 150, 243), 0.15);
+    border-radius: var(--radius-md);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.root-note-indicator.hidden {
+    display: none;
+}
+
+.root-note-badge {
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.root-note-info {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dimmed state for mood/style/theory tabs when root note is active */
+.nav-btn.dimmed,
+.mood-selector.dimmed,
+.style-selector.dimmed,
+.theory-selector.dimmed {
+    opacity: 0.5;
+    pointer-events: none;
+    position: relative;
+}
+
+.nav-btn.dimmed::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 5px,
+        rgba(var(--text-secondary-rgb, 100, 100, 100), 0.05) 5px,
+        rgba(var(--text-secondary-rgb, 100, 100, 100), 0.05) 10px
+    );
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+/* Re-enable pointer events on dropdowns within dimmed selectors for accessibility */
+.mood-selector.dimmed select,
+.style-selector.dimmed select,
+.theory-selector.dimmed select {
+    pointer-events: none;
+}
+
+/* Dark mode adjustments for root note filter */
+[data-theme="dark"] .root-note-filter-row {
+    background: linear-gradient(135deg, rgba(var(--accent-rgb, 33, 150, 243), 0.08), rgba(var(--accent-rgb, 33, 150, 243), 0.15));
+}
+
+[data-theme="dark"] .root-note-indicator {
+    background: rgba(var(--accent-rgb, 33, 150, 243), 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .root-note-filter-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+
+    .root-note-indicator {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .root-note-dropdown {
+        min-width: 120px;
+    }
+
+    .root-note-info {
+        font-size: 11px;
+    }
+}

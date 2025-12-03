@@ -15,6 +15,7 @@ const App = {
         chordTypeFilter: 'all',
         voicingPatternFilter: 'all',
         fretRangeFilter: 'all',
+        rootNoteFilter: 'all',
         selectedChords: [],
         displayedChords: [],
         hasSearched: false,
@@ -196,6 +197,11 @@ const App = {
             this.handleFretRangeFilter(e);
         });
 
+        // Root note filter
+        document.getElementById('root-note-filter')?.addEventListener('change', (e) => {
+            this.handleRootNoteFilter(e);
+        });
+
         // Clear all filters button
         document.getElementById('clear-filters-btn')?.addEventListener('click', () => {
             this.clearAllFilters();
@@ -307,12 +313,193 @@ const App = {
     },
 
     /**
+     * Handle root note filter change
+     */
+    handleRootNoteFilter(e) {
+        const rootNote = e.target.value;
+        this.state.rootNoteFilter = rootNote;
+
+        if (rootNote !== 'all') {
+            // Root note filter is active - get all chords with this root
+            this.state.selectedChords = this.getChordsByRootNote(rootNote);
+            this.state.hasSearched = true;
+
+            // Update visual indicators
+            this.showRootNoteIndicator(rootNote, this.state.selectedChords.length);
+            this.dimMoodStyleTheoryTabs(true);
+
+            // Update selection info to show we're filtering by root
+            this.showRootNoteSelectionInfo(rootNote);
+        } else {
+            // Root note filter deactivated - return to previous mood/style/theory selection
+            this.hideRootNoteIndicator();
+            this.dimMoodStyleTheoryTabs(false);
+
+            // Re-run the normal showChords flow without clearing filters
+            this.reapplyMoodStyleTheorySelection();
+        }
+
+        this.applyFiltersAndDisplay();
+    },
+
+    /**
+     * Get all chords with a specific root note
+     */
+    getChordsByRootNote(rootNote) {
+        const allChords = getAllChords();
+        const normalizedRoot = this.normalizeRootNote(rootNote);
+
+        return allChords.filter(chord => {
+            const chordRoot = this.normalizeRootNote(chord.root);
+            return chordRoot === normalizedRoot;
+        });
+    },
+
+    /**
+     * Normalize root note to handle enharmonic equivalents
+     */
+    normalizeRootNote(note) {
+        if (!note) return null;
+
+        // Map flat notes to their sharp equivalents
+        const enharmonics = {
+            'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#'
+        };
+
+        const cleanNote = note.trim();
+        return enharmonics[cleanNote] || cleanNote;
+    },
+
+    /**
+     * Show the root note indicator
+     */
+    showRootNoteIndicator(rootNote, count) {
+        const indicator = document.getElementById('root-note-indicator');
+        const badge = document.getElementById('root-note-badge');
+
+        if (indicator && badge) {
+            // Get display name with enharmonic
+            const displayName = this.getRootNoteDisplayName(rootNote);
+            badge.textContent = `Showing all ${displayName} chords`;
+            indicator.classList.remove('hidden');
+        }
+    },
+
+    /**
+     * Hide the root note indicator
+     */
+    hideRootNoteIndicator() {
+        const indicator = document.getElementById('root-note-indicator');
+        if (indicator) {
+            indicator.classList.add('hidden');
+        }
+    },
+
+    /**
+     * Get display name for root note (with enharmonic if applicable)
+     */
+    getRootNoteDisplayName(rootNote) {
+        const enharmonicNames = {
+            'C#': 'C# / Db',
+            'D#': 'D# / Eb',
+            'F#': 'F# / Gb',
+            'G#': 'G# / Ab',
+            'A#': 'A# / Bb'
+        };
+        return enharmonicNames[rootNote] || rootNote;
+    },
+
+    /**
+     * Dim the mood/style/theory tabs when root note filter is active
+     */
+    dimMoodStyleTheoryTabs(dim) {
+        const navButtons = document.querySelectorAll('.nav-btn');
+        const selectors = document.querySelectorAll('.mood-selector, .style-selector, .theory-selector');
+
+        navButtons.forEach(btn => {
+            btn.classList.toggle('dimmed', dim);
+        });
+
+        selectors.forEach(sel => {
+            sel.classList.toggle('dimmed', dim);
+        });
+    },
+
+    /**
+     * Show selection info for root note filter
+     */
+    showRootNoteSelectionInfo(rootNote) {
+        const displayName = this.getRootNoteDisplayName(rootNote);
+        const selectionInfo = {
+            name: `All ${displayName} Chords`,
+            description: `Showing all chord variations with ${displayName} as the root note`,
+            icon: '🎵'
+        };
+        this.showSelectionInfo(selectionInfo, this.state.selectedChords.length);
+    },
+
+    /**
+     * Reapply the mood/style/theory selection without clearing other filters
+     */
+    reapplyMoodStyleTheorySelection() {
+        let chords = [];
+
+        switch (this.state.selectionMode) {
+            case 'mood':
+                if (this.state.currentMood) {
+                    chords = SelectionEngine.getChordsByMood(this.state.currentMood);
+                    const moodInfo = SelectionEngine.getSelectionInfo('mood', this.state.currentMood);
+                    if (moodInfo) this.showSelectionInfo(moodInfo, chords.length);
+                } else {
+                    chords = getAllChords();
+                    this.hideSelectionInfo();
+                }
+                break;
+
+            case 'style':
+                if (this.state.currentStyle) {
+                    chords = SelectionEngine.getChordsByStyle(this.state.currentStyle);
+                    const styleInfo = SelectionEngine.getSelectionInfo('style', this.state.currentStyle);
+                    if (styleInfo) this.showSelectionInfo(styleInfo, chords.length);
+                } else {
+                    chords = getAllChords();
+                    this.hideSelectionInfo();
+                }
+                break;
+
+            case 'theory':
+                chords = SelectionEngine.getChordsByTheory(this.state.currentKey, this.state.currentMode);
+                let theoryInfo = SelectionEngine.getSelectionInfo('theory', this.state.currentMode);
+                if (theoryInfo) {
+                    theoryInfo.name = `${this.state.currentKey} ${theoryInfo.name}`;
+                    theoryInfo.icon = '🎼';
+                    this.showSelectionInfo(theoryInfo, chords.length);
+                }
+                break;
+        }
+
+        this.state.selectedChords = chords;
+    },
+
+    /**
+     * Reset root note filter (called when mood/style/theory changes)
+     */
+    resetRootNoteFilter() {
+        this.state.rootNoteFilter = 'all';
+        const dropdown = document.getElementById('root-note-filter');
+        if (dropdown) dropdown.value = 'all';
+        this.hideRootNoteIndicator();
+        this.dimMoodStyleTheoryTabs(false);
+    },
+
+    /**
      * Clear all new filters
      */
     clearAllFilters() {
         this.state.chordTypeFilter = 'all';
         this.state.voicingPatternFilter = 'all';
         this.state.fretRangeFilter = 'all';
+        // Note: We don't reset rootNoteFilter here as it's a separate concept
 
         // Reset dropdowns
         const chordTypeDropdown = document.getElementById('chord-type-filter');
@@ -335,7 +522,18 @@ const App = {
     updateChordCount(count) {
         const countElement = document.getElementById('filter-chord-count');
         if (countElement) {
-            if (count === 0) {
+            // Include root note in the count message if active
+            const rootNote = this.state.rootNoteFilter;
+            if (rootNote !== 'all') {
+                const displayName = this.getRootNoteDisplayName(rootNote);
+                if (count === 0) {
+                    countElement.textContent = `No ${displayName} chords match your filters`;
+                    countElement.classList.add('no-results');
+                } else {
+                    countElement.textContent = `Showing ${count} ${displayName} chord${count === 1 ? '' : 's'}`;
+                    countElement.classList.remove('no-results');
+                }
+            } else if (count === 0) {
                 countElement.textContent = 'No chords match your filters';
                 countElement.classList.add('no-results');
             } else {
@@ -365,6 +563,9 @@ const App = {
     showChords() {
         let chords = [];
         let selectionInfo = null;
+
+        // Reset root note filter when mood/style/theory is used
+        this.resetRootNoteFilter();
 
         // Reset the three new filters to "All" when mood/style/theory changes
         this.clearAllFilters();
@@ -3681,6 +3882,24 @@ const App = {
 
                     <h4>Advanced Filters</h4>
                     <p>After clicking "Show Chords", use these advanced filters to refine your results:</p>
+
+                    <p><strong>Root Note Filter:</strong></p>
+                    <p>The Root Note filter lets you see all chord variations built on a specific root note. This is perfect for:</p>
+                    <ul>
+                        <li>Learning all voicings of a particular chord (e.g., all D chords)</li>
+                        <li>Exploring different chord qualities with the same root (D Major, D Minor, D7, Dm7, etc.)</li>
+                        <li>Finding chord substitutions that share the same root</li>
+                        <li>Practicing chord transitions between related voicings</li>
+                    </ul>
+                    <p><strong>How it works:</strong></p>
+                    <ul>
+                        <li>Select a root note from the dropdown (C, C#/Db, D, etc.)</li>
+                        <li>When active, it overrides the Mood/Style/Theory selection and shows ALL chords with that root</li>
+                        <li>The Mood/Style/Theory tabs will appear dimmed to indicate they're bypassed</li>
+                        <li>Other filters (Chord Type, Voicing Pattern, etc.) still work to narrow down results</li>
+                        <li>Selecting a new Mood/Style/Theory option will reset the Root Note filter back to "All Roots"</li>
+                        <li>Sharp/flat equivalents are handled automatically (C# and Db show the same chords)</li>
+                    </ul>
 
                     <p><strong>Chord Type Filter:</strong></p>
                     <ul>

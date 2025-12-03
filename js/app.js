@@ -3368,6 +3368,9 @@ const App = {
                         <li><strong>Partial Barre:</strong> Chords where one finger covers 2-3 strings rather than the full barre. Easier than full barre chords.</li>
                         <li><strong>Closed Position:</strong> Chords with no open strings, played entirely with fretted notes.</li>
                         <li><strong>High Position:</strong> Chords played at the 10th fret or higher, producing brighter tones.</li>
+                        <li><strong>3-Note Voicings:</strong> Chords with exactly 3 notes played. Perfect for jazz voicings, fingerstyle guitar, and voice leading. The reduced note count creates a cleaner, less muddy sound that works well in ensemble settings.</li>
+                        <li><strong>4-Note Voicings:</strong> Chords with exactly 4 notes played. Offers balanced fullness without being too dense. Common in jazz and R&B for seventh chord voicings where you need all four chord tones.</li>
+                        <li><strong>5+ Note Voicings:</strong> Chords with 5 or more notes played. Produces a full, rich sound ideal for strumming, campfire songs, and when you want maximum resonance from the guitar.</li>
                     </ul>
 
                     <p><strong>Fret Range Filter:</strong></p>

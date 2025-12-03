@@ -233,6 +233,18 @@ const SelectionEngine = {
     },
 
     /**
+     * Count the number of notes actually played in a chord (non-muted strings)
+     * @param {Array} frets - Array of fret values for each string
+     * @returns {number} - Number of notes played
+     */
+    countPlayedNotes(frets) {
+        // -1 or 'x' = muted (don't count)
+        // 0 = open string (count as a note)
+        // > 0 = fretted note (count as a note)
+        return frets.filter(f => f !== -1 && f !== 'x').length;
+    },
+
+    /**
      * Filter chords by voicing pattern
      * @param {Array} chords - Array of chords to filter
      * @param {string} pattern - The voicing pattern filter value
@@ -266,6 +278,9 @@ const SelectionEngine = {
             // Get highest fret position
             const maxFret = Math.max(...frets.filter(f => f > 0));
 
+            // Count notes played (for note count filters)
+            const noteCount = this.countPlayedNotes(frets);
+
             switch (pattern) {
                 case 'open-position':
                     return hasOpenStrings;
@@ -290,6 +305,18 @@ const SelectionEngine = {
 
                 case 'high-position':
                     return maxFret >= 10;
+
+                case '3-note-voicings':
+                    // Exactly 3 notes played
+                    return noteCount === 3;
+
+                case '4-note-voicings':
+                    // Exactly 4 notes played
+                    return noteCount === 4;
+
+                case '5-plus-note-voicings':
+                    // 5 or more notes played
+                    return noteCount >= 5;
 
                 default:
                     return true;

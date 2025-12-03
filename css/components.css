@@ -1308,6 +1308,18 @@
     background: rgba(74, 158, 255, 0.1);
 }
 
+/* Dark mode chord diagram improvements */
+/* In dark mode, regular dots are light colored, so use dark text */
+.dark-theme .chord-diagram .finger-number {
+    fill: #1a1a1a;
+    font-weight: 700;
+}
+
+/* Root dots are still dark/red in dark mode, so use white text */
+.dark-theme .chord-diagram .finger-number.on-root {
+    fill: white;
+}
+
 /* Responsive adjustments for More Info */
 @media (max-width: 768px) {
     .selection-info-actions {

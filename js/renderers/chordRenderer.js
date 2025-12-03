@@ -94,18 +94,18 @@ const ChordRenderer = {
         svg.appendChild(this.renderFrets(dims));
         svg.appendChild(this.renderNut(dims, chord.position));
         svg.appendChild(this.renderOpenMutedMarkers(dims, chord.frets));
+
+        // Render barre BEFORE finger dots so dots appear on top
+        if (chord.barre && this.shouldRenderBarre(chord)) {
+            svg.appendChild(this.renderBarre(dims, chord.barre, chord.position));
+        }
+
         svg.appendChild(this.renderFingerDots(dims, chord));
         svg.appendChild(this.renderStringLabels(dims));
 
         // Render position marker if not open position
         if (chord.position > 1) {
             svg.appendChild(this.renderPositionMarker(dims, chord.position));
-        }
-
-        // Render barre if present and valid
-        // Only render barre if it's actually a barre chord (barre spans multiple strings)
-        if (chord.barre && this.shouldRenderBarre(chord)) {
-            svg.appendChild(this.renderBarre(dims, chord.barre, chord.position));
         }
 
         return svg;
@@ -325,10 +325,9 @@ const ChordRenderer = {
                 // Show interval
                 const interval = this.getIntervalAtPosition(stringIndex, fret, rootNote);
                 const text = this.createSVGElement('text');
-                text.setAttribute('class', `interval-text${isRoot ? ' root-interval' : ''}`);
+                text.setAttribute('class', `finger-number interval-text${isRoot ? ' on-root' : ''}`);
                 text.setAttribute('x', x);
                 text.setAttribute('y', y);
-                text.setAttribute('fill', 'white');
                 // Adjust font size based on interval text length
                 const fontSize = interval.length > 1 ? '8' : '10';
                 text.setAttribute('font-size', fontSize);
@@ -343,10 +342,9 @@ const ChordRenderer = {
                 const finger = fingers[stringIndex];
                 if (finger > 0) {
                     const text = this.createSVGElement('text');
-                    text.setAttribute('class', 'finger-number');
+                    text.setAttribute('class', `finger-number${isRoot ? ' on-root' : ''}`);
                     text.setAttribute('x', x);
                     text.setAttribute('y', y);
-                    text.setAttribute('fill', 'white');
                     text.setAttribute('font-size', '11');
                     text.setAttribute('font-weight', '600');
                     text.setAttribute('font-family', 'sans-serif');

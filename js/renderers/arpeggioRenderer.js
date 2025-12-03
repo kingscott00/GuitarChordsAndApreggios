@@ -603,7 +603,7 @@ const ArpeggioRenderer = {
     },
 
     /**
-     * Generate standard tab (one note per string)
+     * Generate standard tab (one note per string) - ascending then descending
      */
     generateStandardTab(arpeggio) {
         const stringLabels = ['e', 'B', 'G', 'D', 'A', 'E'];
@@ -615,8 +615,24 @@ const ArpeggioRenderer = {
             return a.fret - b.fret;
         });
 
-        // Add each note to the tab
+        // ASCENDING: Add each note from low to high
         sortedPattern.forEach(note => {
+            const stringIndex = 5 - note.string;
+            const fretStr = note.fret.toString().padStart(2, '-');
+
+            for (let i = 0; i < 6; i++) {
+                if (i === stringIndex) {
+                    lines[i] += fretStr + '-';
+                } else {
+                    lines[i] += '---';
+                }
+            }
+        });
+
+        // DESCENDING: Add notes in reverse (skip the top note to avoid duplicate)
+        const descendingPattern = [...sortedPattern].reverse().slice(1);
+
+        descendingPattern.forEach(note => {
             const stringIndex = 5 - note.string;
             const fretStr = note.fret.toString().padStart(2, '-');
 

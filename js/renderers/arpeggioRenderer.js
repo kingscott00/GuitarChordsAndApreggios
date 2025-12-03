@@ -753,7 +753,7 @@ const ArpeggioRenderer = {
     },
 
     /**
-     * Generate tab with two notes per string
+     * Generate tab with two notes per string (picked, no legato)
      */
     generateTwoPerStringTab(arpeggio) {
         const stringLabels = ['e', 'B', 'G', 'D', 'A', 'E'];
@@ -774,7 +774,7 @@ const ArpeggioRenderer = {
             notesByString[note.string].push(note);
         });
 
-        // ASCENDING with hammer-ons
+        // ASCENDING - two picked notes per string
         const stringsUsed = Object.keys(notesByString).map(Number).sort((a, b) => a - b);
 
         stringsUsed.forEach(stringNum => {
@@ -782,37 +782,37 @@ const ArpeggioRenderer = {
             const stringIndex = 5 - stringNum;
 
             if (notes.length >= 2) {
-                // Two notes on this string - use hammer-on ascending
+                // Two notes on this string - pick both
                 const lowFret = notes[0].fret;
                 const highFret = notes[notes.length - 1].fret;
-                const notation = `${lowFret}h${highFret}`;
-                const padded = notation.padStart(4, '-');
+                const lowStr = lowFret.toString().padStart(2, '-');
+                const highStr = highFret.toString().padStart(2, '-');
 
                 for (let i = 0; i < 6; i++) {
                     if (i === stringIndex) {
-                        lines[i] += padded + '-';
+                        lines[i] += lowStr + '-' + highStr + '-';
                     } else {
-                        lines[i] += '-----';
+                        lines[i] += '------';
                     }
                 }
             } else if (notes.length === 1) {
-                // Single note - calculate a second note 3-4 frets higher
+                // Single note - add a second note 3 frets higher
                 const baseFret = notes[0].fret;
                 const secondFret = baseFret + 3;
-                const notation = `${baseFret}h${secondFret}`;
-                const padded = notation.padStart(4, '-');
+                const baseStr = baseFret.toString().padStart(2, '-');
+                const secondStr = secondFret.toString().padStart(2, '-');
 
                 for (let i = 0; i < 6; i++) {
                     if (i === stringIndex) {
-                        lines[i] += padded + '-';
+                        lines[i] += baseStr + '-' + secondStr + '-';
                     } else {
-                        lines[i] += '-----';
+                        lines[i] += '------';
                     }
                 }
             }
         });
 
-        // DESCENDING with pull-offs
+        // DESCENDING - two picked notes per string (high to low)
         stringsUsed.reverse().forEach(stringNum => {
             const notes = notesByString[stringNum];
             const stringIndex = 5 - stringNum;
@@ -820,27 +820,27 @@ const ArpeggioRenderer = {
             if (notes.length >= 2) {
                 const lowFret = notes[0].fret;
                 const highFret = notes[notes.length - 1].fret;
-                const notation = `${highFret}p${lowFret}`;
-                const padded = notation.padStart(4, '-');
+                const lowStr = lowFret.toString().padStart(2, '-');
+                const highStr = highFret.toString().padStart(2, '-');
 
                 for (let i = 0; i < 6; i++) {
                     if (i === stringIndex) {
-                        lines[i] += padded + '-';
+                        lines[i] += highStr + '-' + lowStr + '-';
                     } else {
-                        lines[i] += '-----';
+                        lines[i] += '------';
                     }
                 }
             } else if (notes.length === 1) {
                 const baseFret = notes[0].fret;
                 const secondFret = baseFret + 3;
-                const notation = `${secondFret}p${baseFret}`;
-                const padded = notation.padStart(4, '-');
+                const baseStr = baseFret.toString().padStart(2, '-');
+                const secondStr = secondFret.toString().padStart(2, '-');
 
                 for (let i = 0; i < 6; i++) {
                     if (i === stringIndex) {
-                        lines[i] += padded + '-';
+                        lines[i] += secondStr + '-' + baseStr + '-';
                     } else {
-                        lines[i] += '-----';
+                        lines[i] += '------';
                     }
                 }
             }
@@ -946,7 +946,7 @@ const ArpeggioRenderer = {
     },
 
     /**
-     * Get playback notes for two-notes-per-string style
+     * Get playback notes for two-notes-per-string style (all picked, no legato)
      */
     getTwoPerStringPlayback(sortedPattern) {
         const playbackNotes = [];
@@ -962,7 +962,7 @@ const ArpeggioRenderer = {
 
         const stringsUsed = Object.keys(notesByString).map(Number).sort((a, b) => a - b);
 
-        // Ascending with hammer-ons
+        // Ascending - two picked notes per string
         stringsUsed.forEach(stringNum => {
             const notes = notesByString[stringNum];
             const lowFret = notes[0].fret;
@@ -977,12 +977,12 @@ const ArpeggioRenderer = {
             playbackNotes.push({
                 string: stringNum,
                 fret: highFret,
-                legato: true,
-                interval: 'h'
+                legato: false,
+                interval: notes.length >= 2 ? notes[notes.length - 1].interval : notes[0].interval
             });
         });
 
-        // Descending with pull-offs
+        // Descending - two picked notes per string (high to low)
         stringsUsed.reverse().forEach(stringNum => {
             const notes = notesByString[stringNum];
             const lowFret = notes[0].fret;
@@ -992,13 +992,13 @@ const ArpeggioRenderer = {
                 string: stringNum,
                 fret: highFret,
                 legato: false,
-                interval: notes.length >= 2 ? notes[notes.length - 1].interval : 'p'
+                interval: notes.length >= 2 ? notes[notes.length - 1].interval : notes[0].interval
             });
             playbackNotes.push({
                 string: stringNum,
                 fret: lowFret,
-                legato: true,
-                interval: 'p'
+                legato: false,
+                interval: notes[0].interval
             });
         });
 

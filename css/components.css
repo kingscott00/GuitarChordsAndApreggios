@@ -1935,3 +1935,157 @@
         font-size: 11px;
     }
 }
+
+/* ============================================
+   Sound Settings - Tuning Offset
+   ============================================ */
+
+.sound-settings-section {
+    border-top: 2px solid var(--border-color);
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+}
+
+.sound-settings-section h4 {
+    color: var(--accent);
+}
+
+.tuning-offset-control {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.tuning-offset-control > label {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.tuning-offset-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xs);
+}
+
+.tuning-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    user-select: none;
+}
+
+.tuning-btn:hover:not(.disabled) {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.tuning-btn:active:not(.disabled) {
+    transform: scale(0.95);
+}
+
+.tuning-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.tuning-display {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    min-width: 120px;
+}
+
+.tuning-value {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+}
+
+.tuning-label {
+    font-size: 11px;
+    color: var(--accent);
+    font-style: italic;
+}
+
+.tuning-label.hidden {
+    display: none;
+}
+
+/* ============================================
+   Tuning Offset Indicator (Header)
+   ============================================ */
+
+.tuning-offset-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: rgba(var(--accent-rgb, 33, 150, 243), 0.15);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.tuning-offset-indicator:hover {
+    background: rgba(var(--accent-rgb, 33, 150, 243), 0.25);
+}
+
+.tuning-offset-indicator.hidden {
+    display: none;
+}
+
+.tuning-indicator-icon {
+    font-size: 14px;
+}
+
+.tuning-indicator-badge {
+    font-weight: 700;
+    font-size: var(--font-size-sm);
+    color: var(--accent);
+    font-family: var(--font-mono);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .tuning-offset-wrapper {
+    background: var(--bg-card);
+}
+
+[data-theme="dark"] .tuning-btn {
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .tuning-offset-indicator {
+    background: rgba(var(--accent-rgb, 33, 150, 243), 0.2);
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+    .tuning-display {
+        min-width: 100px;
+    }
+
+    .tuning-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+}

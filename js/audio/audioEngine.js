@@ -14,7 +14,25 @@ const AudioEngine = {
         strumSpeed: 40,          // ms between strings
         strumDirection: 'down',  // 'down' | 'up'
         noteDecay: 2.5,          // seconds
-        arpeggioTempo: 120       // BPM
+        arpeggioTempo: 120,      // BPM
+        tuningOffset: 0          // semitones (-6 to +6)
+    },
+
+    // Tuning offset labels for common tunings
+    tuningLabels: {
+        '-6': '3 steps down',
+        '-5': 'A tuning',
+        '-4': 'Bb tuning',
+        '-3': 'B tuning',
+        '-2': 'D tuning',
+        '-1': 'Eb tuning',
+        '0': '',
+        '1': 'Half step up',
+        '2': 'Full step up',
+        '3': 'F tuning',
+        '4': 'F# tuning',
+        '5': 'G tuning',
+        '6': '3 steps up'
     },
 
     // Standard tuning frequencies (E2 to E4)
@@ -82,13 +100,71 @@ const AudioEngine = {
 
     /**
      * Get frequency for a specific string and fret
+     * Applies tuning offset for alternate tunings
      * @param {number} stringIndex - String index (0-5, 0 = low E)
      * @param {number} fret - Fret number (0 = open)
      * @returns {number} - Frequency in Hz
      */
     getFrequency(stringIndex, fret) {
         const openFreq = this.stringFrequencies[stringIndex];
-        return openFreq * Math.pow(2, fret / 12);
+        // Apply tuning offset - negative offset lowers pitch, positive raises it
+        const totalSemitones = fret + this.settings.tuningOffset;
+        return openFreq * Math.pow(2, totalSemitones / 12);
+    },
+
+    /**
+     * Set tuning offset
+     * @param {number} semitones - Offset in semitones (-6 to +6)
+     */
+    setTuningOffset(semitones) {
+        // Clamp to valid range
+        this.settings.tuningOffset = Math.max(-6, Math.min(6, semitones));
+        // Save to localStorage
+        localStorage.setItem('guitarChordExplorerTuningOffset', this.settings.tuningOffset.toString());
+        return this.settings.tuningOffset;
+    },
+
+    /**
+     * Get tuning offset
+     * @returns {number} - Current tuning offset in semitones
+     */
+    getTuningOffset() {
+        return this.settings.tuningOffset;
+    },
+
+    /**
+     * Load tuning offset from localStorage
+     */
+    loadTuningOffset() {
+        const saved = localStorage.getItem('guitarChordExplorerTuningOffset');
+        if (saved !== null) {
+            const offset = parseInt(saved, 10);
+            if (!isNaN(offset) && offset >= -6 && offset <= 6) {
+                this.settings.tuningOffset = offset;
+            }
+        }
+        return this.settings.tuningOffset;
+    },
+
+    /**
+     * Get display text for current tuning offset
+     * @returns {Object} - { value: string, label: string }
+     */
+    getTuningDisplayText() {
+        const offset = this.settings.tuningOffset;
+        let value;
+
+        if (offset === 0) {
+            value = 'Standard (0)';
+        } else if (offset > 0) {
+            value = `+${offset} semitone${Math.abs(offset) !== 1 ? 's' : ''}`;
+        } else {
+            value = `${offset} semitone${Math.abs(offset) !== 1 ? 's' : ''}`;
+        }
+
+        const label = this.tuningLabels[offset.toString()] || '';
+
+        return { value, label };
     },
 
     /**

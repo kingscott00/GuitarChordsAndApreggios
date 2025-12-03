@@ -561,6 +561,91 @@ h3 { font-size: var(--font-size-lg); }
     border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
+/* Arpeggio Tab Section */
+.arpeggio-tab-section {
+    margin-top: var(--spacing-md);
+}
+
+/* Pattern Style Selector */
+.pattern-style-selector {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+.pattern-style-label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.pattern-style-select-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.pattern-style-select {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    min-width: 180px;
+}
+
+.pattern-style-select:hover {
+    border-color: var(--accent);
+}
+
+.pattern-style-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-light);
+}
+
+.pattern-style-info-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: help;
+    border-radius: 50%;
+    transition: var(--transition-fast);
+}
+
+.pattern-style-info-btn:hover {
+    color: var(--accent);
+    background: var(--accent-light);
+}
+
+.pattern-style-info-btn svg {
+    pointer-events: none;
+}
+
+/* Dark theme support for pattern style selector */
+.dark-theme .pattern-style-selector {
+    background: var(--bg-secondary);
+}
+
+.dark-theme .pattern-style-select {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
 /* Progression Builder */
 .progression-builder {
     background: var(--bg-primary);

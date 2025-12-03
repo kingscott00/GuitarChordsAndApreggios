@@ -1334,6 +1334,9 @@ const App = {
 
         arpeggioList.innerHTML = '';
 
+        // Initialize pattern style from localStorage
+        ArpeggioRenderer.initPatternStyle();
+
         // Add legend at the top
         const legend = ArpeggioRenderer.renderLegend();
         arpeggioList.appendChild(legend);
@@ -1437,8 +1440,26 @@ const App = {
         });
         diagramContainer.appendChild(diagram);
 
+        // Tab container (will hold selector and tab)
+        const tabSection = document.createElement('div');
+        tabSection.className = 'arpeggio-tab-section';
+
+        // Pattern style selector
+        const styleSelector = ArpeggioRenderer.renderPatternStyleSelector(arpeggio, (newStyle) => {
+            // Update the tab when style changes
+            const tabContainer = tabSection.querySelector('.arpeggio-tab-container');
+            if (tabContainer) {
+                const newTab = ArpeggioRenderer.renderTab(arpeggio, newStyle);
+                tabContainer.replaceWith(newTab);
+            }
+            // Update all other arpeggio tabs to match
+            this.updateAllArpeggioTabs(newStyle);
+        });
+        tabSection.appendChild(styleSelector);
+
         // Tab
         const tab = ArpeggioRenderer.renderTab(arpeggio);
+        tabSection.appendChild(tab);
 
         // Tips
         const tips = document.createElement('div');
@@ -1447,10 +1468,24 @@ const App = {
 
         card.appendChild(header);
         card.appendChild(diagramContainer);
-        card.appendChild(tab);
+        card.appendChild(tabSection);
         card.appendChild(tips);
 
         return card;
+    },
+
+    /**
+     * Update all arpeggio tabs when style changes
+     */
+    updateAllArpeggioTabs(newStyle) {
+        // Update all selectors to match
+        document.querySelectorAll('.pattern-style-select').forEach(select => {
+            select.value = newStyle;
+        });
+        // Update all info button tooltips
+        document.querySelectorAll('.pattern-style-info-btn').forEach(btn => {
+            btn.title = ArpeggioRenderer.patternStyles[newStyle].description;
+        });
     },
 
     /**
@@ -1523,11 +1558,14 @@ const App = {
             // Add playing state
             if (button) button.classList.add('playing');
 
-            await AudioEngine.playArpeggio(arpeggio);
+            // Get pattern notes based on current style (includes legato info)
+            const patternNotes = ArpeggioRenderer.getPatternForPlayback(arpeggio);
+
+            await AudioEngine.playArpeggio(arpeggio, null, patternNotes);
 
             // Calculate duration and remove playing state
             const beatDuration = 60 / AudioEngine.settings.arpeggioTempo;
-            const totalDuration = (arpeggio.pattern.length * beatDuration * 0.5 * 1000) + 500;
+            const totalDuration = (patternNotes.length * beatDuration * 0.5 * 1000) + 500;
 
             setTimeout(() => {
                 if (button) button.classList.remove('playing');

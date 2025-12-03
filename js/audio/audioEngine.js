@@ -206,8 +206,9 @@ const AudioEngine = {
      * Play an arpeggio pattern
      * @param {Object} arpeggio - Arpeggio data object
      * @param {number} tempo - BPM (optional, uses settings default)
+     * @param {Array} patternNotes - Optional custom pattern notes from ArpeggioRenderer
      */
-    async playArpeggio(arpeggio, tempo = null) {
+    async playArpeggio(arpeggio, tempo = null, patternNotes = null) {
         await this.init();
         await this.resume();
 
@@ -217,22 +218,28 @@ const AudioEngine = {
         const bpm = tempo || this.settings.arpeggioTempo;
         const beatDuration = 60 / bpm; // Duration of one beat in seconds
         const noteDuration = beatDuration * 0.8; // Slight gap between notes
+        const legatoDuration = beatDuration * 0.6; // Shorter for legato notes
 
         const startTime = this.context.currentTime + 0.05;
 
+        // Use custom pattern notes if provided, otherwise use standard pattern
+        const notes = patternNotes || arpeggio.pattern;
+
         // Play each note in the pattern
-        arpeggio.pattern.forEach((note, index) => {
+        notes.forEach((note, index) => {
             const frequency = this.getFrequency(note.string, note.fret);
             const noteTime = startTime + (index * beatDuration * 0.5); // 8th notes
 
-            // Root notes slightly louder
-            const velocity = note.interval === 'R' ? 0.85 : 0.7;
+            // Legato notes are softer and shorter (hammer-ons/pull-offs)
+            const isLegato = note.legato === true;
+            const velocity = isLegato ? 0.55 : (note.interval === 'R' ? 0.85 : 0.7);
+            const duration = isLegato ? legatoDuration : noteDuration;
 
-            this.playNote(frequency, noteTime, noteDuration, velocity);
+            this.playNote(frequency, noteTime, duration, velocity);
         });
 
         // Calculate total duration
-        const totalDuration = (arpeggio.pattern.length * beatDuration * 0.5 * 1000) + 500;
+        const totalDuration = (notes.length * beatDuration * 0.5 * 1000) + 500;
 
         setTimeout(() => {
             this.isPlaying = false;

@@ -393,11 +393,11 @@ const ArpeggioLibrary = {
             { string: 2, fret: 6, finger: 3, interval: "R" },   // Ab
             { string: 3, fret: 5, finger: 2, interval: "3" },   // C
             { string: 3, fret: 8, finger: 4, interval: "5" },   // Eb
-            { string: 4, fret: 6, finger: 1, interval: "R" }    // Ab
+            { string: 4, fret: 9, finger: 4, interval: "R" }    // Ab (B string fret 9)
         ],
 
         startFret: 4,
-        endFret: 8,
+        endFret: 9,
         position: "4th Position",
         difficulty: 2,
         fingeringTips: "E-shape at 4th fret - frequently used in soul and R&B"

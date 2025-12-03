@@ -15,6 +15,7 @@ const ChordRenderer = {
         openCircleRadius: 6,
         mutedXSize: 6,
         nutHeight: 6,
+        displayMode: 'fingers', // 'fingers' or 'intervals'
         colors: {
             fretboard: '#D4A574',
             fret: '#8B7355',
@@ -26,6 +27,22 @@ const ChordRenderer = {
             openString: '#333333',
             mutedString: '#666666'
         }
+    },
+
+    // Interval mapping based on semitones from root
+    intervalMap: {
+        0: '1',
+        1: 'b2',
+        2: '2',
+        3: 'b3',
+        4: '3',
+        5: '4',
+        6: 'b5',
+        7: '5',
+        8: '#5',
+        9: '6',
+        10: 'b7',
+        11: '7'
     },
 
     /**
@@ -272,6 +289,7 @@ const ChordRenderer = {
 
         const { frets, fingers, root, notes } = chord;
         const rootNote = root;
+        const displayMode = this.config.displayMode || 'fingers';
 
         for (let stringIndex = 0; stringIndex < frets.length; stringIndex++) {
             const fret = frets[stringIndex];
@@ -302,21 +320,41 @@ const ChordRenderer = {
             circle.setAttribute('fill', isRoot ? this.config.colors.dotRoot : this.config.colors.dot);
             group.appendChild(circle);
 
-            // Draw finger number
-            const finger = fingers[stringIndex];
-            if (finger > 0) {
+            // Draw text based on display mode
+            if (displayMode === 'intervals') {
+                // Show interval
+                const interval = this.getIntervalAtPosition(stringIndex, fret, rootNote);
                 const text = this.createSVGElement('text');
-                text.setAttribute('class', 'finger-number');
+                text.setAttribute('class', `interval-text${isRoot ? ' root-interval' : ''}`);
                 text.setAttribute('x', x);
                 text.setAttribute('y', y);
                 text.setAttribute('fill', 'white');
-                text.setAttribute('font-size', '11');
-                text.setAttribute('font-weight', '600');
+                // Adjust font size based on interval text length
+                const fontSize = interval.length > 1 ? '8' : '10';
+                text.setAttribute('font-size', fontSize);
+                text.setAttribute('font-weight', isRoot ? '700' : '600');
                 text.setAttribute('font-family', 'sans-serif');
                 text.setAttribute('text-anchor', 'middle');
                 text.setAttribute('dominant-baseline', 'central');
-                text.textContent = finger.toString();
+                text.textContent = interval;
                 group.appendChild(text);
+            } else {
+                // Show finger number (default)
+                const finger = fingers[stringIndex];
+                if (finger > 0) {
+                    const text = this.createSVGElement('text');
+                    text.setAttribute('class', 'finger-number');
+                    text.setAttribute('x', x);
+                    text.setAttribute('y', y);
+                    text.setAttribute('fill', 'white');
+                    text.setAttribute('font-size', '11');
+                    text.setAttribute('font-weight', '600');
+                    text.setAttribute('font-family', 'sans-serif');
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('dominant-baseline', 'central');
+                    text.textContent = finger.toString();
+                    group.appendChild(text);
+                }
             }
         }
 
@@ -423,6 +461,52 @@ const ChordRenderer = {
         const noteIndex = (openNoteIndex + fret) % 12;
 
         return notes[noteIndex];
+    },
+
+    /**
+     * Get the interval for a note relative to the root
+     * @param {string} note - The note to check (e.g., 'E', 'G#')
+     * @param {string} root - The root note of the chord (e.g., 'C', 'A')
+     * @returns {string} - The interval (e.g., '1', 'b3', '5')
+     */
+    getIntervalForNote(note, root) {
+        const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        // Normalize note and root (handle flats by converting to sharps)
+        const normalizeNote = (n) => {
+            const flatToSharp = {
+                'Db': 'C#', 'Eb': 'D#', 'Fb': 'E', 'Gb': 'F#',
+                'Ab': 'G#', 'Bb': 'A#', 'Cb': 'B'
+            };
+            return flatToSharp[n] || n;
+        };
+
+        const normalizedNote = normalizeNote(note);
+        const normalizedRoot = normalizeNote(root);
+
+        const noteIndex = notes.indexOf(normalizedNote);
+        const rootIndex = notes.indexOf(normalizedRoot);
+
+        if (noteIndex === -1 || rootIndex === -1) {
+            return '?';
+        }
+
+        // Calculate semitones from root
+        const semitones = (noteIndex - rootIndex + 12) % 12;
+
+        return this.intervalMap[semitones] || '?';
+    },
+
+    /**
+     * Get the interval at a specific string and fret position
+     * @param {number} stringIndex - The string index (0-5)
+     * @param {number} fret - The fret number
+     * @param {string} root - The root note of the chord
+     * @returns {string} - The interval (e.g., '1', 'b3', '5')
+     */
+    getIntervalAtPosition(stringIndex, fret, root) {
+        const note = this.getNoteAtPosition(stringIndex, fret);
+        return this.getIntervalForNote(note, root);
     },
 
     /**

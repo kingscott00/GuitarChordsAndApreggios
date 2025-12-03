@@ -77,7 +77,8 @@ const App = {
             showAllArpeggioNotes: false,
             darkTheme: false,
             leftHanded: false,
-            newspaperMode: false
+            newspaperMode: false,
+            diagramDisplayMode: 'fingers' // 'fingers' or 'intervals'
         },
         // Favorites state
         favorites: [],
@@ -3169,6 +3170,20 @@ const App = {
         // Apply newspaper mode
         document.body.classList.toggle('newspaper-mode', this.state.settings.newspaperMode);
 
+        // Apply diagram display mode to ChordRenderer
+        if (typeof ChordRenderer !== 'undefined') {
+            ChordRenderer.config.displayMode = this.state.settings.diagramDisplayMode || 'fingers';
+        }
+
+        // Update diagram display toggle buttons
+        const fingersBtn = document.getElementById('display-fingers-btn');
+        const intervalsBtn = document.getElementById('display-intervals-btn');
+        if (fingersBtn && intervalsBtn) {
+            const mode = this.state.settings.diagramDisplayMode || 'fingers';
+            fingersBtn.classList.toggle('active', mode === 'fingers');
+            intervalsBtn.classList.toggle('active', mode === 'intervals');
+        }
+
         // Update settings panel checkboxes
         const showTabToggle = document.getElementById('show-tab-toggle');
         const showFingerToggle = document.getElementById('show-finger-toggle');
@@ -3263,6 +3278,31 @@ const App = {
             this.applySettings();
             this.saveSettings();
         });
+
+        // Diagram display mode toggle (fingers vs intervals)
+        document.getElementById('display-fingers-btn')?.addEventListener('click', () => {
+            this.setDiagramDisplayMode('fingers');
+        });
+
+        document.getElementById('display-intervals-btn')?.addEventListener('click', () => {
+            this.setDiagramDisplayMode('intervals');
+        });
+    },
+
+    /**
+     * Set diagram display mode (fingers or intervals)
+     */
+    setDiagramDisplayMode(mode) {
+        if (this.state.settings.diagramDisplayMode === mode) return;
+
+        this.state.settings.diagramDisplayMode = mode;
+        this.applySettings();
+        this.saveSettings();
+
+        // Re-render chords with new display mode
+        if (this.state.displayedChords.length > 0) {
+            this.renderChordGrid(this.state.displayedChords);
+        }
     },
 
     /**
@@ -3392,6 +3432,43 @@ const App = {
                         <li><strong>"x" above nut:</strong> Don't play that string (muted)</li>
                         <li><strong>Position number (e.g., "5fr"):</strong> Shows what fret position the chord starts at</li>
                     </ul>
+
+                    <h4>Diagram Display Toggle: Finger Numbers vs Intervals</h4>
+                    <p>In the advanced filters area, you'll find a toggle to switch what's displayed on chord diagram dots:</p>
+
+                    <p><strong>Finger Numbers (Default):</strong></p>
+                    <ul>
+                        <li>Shows which finger to use: 1=index, 2=middle, 3=ring, 4=pinky</li>
+                        <li>Best for learning how to physically play the chord</li>
+                        <li>Helps develop proper fingering technique</li>
+                    </ul>
+
+                    <p><strong>Intervals:</strong></p>
+                    <ul>
+                        <li>Shows the musical relationship of each note to the root</li>
+                        <li>Common intervals: 1 (root), 3 (major third), b3 (minor third), 5 (fifth), b7 (minor seventh), 7 (major seventh)</li>
+                        <li>Helps you understand chord construction and music theory</li>
+                        <li>Root notes (1) are displayed on red dots for easy identification</li>
+                    </ul>
+
+                    <p><strong>Why Learn Intervals?</strong></p>
+                    <p>Understanding intervals helps you:</p>
+                    <ul>
+                        <li>See how chords are built (e.g., a major chord = 1, 3, 5)</li>
+                        <li>Understand why chords sound the way they do</li>
+                        <li>Transpose chords and patterns to different keys</li>
+                        <li>Communicate with other musicians using universal music theory</li>
+                        <li>Create your own chord voicings by knowing which notes matter most</li>
+                    </ul>
+
+                    <p><strong>Example - C Major Chord:</strong></p>
+                    <ul>
+                        <li>Notes: C (root), E (major third), G (perfect fifth)</li>
+                        <li>Intervals shown on diagram: 1, 3, 5</li>
+                        <li>The "3" makes it major (a minor chord would have "b3" instead)</li>
+                    </ul>
+
+                    <p>Your display preference is saved automatically and will persist across sessions.</p>
 
                     <h4>Reading Tablature (Tab)</h4>
                     <p>Tablature is a simple notation system for guitar:</p>

@@ -1031,6 +1031,184 @@ const App = {
     },
 
     /**
+     * Create the Related Chords section for a chord card
+     */
+    createRelatedChordsSection(chord) {
+        const section = document.createElement('div');
+        section.className = 'related-chords-section collapsed';
+
+        // Get all chords and calculate related chords
+        const allChords = getAllChords();
+        const relatedChords = ChordRelationships.getRelatedChords(chord, allChords, 6);
+
+        // Toggle button
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'related-chords-toggle';
+        toggleBtn.innerHTML = `
+            <span class="toggle-arrow">&#9654;</span>
+            <span class="toggle-text">Related Chords (${relatedChords.length})</span>
+        `;
+        toggleBtn.addEventListener('click', () => {
+            const isCollapsed = section.classList.contains('collapsed');
+            section.classList.toggle('collapsed', !isCollapsed);
+            toggleBtn.querySelector('.toggle-arrow').innerHTML = isCollapsed ? '&#9660;' : '&#9654;';
+        });
+
+        // Content container
+        const content = document.createElement('div');
+        content.className = 'related-chords-content';
+
+        if (relatedChords.length > 0) {
+            const pillsContainer = document.createElement('div');
+            pillsContainer.className = 'related-chords-pills';
+
+            relatedChords.forEach(related => {
+                const pill = document.createElement('button');
+                pill.className = 'related-chord-pill';
+                pill.dataset.chordId = related.chord.id;
+                pill.dataset.chordName = related.chord.name;
+                pill.title = related.primaryLabel;
+
+                // Create pill content with chord name and relationship label
+                pill.innerHTML = `
+                    <span class="pill-chord-name">${related.chord.symbol || related.chord.name}</span>
+                    <span class="pill-relationship">${related.primaryLabel}</span>
+                `;
+
+                pill.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.navigateToRelatedChord(related.chord);
+                });
+
+                pillsContainer.appendChild(pill);
+            });
+
+            content.appendChild(pillsContainer);
+        } else {
+            content.innerHTML = '<p class="no-related-chords">No strongly related chords found</p>';
+        }
+
+        section.appendChild(toggleBtn);
+        section.appendChild(content);
+
+        return section;
+    },
+
+    /**
+     * Navigate to a related chord (scroll to it or show it if filtered out)
+     */
+    navigateToRelatedChord(targetChord) {
+        // Try to find the chord card in the current view
+        const chordGrid = document.getElementById('chord-grid');
+        const existingCard = chordGrid.querySelector(`.chord-card[data-chord-id="${targetChord.id}"]`);
+
+        // Also check if any card has the same chord name (different voicing)
+        let matchingCard = existingCard;
+        if (!matchingCard) {
+            const allCards = chordGrid.querySelectorAll('.chord-card');
+            for (const card of allCards) {
+                const cardChord = getChordById(card.dataset.chordId);
+                if (cardChord && cardChord.name === targetChord.name) {
+                    matchingCard = card;
+                    break;
+                }
+            }
+        }
+
+        if (matchingCard) {
+            // Chord is visible - scroll to it and highlight
+            this.scrollToAndHighlight(matchingCard);
+        } else {
+            // Chord is not visible - show toast and temporarily add it
+            this.showRelatedChordNotVisible(targetChord);
+        }
+    },
+
+    /**
+     * Scroll to a chord card and briefly highlight it
+     */
+    scrollToAndHighlight(card) {
+        // Scroll the card into view
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Add highlight animation
+        card.classList.add('highlight-pulse');
+
+        // Remove highlight after animation
+        setTimeout(() => {
+            card.classList.remove('highlight-pulse');
+        }, 2000);
+    },
+
+    /**
+     * Show a toast and handle navigation when related chord is not visible
+     */
+    showRelatedChordNotVisible(targetChord) {
+        // Show toast notification
+        this.showToast(`Showing ${targetChord.name}`);
+
+        // Temporarily add the chord to the display
+        const chordGrid = document.getElementById('chord-grid');
+
+        // Create a temporary card with special styling
+        const tempCard = this.createChordCard(targetChord);
+        tempCard.classList.add('related-chord-temporary');
+
+        // Insert at the beginning of the grid
+        chordGrid.insertBefore(tempCard, chordGrid.firstChild);
+
+        // Scroll to the temporary card
+        setTimeout(() => {
+            this.scrollToAndHighlight(tempCard);
+        }, 100);
+
+        // Add a note that this is a temporary addition
+        const tempNote = document.createElement('div');
+        tempNote.className = 'temporary-chord-note';
+        tempNote.innerHTML = `
+            <span>Added from Related Chords</span>
+            <button class="remove-temp-chord" title="Remove">×</button>
+        `;
+        tempCard.insertBefore(tempNote, tempCard.firstChild);
+
+        // Handle remove button
+        tempNote.querySelector('.remove-temp-chord').addEventListener('click', (e) => {
+            e.stopPropagation();
+            tempCard.remove();
+        });
+    },
+
+    /**
+     * Show a toast notification
+     */
+    showToast(message, duration = 3000) {
+        // Remove any existing toast
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) {
+            existingToast.remove();
+        }
+
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.textContent = message;
+
+        // Add to document
+        document.body.appendChild(toast);
+
+        // Trigger animation
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+
+        // Remove after duration
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    },
+
+    /**
      * Create a chord card element
      */
     createChordCard(chord) {
@@ -1184,10 +1362,14 @@ const App = {
             moreInfoSection.querySelector('.toggle-arrow').innerHTML = '&#9660;';
         }
 
+        // Related Chords section
+        const relatedChordsSection = this.createRelatedChordsSection(chord);
+
         card.appendChild(header);
         card.appendChild(body);
         card.appendChild(actions);
         card.appendChild(moreInfoSection);
+        card.appendChild(relatedChordsSection);
 
         return card;
     },
@@ -1233,6 +1415,18 @@ const App = {
                 newMoreInfo.querySelector('.toggle-arrow').innerHTML = '&#9660;';
             }
             oldMoreInfo.replaceWith(newMoreInfo);
+        }
+
+        // Update Related Chords section
+        const oldRelatedChords = card.querySelector('.related-chords-section');
+        if (oldRelatedChords) {
+            const wasExpanded = !oldRelatedChords.classList.contains('collapsed');
+            const newRelatedChords = this.createRelatedChordsSection(newChord);
+            if (wasExpanded) {
+                newRelatedChords.classList.remove('collapsed');
+                newRelatedChords.querySelector('.toggle-arrow').innerHTML = '&#9660;';
+            }
+            oldRelatedChords.replaceWith(newRelatedChords);
         }
     },
 
@@ -3607,6 +3801,35 @@ const App = {
 
                     <p><strong>Expand All Info:</strong></p>
                     <p>Use the "Expand All Info" button in the selection info banner to expand or collapse all More Info sections at once. This is helpful when you want to compare theory information across multiple chords.</p>
+
+                    <h4>Related Chords</h4>
+                    <p>Each chord card also has a "Related Chords" section that shows musically related chords. This feature helps you discover chords that work well together.</p>
+
+                    <p><strong>How Related Chords Are Determined:</strong></p>
+                    <ul>
+                        <li><strong>Circle of Fifths:</strong> Chords that are a fourth or fifth apart (e.g., C Major and G Major, or C Major and F Major) have a strong harmonic relationship and sound natural when played together.</li>
+                        <li><strong>Relative Major/Minor:</strong> Every major key has a relative minor (and vice versa) that shares the same key signature. For example, C Major and A Minor are relatives.</li>
+                        <li><strong>Same Root, Different Quality:</strong> Chords built on the same root note but with different qualities (e.g., C Major, C Minor, C7) are shown as variants.</li>
+                        <li><strong>Common Progressions:</strong> Chords that commonly appear together in popular progressions like I-IV-V or ii-V-I.</li>
+                        <li><strong>Shared Notes:</strong> Chords that share two or more notes often sound pleasing when played in sequence.</li>
+                    </ul>
+
+                    <p><strong>Using Related Chords:</strong></p>
+                    <ul>
+                        <li>Click any related chord pill to navigate to that chord</li>
+                        <li>If the chord is visible on screen, it will scroll into view and briefly highlight</li>
+                        <li>If the chord is filtered out, it will be temporarily added to your view</li>
+                        <li>Each pill shows a relationship label (like "IV chord" or "relative") as a hint</li>
+                    </ul>
+
+                    <p><strong>Why This Matters:</strong></p>
+                    <p>Understanding chord relationships helps you:</p>
+                    <ul>
+                        <li>Build better chord progressions that flow naturally</li>
+                        <li>Find substitution chords for more variety</li>
+                        <li>Understand the harmonic structure of songs</li>
+                        <li>Discover new chords that complement ones you already know</li>
+                    </ul>
                 </section>
 
                 <section class="about-section">

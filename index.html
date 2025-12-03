@@ -255,6 +255,17 @@
                 <button class="clear-filters-btn" id="clear-filters-btn">Clear All Filters</button>
 
                 <div class="filter-chord-count" id="filter-chord-count"></div>
+
+                <div class="diagram-display-toggle">
+                    <label class="display-toggle-label">
+                        Display on diagrams:
+                        <span class="info-tooltip" data-tooltip="Finger Numbers show which fingers to use (1=index, 2=middle, 3=ring, 4=pinky). Intervals show the musical relationship of each note to the root (1=root, 3=major third, 5=fifth, etc.)">?</span>
+                    </label>
+                    <div class="toggle-switch-group">
+                        <button class="toggle-option active" id="display-fingers-btn" data-mode="fingers">Finger Numbers</button>
+                        <button class="toggle-option" id="display-intervals-btn" data-mode="intervals">Intervals</button>
+                    </div>
+                </div>
             </div>
         </section>
 

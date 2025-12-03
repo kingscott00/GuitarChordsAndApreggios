@@ -4,6 +4,48 @@
  */
 
 const ArpeggioRenderer = {
+    // Pattern style options
+    patternStyles: {
+        standard: {
+            id: 'standard',
+            name: 'Standard',
+            description: 'Learn the basic shape first - one note per string ascending/descending'
+        },
+        hammerPulloff: {
+            id: 'hammerPulloff',
+            name: 'With Hammer-on/Pull-off',
+            description: 'Adds flair and musicality - hammer to a higher note at the top, pull off on the way back'
+        },
+        twoPerString: {
+            id: 'twoPerString',
+            name: 'Two Notes Per String',
+            description: 'Expands range, builds speed - play two notes on each string using legato'
+        }
+    },
+
+    // Current pattern style (loaded from localStorage)
+    currentPatternStyle: 'standard',
+
+    /**
+     * Initialize pattern style from localStorage
+     */
+    initPatternStyle() {
+        const saved = localStorage.getItem('arpeggioPatternStyle');
+        if (saved && this.patternStyles[saved]) {
+            this.currentPatternStyle = saved;
+        }
+    },
+
+    /**
+     * Set pattern style and save to localStorage
+     */
+    setPatternStyle(styleId) {
+        if (this.patternStyles[styleId]) {
+            this.currentPatternStyle = styleId;
+            localStorage.setItem('arpeggioPatternStyle', styleId);
+        }
+    },
+
     // Configuration for extended fretboard view
     config: {
         width: 500,
@@ -462,9 +504,73 @@ const ArpeggioRenderer = {
     },
 
     /**
-     * Generate tablature for ascending arpeggio pattern
+     * Render pattern style selector
      */
-    renderTab(arpeggio) {
+    renderPatternStyleSelector(arpeggio, onChangeCallback) {
+        const container = document.createElement('div');
+        container.className = 'pattern-style-selector';
+
+        const label = document.createElement('label');
+        label.className = 'pattern-style-label';
+        label.textContent = 'Sweep Style:';
+        container.appendChild(label);
+
+        const selectWrapper = document.createElement('div');
+        selectWrapper.className = 'pattern-style-select-wrapper';
+
+        const select = document.createElement('select');
+        select.className = 'pattern-style-select';
+        select.id = `pattern-style-${arpeggio.id}`;
+
+        Object.values(this.patternStyles).forEach(style => {
+            const option = document.createElement('option');
+            option.value = style.id;
+            option.textContent = style.name;
+            if (style.id === this.currentPatternStyle) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+
+        select.addEventListener('change', (e) => {
+            this.setPatternStyle(e.target.value);
+            if (onChangeCallback) {
+                onChangeCallback(e.target.value);
+            }
+        });
+
+        selectWrapper.appendChild(select);
+
+        // Info icon with tooltip
+        const infoBtn = document.createElement('button');
+        infoBtn.className = 'pattern-style-info-btn';
+        infoBtn.type = 'button';
+        infoBtn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+        `;
+        infoBtn.title = this.patternStyles[this.currentPatternStyle].description;
+
+        // Update tooltip on style change
+        select.addEventListener('change', () => {
+            infoBtn.title = this.patternStyles[select.value].description;
+        });
+
+        selectWrapper.appendChild(infoBtn);
+        container.appendChild(selectWrapper);
+
+        return container;
+    },
+
+    /**
+     * Generate tablature for arpeggio pattern based on current style
+     */
+    renderTab(arpeggio, patternStyle = null) {
+        const style = patternStyle || this.currentPatternStyle;
+
         const container = document.createElement('div');
         container.className = 'arpeggio-tab-container';
 
@@ -475,22 +581,43 @@ const ArpeggioRenderer = {
 
         const tabPre = document.createElement('pre');
         tabPre.className = 'tablature arpeggio-tablature';
+        tabPre.id = `arpeggio-tab-${arpeggio.id}`;
 
-        // Initialize tab lines
+        // Generate tab based on style
+        let tabContent;
+        switch (style) {
+            case 'hammerPulloff':
+                tabContent = this.generateHammerPulloffTab(arpeggio);
+                break;
+            case 'twoPerString':
+                tabContent = this.generateTwoPerStringTab(arpeggio);
+                break;
+            default:
+                tabContent = this.generateStandardTab(arpeggio);
+        }
+
+        tabPre.textContent = tabContent;
+        container.appendChild(tabPre);
+
+        return container;
+    },
+
+    /**
+     * Generate standard tab (one note per string)
+     */
+    generateStandardTab(arpeggio) {
         const stringLabels = ['e', 'B', 'G', 'D', 'A', 'E'];
         const lines = stringLabels.map(s => `${s}|`);
 
         // Sort pattern by string then fret for ascending order
         const sortedPattern = [...arpeggio.pattern].sort((a, b) => {
-            // Sort by string (low to high: 0 is low E)
-            // Then by fret (low to high)
             if (a.string !== b.string) return a.string - b.string;
             return a.fret - b.fret;
         });
 
         // Add each note to the tab
         sortedPattern.forEach(note => {
-            const stringIndex = 5 - note.string; // Reverse for display (e on top)
+            const stringIndex = 5 - note.string;
             const fretStr = note.fret.toString().padStart(2, '-');
 
             for (let i = 0; i < 6; i++) {
@@ -507,10 +634,343 @@ const ArpeggioRenderer = {
             lines[i] = line + '|';
         });
 
-        tabPre.textContent = lines.join('\n');
-        container.appendChild(tabPre);
+        return lines.join('\n');
+    },
 
-        return container;
+    /**
+     * Generate tab with hammer-on at top, pull-off on way back
+     */
+    generateHammerPulloffTab(arpeggio) {
+        const stringLabels = ['e', 'B', 'G', 'D', 'A', 'E'];
+        const lines = stringLabels.map(s => `${s}|`);
+
+        // Sort pattern by string then fret for ascending order
+        const sortedPattern = [...arpeggio.pattern].sort((a, b) => {
+            if (a.string !== b.string) return a.string - b.string;
+            return a.fret - b.fret;
+        });
+
+        // Find the highest string used (for hammer-on position)
+        const highestStringNote = sortedPattern[sortedPattern.length - 1];
+        const hammerFret = highestStringNote.fret + 2; // Hammer 2 frets higher
+
+        // ASCENDING: normal notes until the top, then hammer-on
+        sortedPattern.forEach((note, idx) => {
+            const stringIndex = 5 - note.string;
+
+            if (idx === sortedPattern.length - 1) {
+                // Last note: add hammer-on
+                const notation = `${note.fret}h${hammerFret}`;
+                const padded = notation.padStart(4, '-');
+
+                for (let i = 0; i < 6; i++) {
+                    if (i === stringIndex) {
+                        lines[i] += padded + '-';
+                    } else {
+                        lines[i] += '-----';
+                    }
+                }
+            } else {
+                const fretStr = note.fret.toString().padStart(2, '-');
+                for (let i = 0; i < 6; i++) {
+                    if (i === stringIndex) {
+                        lines[i] += fretStr + '-';
+                    } else {
+                        lines[i] += '---';
+                    }
+                }
+            }
+        });
+
+        // DESCENDING: pull-off at top, then normal notes
+        const descendingPattern = [...sortedPattern].reverse();
+
+        descendingPattern.forEach((note, idx) => {
+            const stringIndex = 5 - note.string;
+
+            if (idx === 0) {
+                // First note on the way down: pull-off
+                const notation = `${hammerFret}p${note.fret}`;
+                const padded = notation.padStart(4, '-');
+
+                for (let i = 0; i < 6; i++) {
+                    if (i === stringIndex) {
+                        lines[i] += padded + '-';
+                    } else {
+                        lines[i] += '-----';
+                    }
+                }
+            } else {
+                const fretStr = note.fret.toString().padStart(2, '-');
+                for (let i = 0; i < 6; i++) {
+                    if (i === stringIndex) {
+                        lines[i] += fretStr + '-';
+                    } else {
+                        lines[i] += '---';
+                    }
+                }
+            }
+        });
+
+        // Close the tab lines
+        lines.forEach((line, i) => {
+            lines[i] = line + '|';
+        });
+
+        return lines.join('\n');
+    },
+
+    /**
+     * Generate tab with two notes per string
+     */
+    generateTwoPerStringTab(arpeggio) {
+        const stringLabels = ['e', 'B', 'G', 'D', 'A', 'E'];
+        const lines = stringLabels.map(s => `${s}|`);
+
+        // Sort pattern by string then fret
+        const sortedPattern = [...arpeggio.pattern].sort((a, b) => {
+            if (a.string !== b.string) return a.string - b.string;
+            return a.fret - b.fret;
+        });
+
+        // Group notes by string
+        const notesByString = {};
+        sortedPattern.forEach(note => {
+            if (!notesByString[note.string]) {
+                notesByString[note.string] = [];
+            }
+            notesByString[note.string].push(note);
+        });
+
+        // ASCENDING with hammer-ons
+        const stringsUsed = Object.keys(notesByString).map(Number).sort((a, b) => a - b);
+
+        stringsUsed.forEach(stringNum => {
+            const notes = notesByString[stringNum];
+            const stringIndex = 5 - stringNum;
+
+            if (notes.length >= 2) {
+                // Two notes on this string - use hammer-on ascending
+                const lowFret = notes[0].fret;
+                const highFret = notes[notes.length - 1].fret;
+                const notation = `${lowFret}h${highFret}`;
+                const padded = notation.padStart(4, '-');
+
+                for (let i = 0; i < 6; i++) {
+                    if (i === stringIndex) {
+                        lines[i] += padded + '-';
+                    } else {
+                        lines[i] += '-----';
+                    }
+                }
+            } else if (notes.length === 1) {
+                // Single note - calculate a second note 3-4 frets higher
+                const baseFret = notes[0].fret;
+                const secondFret = baseFret + 3;
+                const notation = `${baseFret}h${secondFret}`;
+                const padded = notation.padStart(4, '-');
+
+                for (let i = 0; i < 6; i++) {
+                    if (i === stringIndex) {
+                        lines[i] += padded + '-';
+                    } else {
+                        lines[i] += '-----';
+                    }
+                }
+            }
+        });
+
+        // DESCENDING with pull-offs
+        stringsUsed.reverse().forEach(stringNum => {
+            const notes = notesByString[stringNum];
+            const stringIndex = 5 - stringNum;
+
+            if (notes.length >= 2) {
+                const lowFret = notes[0].fret;
+                const highFret = notes[notes.length - 1].fret;
+                const notation = `${highFret}p${lowFret}`;
+                const padded = notation.padStart(4, '-');
+
+                for (let i = 0; i < 6; i++) {
+                    if (i === stringIndex) {
+                        lines[i] += padded + '-';
+                    } else {
+                        lines[i] += '-----';
+                    }
+                }
+            } else if (notes.length === 1) {
+                const baseFret = notes[0].fret;
+                const secondFret = baseFret + 3;
+                const notation = `${secondFret}p${baseFret}`;
+                const padded = notation.padStart(4, '-');
+
+                for (let i = 0; i < 6; i++) {
+                    if (i === stringIndex) {
+                        lines[i] += padded + '-';
+                    } else {
+                        lines[i] += '-----';
+                    }
+                }
+            }
+        });
+
+        // Close the tab lines
+        lines.forEach((line, i) => {
+            lines[i] = line + '|';
+        });
+
+        return lines.join('\n');
+    },
+
+    /**
+     * Get pattern data for audio playback
+     * Returns array of notes with timing and legato info
+     */
+    getPatternForPlayback(arpeggio, patternStyle = null) {
+        const style = patternStyle || this.currentPatternStyle;
+
+        // Sort pattern ascending
+        const sortedPattern = [...arpeggio.pattern].sort((a, b) => {
+            if (a.string !== b.string) return a.string - b.string;
+            return a.fret - b.fret;
+        });
+
+        const playbackNotes = [];
+
+        switch (style) {
+            case 'hammerPulloff':
+                return this.getHammerPulloffPlayback(sortedPattern);
+            case 'twoPerString':
+                return this.getTwoPerStringPlayback(sortedPattern);
+            default:
+                // Standard: just ascending then descending
+                sortedPattern.forEach(note => {
+                    playbackNotes.push({
+                        string: note.string,
+                        fret: note.fret,
+                        legato: false,
+                        interval: note.interval
+                    });
+                });
+                // Descending (skip the top note as it's already played)
+                [...sortedPattern].reverse().slice(1).forEach(note => {
+                    playbackNotes.push({
+                        string: note.string,
+                        fret: note.fret,
+                        legato: false,
+                        interval: note.interval
+                    });
+                });
+                return playbackNotes;
+        }
+    },
+
+    /**
+     * Get playback notes for hammer-on/pull-off style
+     */
+    getHammerPulloffPlayback(sortedPattern) {
+        const playbackNotes = [];
+        const highestNote = sortedPattern[sortedPattern.length - 1];
+        const hammerFret = highestNote.fret + 2;
+
+        // Ascending
+        sortedPattern.forEach((note, idx) => {
+            playbackNotes.push({
+                string: note.string,
+                fret: note.fret,
+                legato: false,
+                interval: note.interval
+            });
+
+            // Add hammer-on at the top
+            if (idx === sortedPattern.length - 1) {
+                playbackNotes.push({
+                    string: note.string,
+                    fret: hammerFret,
+                    legato: true, // Hammer-on = legato
+                    interval: 'h'
+                });
+            }
+        });
+
+        // Descending with pull-off at top
+        playbackNotes.push({
+            string: highestNote.string,
+            fret: highestNote.fret,
+            legato: true, // Pull-off = legato
+            interval: 'p'
+        });
+
+        [...sortedPattern].reverse().slice(1).forEach(note => {
+            playbackNotes.push({
+                string: note.string,
+                fret: note.fret,
+                legato: false,
+                interval: note.interval
+            });
+        });
+
+        return playbackNotes;
+    },
+
+    /**
+     * Get playback notes for two-notes-per-string style
+     */
+    getTwoPerStringPlayback(sortedPattern) {
+        const playbackNotes = [];
+
+        // Group by string
+        const notesByString = {};
+        sortedPattern.forEach(note => {
+            if (!notesByString[note.string]) {
+                notesByString[note.string] = [];
+            }
+            notesByString[note.string].push(note);
+        });
+
+        const stringsUsed = Object.keys(notesByString).map(Number).sort((a, b) => a - b);
+
+        // Ascending with hammer-ons
+        stringsUsed.forEach(stringNum => {
+            const notes = notesByString[stringNum];
+            const lowFret = notes[0].fret;
+            const highFret = notes.length >= 2 ? notes[notes.length - 1].fret : lowFret + 3;
+
+            playbackNotes.push({
+                string: stringNum,
+                fret: lowFret,
+                legato: false,
+                interval: notes[0].interval
+            });
+            playbackNotes.push({
+                string: stringNum,
+                fret: highFret,
+                legato: true,
+                interval: 'h'
+            });
+        });
+
+        // Descending with pull-offs
+        stringsUsed.reverse().forEach(stringNum => {
+            const notes = notesByString[stringNum];
+            const lowFret = notes[0].fret;
+            const highFret = notes.length >= 2 ? notes[notes.length - 1].fret : lowFret + 3;
+
+            playbackNotes.push({
+                string: stringNum,
+                fret: highFret,
+                legato: false,
+                interval: notes.length >= 2 ? notes[notes.length - 1].interval : 'p'
+            });
+            playbackNotes.push({
+                string: stringNum,
+                fret: lowFret,
+                legato: true,
+                interval: 'p'
+            });
+        });
+
+        return playbackNotes;
     }
 };
 

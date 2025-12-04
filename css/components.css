@@ -2218,6 +2218,20 @@
 }
 
 /* ============================================
+   Display Settings Section
+   ============================================ */
+
+.display-settings-section {
+    border-top: 2px solid var(--border-color);
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+}
+
+.display-settings-section h4 {
+    color: var(--accent);
+}
+
+/* ============================================
    Sound Settings - Tuning Offset
    ============================================ */
 
@@ -2233,7 +2247,8 @@
 
 .tuning-offset-control {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
     gap: var(--spacing-sm);
 }
 
@@ -2285,7 +2300,6 @@
 }
 
 .tuning-display {
-    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;

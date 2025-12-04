@@ -78,59 +78,62 @@
             <button class="settings-close-btn" id="settings-close">&times;</button>
         </div>
         <div class="settings-panel-content">
-            <div class="settings-section">
-                <h4>Chord Display</h4>
-                <div class="settings-option">
-                    <label for="show-tab-toggle">Show Chord Tabs</label>
-                    <input type="checkbox" id="show-tab-toggle" checked>
+            <div class="settings-section display-settings-section">
+                <h4>Display Settings</h4>
+                <div class="settings-subsection">
+                    <h5>Chord Display</h5>
+                    <div class="settings-option">
+                        <label for="show-tab-toggle">Show Chord Tabs</label>
+                        <input type="checkbox" id="show-tab-toggle" checked>
+                    </div>
+                    <div class="settings-option">
+                        <label for="show-finger-toggle">Show Finger Positions</label>
+                        <input type="checkbox" id="show-finger-toggle" checked>
+                    </div>
+                    <div class="settings-option diagram-display-setting">
+                        <label for="diagram-display-select">Show on Diagrams</label>
+                        <select class="diagram-display-dropdown" id="diagram-display-select">
+                            <option value="fingers">Finger Numbers</option>
+                            <option value="intervals">Intervals</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="settings-option">
-                    <label for="show-finger-toggle">Show Finger Positions</label>
-                    <input type="checkbox" id="show-finger-toggle" checked>
+                <div class="settings-subsection">
+                    <h5>Arpeggio Display</h5>
+                    <div class="settings-option">
+                        <label for="show-arpeggio-tab-toggle">Show Arpeggio Tabs</label>
+                        <input type="checkbox" id="show-arpeggio-tab-toggle" checked>
+                    </div>
+                    <div class="settings-option">
+                        <label for="show-arpeggio-tips-toggle">Show Arpeggio Tips</label>
+                        <input type="checkbox" id="show-arpeggio-tips-toggle" checked>
+                    </div>
+                    <div class="settings-option">
+                        <label for="show-all-arpeggio-notes-toggle">Show All Arpeggio Notes</label>
+                        <input type="checkbox" id="show-all-arpeggio-notes-toggle">
+                    </div>
                 </div>
-            </div>
-            <div class="settings-section">
-                <h4>Arpeggio Display</h4>
-                <div class="settings-option">
-                    <label for="show-arpeggio-tab-toggle">Show Arpeggio Tabs</label>
-                    <input type="checkbox" id="show-arpeggio-tab-toggle" checked>
+                <div class="settings-subsection">
+                    <h5>Theme</h5>
+                    <div class="settings-option">
+                        <label for="dark-theme-toggle">Dark Mode</label>
+                        <input type="checkbox" id="dark-theme-toggle">
+                    </div>
+                    <div class="settings-option">
+                        <label for="newspaper-mode-toggle">Newspaper Mode (Black & White)</label>
+                        <input type="checkbox" id="newspaper-mode-toggle">
+                    </div>
                 </div>
-                <div class="settings-option">
-                    <label for="show-arpeggio-tips-toggle">Show Arpeggio Tips</label>
-                    <input type="checkbox" id="show-arpeggio-tips-toggle" checked>
-                </div>
-                <div class="settings-option">
-                    <label for="show-all-arpeggio-notes-toggle">Show All Arpeggio Notes</label>
-                    <input type="checkbox" id="show-all-arpeggio-notes-toggle">
-                </div>
-            </div>
-            <div class="settings-section">
-                <h4>Theme</h4>
-                <div class="settings-option">
-                    <label for="dark-theme-toggle">Dark Mode</label>
-                    <input type="checkbox" id="dark-theme-toggle">
-                </div>
-                <div class="settings-option">
-                    <label for="newspaper-mode-toggle">Newspaper Mode (Black & White)</label>
-                    <input type="checkbox" id="newspaper-mode-toggle">
-                </div>
-            </div>
-            <div class="settings-section">
-                <h4>Display Mode</h4>
-                <div class="settings-option">
-                    <label for="left-handed-toggle">Left-Handed Mode</label>
-                    <input type="checkbox" id="left-handed-toggle">
-                </div>
-                <div class="settings-option">
-                    <label for="compact-mode-toggle">Compact Mode</label>
-                    <input type="checkbox" id="compact-mode-toggle">
-                </div>
-                <div class="settings-option diagram-display-setting">
-                    <label for="diagram-display-select">Show on Diagrams</label>
-                    <select class="diagram-display-dropdown" id="diagram-display-select">
-                        <option value="fingers">Finger Numbers</option>
-                        <option value="intervals">Intervals</option>
-                    </select>
+                <div class="settings-subsection">
+                    <h5>Mode</h5>
+                    <div class="settings-option">
+                        <label for="compact-mode-toggle">Compact Mode</label>
+                        <input type="checkbox" id="compact-mode-toggle">
+                    </div>
+                    <div class="settings-option">
+                        <label for="left-handed-toggle">Left-Handed Mode</label>
+                        <input type="checkbox" id="left-handed-toggle">
+                    </div>
                 </div>
             </div>
             <div class="settings-section sound-settings-section">

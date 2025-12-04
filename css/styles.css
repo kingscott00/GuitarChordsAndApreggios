@@ -331,6 +331,7 @@ h3 { font-size: var(--font-size-lg); }
     gap: var(--spacing-sm);
 }
 
+.settings-option.capo-control label,
 .capo-control label {
     font-weight: 500;
     color: var(--text-primary);
@@ -360,7 +361,6 @@ h3 { font-size: var(--font-size-lg); }
 }
 
 .capo-control.capo-active label {
-    color: var(--accent);
     font-weight: 600;
 }
 
@@ -1705,6 +1705,28 @@ h3 { font-size: var(--font-size-lg); }
     cursor: pointer;
 }
 
+/* Settings subsections */
+.settings-subsection {
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-subsection:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.settings-subsection h5 {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
 /* Diagram display dropdown in settings */
 .diagram-display-dropdown {
     padding: var(--spacing-xs) var(--spacing-sm);
@@ -1871,6 +1893,7 @@ h3 { font-size: var(--font-size-lg); }
 }
 
 /* Dark theme - Capo Control */
+.dark-theme .settings-option.capo-control label,
 .dark-theme .capo-control label {
     color: var(--text-primary);
 }
@@ -1881,9 +1904,7 @@ h3 { font-size: var(--font-size-lg); }
     color: var(--text-primary);
 }
 
-.dark-theme .capo-control.capo-active label {
-    color: var(--accent);
-}
+/* Dark theme capo label uses inherited text-primary */
 
 .dark-theme .capo-control.capo-active .capo-dropdown {
     border-color: var(--accent);

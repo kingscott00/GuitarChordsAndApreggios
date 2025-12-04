@@ -15,7 +15,8 @@ const AudioEngine = {
         strumDirection: 'down',  // 'down' | 'up'
         noteDecay: 2.5,          // seconds
         arpeggioTempo: 120,      // BPM
-        tuningOffset: 0          // semitones (-6 to +6)
+        tuningOffset: 0,         // semitones (-6 to +6)
+        capoFret: 0              // capo position (0-7)
     },
 
     // Tuning offset labels for common tunings
@@ -100,15 +101,16 @@ const AudioEngine = {
 
     /**
      * Get frequency for a specific string and fret
-     * Applies tuning offset for alternate tunings
+     * Applies tuning offset for alternate tunings and capo position
      * @param {number} stringIndex - String index (0-5, 0 = low E)
      * @param {number} fret - Fret number (0 = open)
      * @returns {number} - Frequency in Hz
      */
     getFrequency(stringIndex, fret) {
         const openFreq = this.stringFrequencies[stringIndex];
-        // Apply tuning offset - negative offset lowers pitch, positive raises it
-        const totalSemitones = fret + this.settings.tuningOffset;
+        // Apply tuning offset and capo - both raise/lower pitch
+        // Capo raises pitch, tuning offset can raise or lower
+        const totalSemitones = fret + this.settings.tuningOffset + this.settings.capoFret;
         return openFreq * Math.pow(2, totalSemitones / 12);
     },
 
@@ -165,6 +167,24 @@ const AudioEngine = {
         const label = this.tuningLabels[offset.toString()] || '';
 
         return { value, label };
+    },
+
+    /**
+     * Set capo position
+     * @param {number} fret - Capo fret position (0-7)
+     */
+    setCapoFret(fret) {
+        // Clamp to valid range
+        this.settings.capoFret = Math.max(0, Math.min(7, fret));
+        return this.settings.capoFret;
+    },
+
+    /**
+     * Get capo position
+     * @returns {number} - Current capo fret position
+     */
+    getCapoFret() {
+        return this.settings.capoFret;
     },
 
     /**

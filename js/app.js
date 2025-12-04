@@ -13,6 +13,7 @@ const App = {
         currentMode: 'ionian',
         currentRootNote: null,
         voicingFilter: 'all',
+        capoFret: 0, // Capo position (0 = no capo, 1-7 = fret position)
         chordTypeFilter: 'all',
         voicingPatternFilter: 'all',
         fretRangeFilter: 'all',
@@ -102,6 +103,7 @@ const App = {
      */
     init() {
         this.loadSettings();
+        this.loadCapoSetting();
         this.bindEventListeners();
         this.initVolumeControl();
         this.initSettingsPanel();
@@ -206,6 +208,11 @@ const App = {
         // Root note selector (new tab)
         document.getElementById('root-note-select')?.addEventListener('change', (e) => {
             this.state.currentRootNote = e.target.value || null;
+        });
+
+        // Capo selector
+        document.getElementById('capo-select')?.addEventListener('change', (e) => {
+            this.handleCapoChange(parseInt(e.target.value, 10) || 0);
         });
 
         // Chords toggle
@@ -526,6 +533,123 @@ const App = {
         if (this.state.hasSearched) {
             this.applyFiltersAndDisplay();
         }
+    },
+
+    /**
+     * Handle capo change
+     * @param {number} fret - Capo fret position (0 = no capo, 1-7 = fret position)
+     */
+    handleCapoChange(fret) {
+        this.state.capoFret = fret;
+        this.saveCapoSetting();
+        this.updateCapoVisualState();
+
+        // Sync capo to audio engine for playback
+        if (typeof AudioEngine !== 'undefined') {
+            AudioEngine.setCapoFret(fret);
+        }
+
+        // Re-render chord cards to show/hide "Sounds as" line
+        if (this.state.hasSearched) {
+            this.applyFiltersAndDisplay();
+        }
+    },
+
+    /**
+     * Load capo setting from localStorage
+     */
+    loadCapoSetting() {
+        try {
+            const saved = localStorage.getItem('guitarExplorerCapoFret');
+            if (saved !== null) {
+                const fret = parseInt(saved, 10);
+                if (!isNaN(fret) && fret >= 0 && fret <= 7) {
+                    this.state.capoFret = fret;
+                    // Update the dropdown
+                    const capoSelect = document.getElementById('capo-select');
+                    if (capoSelect) {
+                        capoSelect.value = fret.toString();
+                    }
+                    // Sync to audio engine
+                    if (typeof AudioEngine !== 'undefined') {
+                        AudioEngine.setCapoFret(fret);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load capo setting:', error);
+        }
+        this.updateCapoVisualState();
+    },
+
+    /**
+     * Save capo setting to localStorage
+     */
+    saveCapoSetting() {
+        try {
+            localStorage.setItem('guitarExplorerCapoFret', this.state.capoFret.toString());
+        } catch (error) {
+            console.error('Failed to save capo setting:', error);
+        }
+    },
+
+    /**
+     * Update capo visual state (highlight when active)
+     */
+    updateCapoVisualState() {
+        const capoControl = document.getElementById('capo-control');
+        if (capoControl) {
+            capoControl.classList.toggle('capo-active', this.state.capoFret > 0);
+        }
+    },
+
+    /**
+     * Transpose a chord name by semitones
+     * @param {string} chordName - Original chord name (e.g., "C Major", "Am", "F#m7")
+     * @param {number} semitones - Number of semitones to transpose (positive = up)
+     * @returns {string} - Transposed chord name
+     */
+    transposeChordName(chordName, semitones) {
+        if (!chordName || semitones === 0) return chordName;
+
+        // Note order (using sharps)
+        const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        // Extract root note from chord name
+        // Handle both "C Major" and "Cm" formats
+        let rootMatch = chordName.match(/^([A-G][#b]?)/);
+        if (!rootMatch) return chordName;
+
+        let root = rootMatch[1];
+        let suffix = chordName.substring(root.length);
+
+        // Normalize flats to sharps
+        const flatToSharp = {
+            'Db': 'C#', 'Eb': 'D#', 'Fb': 'E', 'Gb': 'F#',
+            'Ab': 'G#', 'Bb': 'A#', 'Cb': 'B'
+        };
+        if (flatToSharp[root]) {
+            root = flatToSharp[root];
+        }
+
+        // Find current index and transpose
+        const currentIndex = notes.indexOf(root);
+        if (currentIndex === -1) return chordName;
+
+        const newIndex = (currentIndex + semitones + 12) % 12;
+        const newRoot = notes[newIndex];
+
+        return newRoot + suffix;
+    },
+
+    /**
+     * Get the transposed chord name for display with capo
+     * @param {Object} chord - Chord object
+     * @returns {string|null} - Transposed chord name or null if no capo
+     */
+    getCapoTransposedName(chord) {
+        if (this.state.capoFret === 0) return null;
+        return this.transposeChordName(chord.name, this.state.capoFret);
     },
 
     /**
@@ -1597,6 +1721,16 @@ const App = {
         card.appendChild(header);
         // Voicing line (dropdown or read-only label)
         card.appendChild(voicingLine);
+
+        // Capo line (only shown when capo is active)
+        if (this.state.capoFret > 0) {
+            const capoSoundsAs = document.createElement('div');
+            capoSoundsAs.className = 'capo-sounds-as';
+            const transposedName = this.getCapoTransposedName(chord);
+            capoSoundsAs.innerHTML = `<span class="capo-sounds-as-label">Capo Fret ${this.state.capoFret}:</span> <span class="capo-sounds-as-chord">${transposedName}</span>`;
+            card.appendChild(capoSoundsAs);
+        }
+
         card.appendChild(body);
         card.appendChild(actions);
         card.appendChild(moreInfoSection);
@@ -3749,13 +3883,10 @@ const App = {
             ChordRenderer.config.displayMode = this.state.settings.diagramDisplayMode || 'fingers';
         }
 
-        // Update diagram display toggle buttons
-        const fingersBtn = document.getElementById('display-fingers-btn');
-        const intervalsBtn = document.getElementById('display-intervals-btn');
-        if (fingersBtn && intervalsBtn) {
-            const mode = this.state.settings.diagramDisplayMode || 'fingers';
-            fingersBtn.classList.toggle('active', mode === 'fingers');
-            intervalsBtn.classList.toggle('active', mode === 'intervals');
+        // Update diagram display dropdown
+        const diagramDisplaySelect = document.getElementById('diagram-display-select');
+        if (diagramDisplaySelect) {
+            diagramDisplaySelect.value = this.state.settings.diagramDisplayMode || 'fingers';
         }
 
         // Update settings panel checkboxes
@@ -3865,13 +3996,9 @@ const App = {
         // Initialize tuning offset from localStorage
         this.initTuningOffset();
 
-        // Diagram display mode toggle (fingers vs intervals)
-        document.getElementById('display-fingers-btn')?.addEventListener('click', () => {
-            this.setDiagramDisplayMode('fingers');
-        });
-
-        document.getElementById('display-intervals-btn')?.addEventListener('click', () => {
-            this.setDiagramDisplayMode('intervals');
+        // Diagram display mode dropdown
+        document.getElementById('diagram-display-select')?.addEventListener('change', (e) => {
+            this.setDiagramDisplayMode(e.target.value);
         });
     },
 
@@ -4541,6 +4668,47 @@ const App = {
                     <p>If you tune your guitar down a half step and set the offset to -1, when you play an "E Major" chord diagram, the app will play audio that sounds like Eb Major - matching what your guitar actually produces when you play that E Major shape.</p>
 
                     <p>Your tuning offset setting is automatically saved and will persist across sessions.</p>
+
+                    <h4>Capo Position</h4>
+                    <p>The Capo feature helps you see what each chord shape will sound like when you have a capo on your guitar.</p>
+
+                    <p><strong>What is a capo?</strong></p>
+                    <p>A capo is a clamp that attaches to the guitar neck and raises the pitch of all strings. It's commonly used to:</p>
+                    <ul>
+                        <li>Change the key of a song while using familiar chord shapes</li>
+                        <li>Play in a higher register with open chord voicings</li>
+                        <li>Match the vocal range of a singer</li>
+                        <li>Create brighter, chimey tones</li>
+                    </ul>
+
+                    <p><strong>How it works:</strong></p>
+                    <ul>
+                        <li>Open Settings and find the "Sound Settings" section</li>
+                        <li>Select your capo position from the dropdown (None, Fret 1-7)</li>
+                        <li>Each chord card will show "Capo X: Sounds as [chord]" indicating the actual pitch</li>
+                        <li>The chord diagram and fingering remain the same - it's the shape you play</li>
+                        <li>When you click Play, you'll hear the transposed chord</li>
+                    </ul>
+
+                    <p><strong>Examples:</strong></p>
+                    <ul>
+                        <li>Capo on Fret 2: C Major shows "Capo 2: Sounds as D Major"</li>
+                        <li>Capo on Fret 2: G Major shows "Capo 2: Sounds as A Major"</li>
+                        <li>Capo on Fret 2: Am shows "Capo 2: Sounds as Bm"</li>
+                        <li>Capo on Fret 5: C Major shows "Capo 5: Sounds as F Major"</li>
+                    </ul>
+
+                    <p><strong>Combining with Tuning Offset:</strong></p>
+                    <p>Both capo and tuning offset affect audio playback and can be used together. For example:</p>
+                    <ul>
+                        <li>Capo Fret 2 + Tuning Offset -1 = net +1 semitone from written chord</li>
+                        <li>Capo Fret 3 + Tuning Offset 0 = +3 semitones (standard tuning with capo)</li>
+                    </ul>
+
+                    <p><strong>Visual indicator:</strong></p>
+                    <p>When a capo position is active, the capo dropdown will be highlighted to remind you it's in use.</p>
+
+                    <p>Your capo setting is automatically saved and will persist across sessions.</p>
                 </section>
 
                 <section class="about-section">

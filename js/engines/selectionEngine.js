@@ -354,6 +354,35 @@ const SelectionEngine = {
     },
 
     /**
+     * Filter chords by root note
+     * @param {Array} chords - Array of chords to filter
+     * @param {string} rootNote - The root note to filter by (e.g., 'C', 'D', 'F#')
+     * @returns {Array} - Filtered chords with matching root note
+     */
+    filterByRootNote(chords, rootNote) {
+        if (!rootNote) return chords;
+
+        // Normalize root note for comparison (handle enharmonic equivalents)
+        const normalizeNote = (note) => {
+            const enharmonics = {
+                'Db': 'C#',
+                'Eb': 'D#',
+                'Gb': 'F#',
+                'Ab': 'G#',
+                'Bb': 'A#'
+            };
+            return enharmonics[note] || note;
+        };
+
+        const normalizedRoot = normalizeNote(rootNote);
+
+        return chords.filter(chord => {
+            const chordRoot = normalizeNote(chord.root);
+            return chordRoot === normalizedRoot;
+        });
+    },
+
+    /**
      * Sort chords by various criteria
      * @param {Array} chords - Array of chords to sort
      * @param {string} sortBy - 'name', 'difficulty', 'root'

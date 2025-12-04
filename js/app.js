@@ -1473,14 +1473,28 @@ const App = {
         const headerRight = document.createElement('div');
         headerRight.className = 'chord-header-right';
 
-        // Voicing selector in header (only show if multiple voicings exist)
+        // Difficulty badge only in header
+        const difficultyBadge = document.createElement('span');
+        difficultyBadge.className = `difficulty-badge ${this.getDifficultyClass(chord.difficulty)}`;
+        difficultyBadge.textContent = this.getDifficultyLabel(chord.difficulty);
+
+        headerRight.appendChild(difficultyBadge);
+
+        header.appendChild(nameContainer);
+        header.appendChild(headerRight);
+
+        // Voicing selector row (below header) - always reserve space for consistent heights
+        const voicingRow = document.createElement('div');
+        voicingRow.className = 'voicing-selector-row';
+
         if (voicings.length > 1) {
-            const voicingSelector = document.createElement('div');
-            voicingSelector.className = 'voicing-selector-compact';
+            const voicingLabel = document.createElement('label');
+            voicingLabel.textContent = 'Voicing:';
+            voicingLabel.className = 'voicing-label';
 
             const voicingSelect = document.createElement('select');
             voicingSelect.id = `voicing-${chord.id}`;
-            voicingSelect.className = 'voicing-select-compact';
+            voicingSelect.className = 'voicing-select';
 
             voicings.forEach(v => {
                 const option = document.createElement('option');
@@ -1496,19 +1510,12 @@ const App = {
                 this.handleVoicingChange(e.target.value, card);
             });
 
-            voicingSelector.appendChild(voicingSelect);
-            headerRight.appendChild(voicingSelector);
+            voicingRow.appendChild(voicingLabel);
+            voicingRow.appendChild(voicingSelect);
+        } else {
+            // Reserve space with a placeholder for consistent card heights
+            voicingRow.classList.add('voicing-placeholder');
         }
-
-        // Difficulty badge
-        const difficultyBadge = document.createElement('span');
-        difficultyBadge.className = `difficulty-badge ${this.getDifficultyClass(chord.difficulty)}`;
-        difficultyBadge.textContent = this.getDifficultyLabel(chord.difficulty);
-
-        headerRight.appendChild(difficultyBadge);
-
-        header.appendChild(nameContainer);
-        header.appendChild(headerRight);
 
         // Body
         const body = document.createElement('div');
@@ -1586,6 +1593,7 @@ const App = {
         const relatedChordsSection = this.createRelatedChordsSection(chord);
 
         card.appendChild(header);
+        card.appendChild(voicingRow);
         card.appendChild(body);
         card.appendChild(actions);
         card.appendChild(moreInfoSection);

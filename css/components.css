@@ -70,6 +70,28 @@
     font-style: italic;
 }
 
+/* Capo transposition display */
+.capo-sounds-as {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-xs) var(--spacing-lg);
+    background: linear-gradient(135deg, var(--accent-light), rgba(74, 158, 255, 0.05));
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.capo-sounds-as-label {
+    color: var(--text-secondary);
+    margin-right: var(--spacing-xs);
+}
+
+.capo-sounds-as-chord {
+    color: var(--accent);
+    font-weight: 600;
+}
+
 .chord-name {
     font-size: var(--font-size-lg);
     font-weight: 600;
@@ -1717,6 +1739,19 @@
 
 .dark-theme .voicing-label-readonly {
     color: var(--text-muted);
+}
+
+/* Dark theme - Capo sounds as */
+.dark-theme .capo-sounds-as {
+    background: linear-gradient(135deg, var(--accent-light), rgba(74, 158, 255, 0.02));
+}
+
+.dark-theme .capo-sounds-as-label {
+    color: var(--text-muted);
+}
+
+.dark-theme .capo-sounds-as-chord {
+    color: var(--accent);
 }
 
 /* Dark theme - Roman numeral small */

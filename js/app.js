@@ -154,8 +154,8 @@ const App = {
      * Bind all event listeners
      */
     bindEventListeners() {
-        // Navigation mode buttons
-        document.querySelectorAll('.nav-btn').forEach(btn => {
+        // Navigation mode buttons (now inside selection panel)
+        document.querySelectorAll('.selection-tab').forEach(btn => {
             btn.addEventListener('click', (e) => this.handleModeChange(e));
         });
 
@@ -250,8 +250,8 @@ const App = {
         const mode = e.target.dataset.mode;
         this.state.selectionMode = mode;
 
-        // Update active button
-        document.querySelectorAll('.nav-btn').forEach(btn => {
+        // Update active tab
+        document.querySelectorAll('.selection-tab').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.mode === mode);
         });
 
@@ -1462,39 +1462,19 @@ const App = {
 
         nameContainer.appendChild(name);
 
-        // Add roman numeral if in theory mode and chord has diatonic info
-        if (chord.diatonicInfo) {
-            const romanNumeral = document.createElement('span');
-            romanNumeral.className = 'theory-badge';
-            romanNumeral.innerHTML = `<span class="roman-numeral">${chord.diatonicInfo.romanNumeral}</span>`;
-            nameContainer.appendChild(romanNumeral);
-        }
-
-        const headerRight = document.createElement('div');
-        headerRight.className = 'chord-header-right';
-
-        // Difficulty badge only in header
-        const difficultyBadge = document.createElement('span');
-        difficultyBadge.className = `difficulty-badge ${this.getDifficultyClass(chord.difficulty)}`;
-        difficultyBadge.textContent = this.getDifficultyLabel(chord.difficulty);
-
-        headerRight.appendChild(difficultyBadge);
-
         header.appendChild(nameContainer);
-        header.appendChild(headerRight);
 
-        // Voicing selector row (below header) - always reserve space for consistent heights
-        const voicingRow = document.createElement('div');
-        voicingRow.className = 'voicing-selector-row';
+        // Voicing line: dropdown if multiple voicings, read-only label if single voicing
+        const voicingLine = document.createElement('div');
+        voicingLine.className = 'chord-card-voicing-line';
 
-        if (voicings.length > 1) {
-            const voicingLabel = document.createElement('label');
-            voicingLabel.textContent = 'Voicing:';
-            voicingLabel.className = 'voicing-label';
+        const hasMultipleVoicings = voicings.length > 1;
 
+        if (hasMultipleVoicings) {
+            // Multiple voicings: show dropdown
             const voicingSelect = document.createElement('select');
             voicingSelect.id = `voicing-${chord.id}`;
-            voicingSelect.className = 'voicing-select';
+            voicingSelect.className = 'voicing-select-compact';
 
             voicings.forEach(v => {
                 const option = document.createElement('option');
@@ -1510,11 +1490,13 @@ const App = {
                 this.handleVoicingChange(e.target.value, card);
             });
 
-            voicingRow.appendChild(voicingLabel);
-            voicingRow.appendChild(voicingSelect);
+            voicingLine.appendChild(voicingSelect);
         } else {
-            // Reserve space with a placeholder for consistent card heights
-            voicingRow.classList.add('voicing-placeholder');
+            // Single voicing: show read-only label
+            const voicingLabel = document.createElement('span');
+            voicingLabel.className = 'voicing-label-readonly';
+            voicingLabel.textContent = getVoicingLabel(chord);
+            voicingLine.appendChild(voicingLabel);
         }
 
         // Body
@@ -1535,9 +1517,29 @@ const App = {
         // Render finger info
         const fingerInfo = TabRenderer.renderFingerInfo(chord);
 
+        // Info line: Roman numeral (left) + Difficulty badge (right)
+        const infoLine = document.createElement('div');
+        infoLine.className = 'chord-info-line';
+
+        // Roman numeral on the left (if chord has diatonic info)
+        const romanNumeral = document.createElement('span');
+        romanNumeral.className = 'roman-numeral-small';
+        if (chord.diatonicInfo && chord.diatonicInfo.romanNumeral) {
+            romanNumeral.textContent = chord.diatonicInfo.romanNumeral;
+        }
+        // Always add the element (empty if no diatonic info) to maintain spacing
+        infoLine.appendChild(romanNumeral);
+
+        // Difficulty badge on the right
+        const difficultyBadge = document.createElement('span');
+        difficultyBadge.className = `difficulty-badge-small ${this.getDifficultyClass(chord.difficulty)}`;
+        difficultyBadge.textContent = this.getDifficultyLabel(chord.difficulty);
+        infoLine.appendChild(difficultyBadge);
+
         body.appendChild(diagramContainer);
         body.appendChild(tab);
         body.appendChild(fingerInfo);
+        body.appendChild(infoLine);
 
         // Actions
         const actions = document.createElement('div');
@@ -1593,7 +1595,8 @@ const App = {
         const relatedChordsSection = this.createRelatedChordsSection(chord);
 
         card.appendChild(header);
-        card.appendChild(voicingRow);
+        // Voicing line (dropdown or read-only label)
+        card.appendChild(voicingLine);
         card.appendChild(body);
         card.appendChild(actions);
         card.appendChild(moreInfoSection);
@@ -1612,10 +1615,12 @@ const App = {
         // Update card's chord ID
         card.dataset.chordId = chordId;
 
-        // Update difficulty badge
-        const difficultyBadge = card.querySelector('.difficulty-badge');
-        difficultyBadge.className = `difficulty-badge ${this.getDifficultyClass(newChord.difficulty)}`;
-        difficultyBadge.textContent = this.getDifficultyLabel(newChord.difficulty);
+        // Update difficulty badge (now in body area)
+        const difficultyBadge = card.querySelector('.difficulty-badge-small');
+        if (difficultyBadge) {
+            difficultyBadge.className = `difficulty-badge-small ${this.getDifficultyClass(newChord.difficulty)}`;
+            difficultyBadge.textContent = this.getDifficultyLabel(newChord.difficulty);
+        }
 
         // Update diagram
         const diagramContainer = card.querySelector('.chord-diagram-container');

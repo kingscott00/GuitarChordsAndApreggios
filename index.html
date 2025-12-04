@@ -14,12 +14,6 @@
         <div class="header-left">
             <h1 class="logo">Guitar Chord Explorer</h1>
         </div>
-        <nav class="header-nav">
-            <button class="nav-btn active" data-mode="mood">Mood</button>
-            <button class="nav-btn" data-mode="style">Style</button>
-            <button class="nav-btn" data-mode="theory">Theory</button>
-            <button class="nav-btn" data-mode="root-note">Root Note</button>
-        </nav>
         <div class="header-right">
             <!-- Volume Control -->
             <div class="volume-control" id="volume-control">
@@ -149,6 +143,13 @@
     <main class="main-content">
         <!-- Selection Panel (Compact) -->
         <section class="selection-panel compact">
+            <!-- Mode tabs inside the selection box -->
+            <nav class="selection-tabs">
+                <button class="selection-tab active" data-mode="mood">Mood</button>
+                <button class="selection-tab" data-mode="style">Style</button>
+                <button class="selection-tab" data-mode="theory">Theory</button>
+                <button class="selection-tab" data-mode="root-note">Root Note</button>
+            </nav>
             <div class="selection-row">
                 <div class="selection-controls" id="selection-controls">
                     <!-- Selection controls will be dynamically inserted based on mode -->

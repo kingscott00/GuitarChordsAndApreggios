@@ -21,7 +21,7 @@
     justify-content: space-between;
     align-items: flex-start;
     padding: var(--spacing-md) var(--spacing-lg);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: none;
     background: var(--bg-secondary);
     gap: var(--spacing-sm);
 }
@@ -30,57 +30,44 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xs);
+    flex: 1;
 }
 
-.chord-header-right {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: var(--spacing-sm);
-}
-
-/* Voicing selector row (below header) */
-.voicing-selector-row {
+/* Voicing line: dropdown or read-only label */
+.chord-card-voicing-line {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-sm) var(--spacing-lg);
+    padding: var(--spacing-xs) var(--spacing-lg);
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
-    min-height: 36px; /* Consistent height for all cards */
+    min-height: 28px;
 }
 
-.voicing-selector-row .voicing-label {
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    color: var(--text-secondary);
-    flex-shrink: 0;
-}
-
-.voicing-selector-row .voicing-select {
-    flex: 1;
-    min-width: 0;
-    padding: var(--spacing-xs) var(--spacing-sm);
+/* Compact voicing selector dropdown */
+.voicing-select-compact {
+    padding: 2px 8px;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     background: var(--bg-card);
     color: var(--text-primary);
-    font-size: var(--font-size-sm);
+    font-size: 0.75rem;
     cursor: pointer;
 }
 
-.voicing-selector-row .voicing-select:focus {
+.voicing-select-compact:focus {
     outline: none;
     border-color: var(--accent);
 }
 
-.voicing-selector-row .voicing-select:hover {
+.voicing-select-compact:hover {
     border-color: var(--accent);
 }
 
-/* Placeholder for cards without multiple voicings - keeps consistent height */
-.voicing-selector-row.voicing-placeholder {
-    visibility: hidden;
+/* Read-only voicing label (when only one voicing exists) */
+.voicing-label-readonly {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-style: italic;
 }
 
 .chord-name {
@@ -390,6 +377,48 @@
 }
 
 .difficulty-badge.advanced {
+    background-color: #FCE4EC;
+    color: #C2185B;
+}
+
+/* Info line: Roman numeral (left) + Difficulty badge (right) */
+.chord-info-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-xs) 0;
+    margin-top: var(--spacing-sm);
+}
+
+/* Small Roman numeral for info line */
+.roman-numeral-small {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+/* Smaller difficulty badge for below-diagram placement */
+.difficulty-badge-small {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.difficulty-badge-small.beginner {
+    background-color: #E8F5E9;
+    color: #2E7D32;
+}
+
+.difficulty-badge-small.intermediate {
+    background-color: #FFF3E0;
+    color: #E65100;
+}
+
+.difficulty-badge-small.advanced {
     background-color: #FCE4EC;
     color: #C2185B;
 }
@@ -1670,20 +1699,45 @@
     color: white;
 }
 
-/* Dark theme - Voicing selector row */
-.dark-theme .voicing-selector-row {
+/* Dark theme - Voicing line */
+.dark-theme .chord-card-voicing-line {
     background: var(--bg-card);
 }
 
-.dark-theme .voicing-selector-row .voicing-select {
+.dark-theme .voicing-select-compact {
     background: var(--bg-secondary);
     border-color: var(--border-color);
     color: var(--text-primary);
 }
 
-.dark-theme .voicing-selector-row .voicing-select:hover,
-.dark-theme .voicing-selector-row .voicing-select:focus {
+.dark-theme .voicing-select-compact:hover,
+.dark-theme .voicing-select-compact:focus {
     border-color: var(--accent);
+}
+
+.dark-theme .voicing-label-readonly {
+    color: var(--text-muted);
+}
+
+/* Dark theme - Roman numeral small */
+.dark-theme .roman-numeral-small {
+    color: var(--accent);
+}
+
+/* Dark theme - Difficulty badge small */
+.dark-theme .difficulty-badge-small.beginner {
+    background-color: rgba(46, 125, 50, 0.2);
+    color: #81C784;
+}
+
+.dark-theme .difficulty-badge-small.intermediate {
+    background-color: rgba(230, 81, 0, 0.2);
+    color: #FFB74D;
+}
+
+.dark-theme .difficulty-badge-small.advanced {
+    background-color: rgba(194, 24, 91, 0.2);
+    color: #F48FB1;
 }
 
 /* Dark theme - Chords section toggle */

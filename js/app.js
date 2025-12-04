@@ -81,6 +81,7 @@ const App = {
             darkTheme: false,
             leftHanded: false,
             newspaperMode: false,
+            compactMode: false,
             diagramDisplayMode: 'fingers' // 'fingers' or 'intervals'
         },
         // Favorites state
@@ -3878,6 +3879,9 @@ const App = {
         // Apply newspaper mode
         document.body.classList.toggle('newspaper-mode', this.state.settings.newspaperMode);
 
+        // Apply compact mode
+        document.body.classList.toggle('compact-mode', this.state.settings.compactMode);
+
         // Apply diagram display mode to ChordRenderer
         if (typeof ChordRenderer !== 'undefined') {
             ChordRenderer.config.displayMode = this.state.settings.diagramDisplayMode || 'fingers';
@@ -3898,6 +3902,7 @@ const App = {
         const darkThemeToggle = document.getElementById('dark-theme-toggle');
         const leftHandedToggle = document.getElementById('left-handed-toggle');
         const newspaperModeToggle = document.getElementById('newspaper-mode-toggle');
+        const compactModeToggle = document.getElementById('compact-mode-toggle');
 
         if (showTabToggle) showTabToggle.checked = this.state.settings.showTab;
         if (showFingerToggle) showFingerToggle.checked = this.state.settings.showFingerInfo;
@@ -3907,6 +3912,7 @@ const App = {
         if (darkThemeToggle) darkThemeToggle.checked = this.state.settings.darkTheme;
         if (leftHandedToggle) leftHandedToggle.checked = this.state.settings.leftHanded;
         if (newspaperModeToggle) newspaperModeToggle.checked = this.state.settings.newspaperMode;
+        if (compactModeToggle) compactModeToggle.checked = this.state.settings.compactMode;
     },
 
     /**
@@ -3980,6 +3986,12 @@ const App = {
 
         document.getElementById('newspaper-mode-toggle')?.addEventListener('change', (e) => {
             this.state.settings.newspaperMode = e.target.checked;
+            this.applySettings();
+            this.saveSettings();
+        });
+
+        document.getElementById('compact-mode-toggle')?.addEventListener('change', (e) => {
+            this.state.settings.compactMode = e.target.checked;
             this.applySettings();
             this.saveSettings();
         });
@@ -4755,6 +4767,7 @@ const App = {
                         <li><strong>Show All Arpeggio Notes:</strong> Display all instances of arpeggio notes across the fretboard</li>
                         <li><strong>Dark Mode:</strong> Switch to a darker color scheme</li>
                         <li><strong>Left-Handed Mode:</strong> Flip diagrams for left-handed players</li>
+                        <li><strong>Compact Mode:</strong> Enable to fit more chords on screen with tighter spacing - reduces padding, margins, and font sizes throughout the app for a denser layout</li>
                     </ul>
                 </section>
 

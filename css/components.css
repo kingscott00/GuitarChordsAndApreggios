@@ -2370,3 +2370,203 @@
         font-size: 16px;
     }
 }
+
+
+/* ============================================
+   Compact Mode - Chord Cards
+   ============================================ */
+
+/* Compact Mode - Chord Grid */
+.compact-mode .chord-grid {
+    gap: var(--spacing-sm);
+}
+
+/* Compact Mode - Chord Card */
+.compact-mode .chord-card {
+    padding: 0;
+}
+
+.compact-mode .chord-card-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.compact-mode .chord-name {
+    font-size: 1rem;
+}
+
+.compact-mode .chord-card-voicing-line {
+    padding: var(--spacing-xs) var(--spacing-md);
+}
+
+.compact-mode .voicing-select-compact {
+    padding: 2px var(--spacing-xs);
+    font-size: 0.75rem;
+}
+
+.compact-mode .voicing-label-readonly {
+    font-size: 0.7rem;
+}
+
+/* Compact Mode - Capo Sounds As */
+.compact-mode .capo-sounds-as {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.75rem;
+}
+
+/* Compact Mode - Chord Card Body */
+.compact-mode .chord-card-body {
+    padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.compact-mode .chord-diagram-container {
+    margin-bottom: var(--spacing-xs);
+}
+
+.compact-mode .chord-diagram-container svg {
+    max-height: 130px;
+}
+
+.compact-mode .chord-tab {
+    font-size: 11px;
+    padding: var(--spacing-xs);
+    margin-bottom: var(--spacing-xs);
+}
+
+.compact-mode .chord-finger-info {
+    font-size: 0.7rem;
+    padding: var(--spacing-xs);
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Compact Mode - Chord Info Line */
+.compact-mode .chord-info-line {
+    padding: var(--spacing-xs) 0;
+    margin-top: var(--spacing-xs);
+}
+
+.compact-mode .roman-numeral-small {
+    font-size: 0.7rem;
+    padding: 2px var(--spacing-xs);
+}
+
+.compact-mode .difficulty-badge-small {
+    font-size: 0.65rem;
+    padding: 2px var(--spacing-xs);
+}
+
+/* Compact Mode - Chord Card Actions */
+.compact-mode .chord-card-actions {
+    padding: var(--spacing-sm) var(--spacing-md);
+    gap: var(--spacing-xs);
+}
+
+.compact-mode .chord-card-actions .btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.75rem;
+}
+
+.compact-mode .chord-card-actions .btn-icon {
+    width: 28px;
+    height: 28px;
+}
+
+/* Compact Mode - More Info Section */
+.compact-mode .more-info-section {
+    padding: 0;
+}
+
+.compact-mode .more-info-toggle {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.75rem;
+}
+
+.compact-mode .more-info-content {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.8rem;
+}
+
+.compact-mode .info-item {
+    margin-bottom: var(--spacing-xs);
+}
+
+.compact-mode .info-label {
+    font-size: 0.7rem;
+}
+
+/* Compact Mode - Related Chords */
+.compact-mode .related-chords-section {
+    padding: 0;
+}
+
+.compact-mode .related-chords-toggle {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.75rem;
+}
+
+.compact-mode .related-chords-content {
+    padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.compact-mode .related-chord-pill {
+    padding: 2px var(--spacing-xs);
+    font-size: 0.7rem;
+}
+
+/* Compact Mode - Arpeggio Cards */
+.compact-mode .arpeggio-card {
+    padding: var(--spacing-sm);
+}
+
+.compact-mode .arpeggio-card h4 {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.compact-mode .arpeggio-diagram {
+    margin-bottom: var(--spacing-sm);
+}
+
+.compact-mode .arpeggio-tab {
+    font-size: 11px;
+    padding: var(--spacing-xs);
+}
+
+.compact-mode .arpeggio-tips {
+    font-size: 0.75rem;
+    padding: var(--spacing-xs);
+}
+
+.compact-mode .arpeggio-card .btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.75rem;
+}
+
+/* Compact Mode - Progression Builder */
+.compact-mode .progression-builder {
+    padding: var(--spacing-sm);
+}
+
+.compact-mode .progression-slot {
+    min-width: 70px;
+    min-height: 70px;
+    font-size: 0.8rem;
+}
+
+/* Compact Mode - Practice Tools */
+.compact-mode .practice-section {
+    padding: var(--spacing-sm);
+}
+
+.compact-mode .metronome-display {
+    font-size: 2rem;
+}
+
+/* Compact Mode - Scale Builder */
+.compact-mode .scale-builder-section {
+    padding: var(--spacing-sm);
+}
+
+.compact-mode .scale-diagram {
+    margin: var(--spacing-sm) 0;
+}
+

@@ -2284,3 +2284,119 @@ h3 { font-size: var(--font-size-lg); }
     border-color: #4CAF50;
     color: white;
 }
+
+
+/* ============================================
+   Compact Mode
+   ============================================ */
+
+/* Compact Mode - CSS Custom Properties Override */
+.compact-mode {
+    --spacing-xs: 0.15rem;
+    --spacing-sm: 0.35rem;
+    --spacing-md: 0.7rem;
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.25rem;
+    --font-size-sm: 0.8rem;
+    --font-size-base: 0.9rem;
+    --font-size-lg: 1.1rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+}
+
+/* Compact Mode - Selection Panel */
+.compact-mode .selection-panel.compact {
+    padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.compact-mode .selection-tabs {
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+}
+
+.compact-mode .selection-tab {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.8rem;
+}
+
+.compact-mode .selection-row {
+    gap: var(--spacing-sm);
+}
+
+.compact-mode .selector-dropdown {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.85rem;
+}
+
+.compact-mode .show-chords-btn.compact {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.85rem;
+}
+
+.compact-mode .filter-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.8rem;
+}
+
+/* Compact Mode - Advanced Filters */
+.compact-mode .advanced-filters-section {
+    margin-bottom: var(--spacing-sm);
+}
+
+.compact-mode .filters-container {
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+}
+
+.compact-mode .filter-group label {
+    font-size: 0.75rem;
+    margin-bottom: 2px;
+}
+
+.compact-mode .filter-dropdown {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.8rem;
+}
+
+.compact-mode .clear-filters-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.8rem;
+}
+
+/* Compact Mode - Section Headers */
+.compact-mode .section-toggle {
+    padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.compact-mode .section-toggle h3 {
+    font-size: 1rem;
+}
+
+.compact-mode .collapsible-section {
+    margin-bottom: var(--spacing-sm);
+}
+
+/* Compact Mode - Selection Info Banner */
+.compact-mode .selection-info {
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.compact-mode .selection-title {
+    font-size: 1rem;
+}
+
+.compact-mode .selection-description {
+    font-size: 0.8rem;
+}
+
+.compact-mode .expand-all-info-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.75rem;
+}
+
+.compact-mode .chord-count {
+    font-size: 0.8rem;
+}
+

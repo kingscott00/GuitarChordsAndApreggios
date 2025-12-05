@@ -1091,16 +1091,89 @@
     }
 }
 
-/* Advanced Filters Section */
-.advanced-filters-section {
+/* ============================================
+   Filter Tabs Section
+   ============================================ */
+
+/* Filter Section Container */
+.filter-tabs-section {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
     box-shadow: 0 2px 8px var(--shadow-color);
+    overflow: hidden;
 }
 
+/* Filter Tab Navigation */
+.filter-tabs-nav {
+    display: flex;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.filter-tab-btn {
+    flex: 1;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+}
+
+.filter-tab-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.filter-tab-btn.active {
+    background: var(--bg-secondary);
+    color: var(--accent);
+}
+
+.filter-tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent);
+}
+
+/* Advanced Filters Active Indicator */
+.advanced-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Filter Tab Content */
+.filter-tab-content {
+    display: none;
+    padding: var(--spacing-lg);
+}
+
+.filter-tab-content.active {
+    display: block;
+}
+
+/* Filters Container */
 .filters-container {
     display: flex;
     flex-wrap: wrap;
@@ -1108,6 +1181,15 @@
     align-items: flex-end;
 }
 
+.filters-container.filters-row {
+    margin-bottom: var(--spacing-md);
+}
+
+.filters-container.filters-row:last-of-type {
+    margin-bottom: 0;
+}
+
+/* Filter Group */
 .filter-group {
     display: flex;
     flex-direction: column;
@@ -1122,6 +1204,42 @@
     color: var(--text-primary);
 }
 
+.filter-group-buttons {
+    min-width: 200px;
+}
+
+/* Difficulty Button Group (for Basic tab) */
+.difficulty-btn-group {
+    display: flex;
+    gap: 2px;
+    background: var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.difficulty-filter-btn {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.difficulty-filter-btn:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+.difficulty-filter-btn.active {
+    background: var(--accent);
+    color: white;
+}
+
+/* Filter Dropdown */
 .filter-dropdown {
     padding: var(--spacing-sm) var(--spacing-md);
     border: 1px solid var(--border-color);
@@ -1143,6 +1261,23 @@
     border-color: var(--accent);
 }
 
+/* Show when a filter is active (not 'all') */
+.filter-dropdown.has-filter {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+/* Filter Footer (contains Clear and Count) */
+.filter-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Clear Filters Button */
 .clear-filters-btn {
     padding: var(--spacing-sm) var(--spacing-lg);
     background: var(--bg-card);
@@ -1162,6 +1297,7 @@
     color: var(--accent);
 }
 
+/* Filter Chord Count */
 .filter-chord-count {
     padding: var(--spacing-sm) var(--spacing-md);
     background: var(--accent-light);
@@ -1179,8 +1315,31 @@
     color: #c00;
 }
 
-/* Responsive adjustments for advanced filters */
+/* Legacy support for old advanced-filters-section */
+.advanced-filters-section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+/* Responsive adjustments for filter tabs */
 @media (max-width: 768px) {
+    .filter-tabs-nav {
+        flex-direction: row;
+    }
+
+    .filter-tab-btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-sm);
+    }
+
+    .filter-tab-content {
+        padding: var(--spacing-md);
+    }
+
     .filters-container {
         flex-direction: column;
         align-items: stretch;
@@ -1188,6 +1347,19 @@
 
     .filter-group {
         min-width: 100%;
+    }
+
+    .filter-group-buttons {
+        min-width: 100%;
+    }
+
+    .difficulty-btn-group {
+        width: 100%;
+    }
+
+    .filter-footer {
+        flex-direction: column;
+        gap: var(--spacing-md);
     }
 
     .clear-filters-btn,

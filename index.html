@@ -305,55 +305,166 @@
             </div>
         </section>
 
-        <!-- Advanced Filters Section -->
-        <section class="advanced-filters-section hidden" id="advanced-filters-section">
-            <div class="filters-container">
-                <div class="filter-group">
-                    <label for="chord-type-filter">Chord Type</label>
-                    <select id="chord-type-filter" class="filter-dropdown">
-                        <option value="all">All Types</option>
-                        <option value="major-triads">Major Triads</option>
-                        <option value="minor-triads">Minor Triads</option>
-                        <option value="diminished-triads">Diminished Triads</option>
-                        <option value="augmented-triads">Augmented Triads</option>
-                        <option value="seventh-chords">Seventh Chords</option>
-                        <option value="extended-chords">Extended Chords</option>
-                        <option value="suspended">Suspended</option>
-                        <option value="add-chords">Add Chords</option>
-                        <option value="power-chords">Power Chords</option>
-                    </select>
+        <!-- Filter Section with Basic/Advanced Tabs -->
+        <section class="filter-tabs-section hidden" id="filter-tabs-section">
+            <!-- Filter Tab Navigation -->
+            <div class="filter-tabs-nav">
+                <button class="filter-tab-btn active" data-filter-tab="basic" id="basic-filter-tab">
+                    Basic Filters
+                </button>
+                <button class="filter-tab-btn" data-filter-tab="advanced" id="advanced-filter-tab">
+                    Advanced Filters
+                    <span class="advanced-indicator hidden" id="advanced-indicator"></span>
+                </button>
+            </div>
+
+            <!-- Basic Filters Tab Content -->
+            <div class="filter-tab-content active" id="basic-filters-content">
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label for="basic-chord-type-filter">Chord Type</label>
+                        <select id="basic-chord-type-filter" class="filter-dropdown">
+                            <option value="all">All Types</option>
+                            <option value="major">Major Chords</option>
+                            <option value="minor">Minor Chords</option>
+                            <option value="seventh">Seventh Chords</option>
+                            <option value="extended">Extended Chords</option>
+                            <option value="suspended">Suspended Chords</option>
+                            <option value="power">Power Chords</option>
+                            <option value="diminished">Diminished Chords</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="basic-fret-range-filter">Fret Range</label>
+                        <select id="basic-fret-range-filter" class="filter-dropdown">
+                            <option value="all">All Positions</option>
+                            <option value="low-position">Low Position (frets 0-5)</option>
+                            <option value="mid-position">Mid Position (frets 5-9)</option>
+                            <option value="high-position">High Position (frets 10+)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group filter-group-buttons">
+                        <label>Difficulty</label>
+                        <div class="difficulty-btn-group">
+                            <button class="difficulty-filter-btn active" data-difficulty="all">All</button>
+                            <button class="difficulty-filter-btn" data-difficulty="beginner">Beginner</button>
+                            <button class="difficulty-filter-btn" data-difficulty="advanced">Advanced</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="filter-group">
-                    <label for="voicing-pattern-filter">Voicing Pattern</label>
-                    <select id="voicing-pattern-filter" class="filter-dropdown">
-                        <option value="all">All Voicings</option>
-                        <option value="open-position">Open Position</option>
-                        <option value="all-barre">All Barre Chords</option>
-                        <option value="a-shape-barre">A-Shape Barre</option>
-                        <option value="e-shape-barre">E-Shape Barre</option>
-                        <option value="partial-barre">Partial Barre</option>
-                        <option value="closed-position">Closed Position</option>
-                        <option value="high-position">High Position</option>
-                        <option value="3-note-voicings">3-Note Voicings</option>
-                        <option value="4-note-voicings">4-Note Voicings</option>
-                        <option value="5-plus-note-voicings">5+ Note Voicings</option>
-                    </select>
+                <div class="filter-footer">
+                    <button class="clear-filters-btn" id="clear-filters-btn">Clear All Filters</button>
+                    <div class="filter-chord-count" id="filter-chord-count"></div>
+                </div>
+            </div>
+
+            <!-- Advanced Filters Tab Content -->
+            <div class="filter-tab-content" id="advanced-filters-content">
+                <div class="filters-container filters-row">
+                    <div class="filter-group">
+                        <label for="chord-type-filter">Chord Type</label>
+                        <select id="chord-type-filter" class="filter-dropdown">
+                            <option value="all">All Types</option>
+                            <optgroup label="Triads">
+                                <option value="major-triads">Major Triads</option>
+                                <option value="minor-triads">Minor Triads</option>
+                            </optgroup>
+                            <optgroup label="Seventh Chords">
+                                <option value="dominant7">Dominant 7th</option>
+                                <option value="major7">Major 7th</option>
+                                <option value="minor7">Minor 7th</option>
+                                <option value="minmaj7">minMaj7</option>
+                            </optgroup>
+                            <optgroup label="Altered Dominants">
+                                <option value="altered-dominants">Altered Dominants (7#9, 7b9, 7#5, etc.)</option>
+                            </optgroup>
+                            <optgroup label="Extended Chords">
+                                <option value="extended-9th">Extended 9th (Maj9, Min9, Dom9)</option>
+                                <option value="extended-11th">Extended 11th (Min11, Maj7#11, Dom11)</option>
+                                <option value="extended-13th">Extended 13th (Dom13, Maj13, Min13)</option>
+                            </optgroup>
+                            <optgroup label="Diminished &amp; Augmented">
+                                <option value="diminished">Diminished (dim, dim7)</option>
+                                <option value="half-diminished">Half-Diminished (m7b5)</option>
+                                <option value="augmented">Augmented (aug, Maj7#5)</option>
+                            </optgroup>
+                            <optgroup label="Other">
+                                <option value="suspended">Suspended (sus2, sus4, 7sus4)</option>
+                                <option value="add-chords">Add Chords (add9, 6, 6/9)</option>
+                                <option value="power-chords">Power Chords</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="voicing-style-filter">Voicing Style</label>
+                        <select id="voicing-style-filter" class="filter-dropdown">
+                            <option value="all">All Voicings</option>
+                            <option value="open-position">Open Position</option>
+                            <option value="barre">Barre Chords</option>
+                            <option value="shell">Shell Voicings (3-note jazz)</option>
+                            <option value="drop-2">Drop 2 Voicings</option>
+                            <option value="drop-3">Drop 3 Voicings</option>
+                            <option value="quartal">Quartal Voicings</option>
+                            <option value="rootless">Rootless Voicings</option>
+                            <option value="compact">Partial/Compact Voicings</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="jazz-level-filter">Jazz Level</label>
+                        <select id="jazz-level-filter" class="filter-dropdown">
+                            <option value="all">All Levels</option>
+                            <option value="basic">Basic (Triads & Standard 7ths)</option>
+                            <option value="tier-1">Jazz Essentials (shells, drop 2, basic altered)</option>
+                            <option value="tier-2">Jazz Intermediate (extended, minMaj7)</option>
+                            <option value="tier-3">Jazz Advanced (quartal, rootless)</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="filter-group">
-                    <label for="fret-range-filter">Fret Range</label>
-                    <select id="fret-range-filter" class="filter-dropdown">
-                        <option value="all">All Positions</option>
-                        <option value="low-position">Low Position (frets 0-5)</option>
-                        <option value="mid-position">Mid Position (frets 5-9)</option>
-                        <option value="high-position">High Position (frets 10+)</option>
-                    </select>
+                <div class="filters-container filters-row">
+                    <div class="filter-group">
+                        <label for="sound-character-filter">Sound Character</label>
+                        <select id="sound-character-filter" class="filter-dropdown">
+                            <option value="all">All Sounds</option>
+                            <option value="bright">Bright/Happy (Major, Maj7, Maj9)</option>
+                            <option value="warm">Warm/Mellow (Min7, Min9, Min11)</option>
+                            <option value="tense">Tense/Dramatic (Altered, dim7, 7b9)</option>
+                            <option value="dreamy">Dreamy/Floating (Maj7, Maj9, Sus)</option>
+                            <option value="dark">Dark/Mysterious (m7b5, minMaj7, dim)</option>
+                            <option value="funky">Funky/Bluesy (Dom7, Dom9, 7#9)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="fret-range-filter">Fret Range</label>
+                        <select id="fret-range-filter" class="filter-dropdown">
+                            <option value="all">All Positions</option>
+                            <option value="low-position">Low Position (frets 0-5)</option>
+                            <option value="mid-position">Mid Position (frets 5-9)</option>
+                            <option value="high-position">High Position (frets 10+)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="note-count-filter">Note Count</label>
+                        <select id="note-count-filter" class="filter-dropdown">
+                            <option value="all">All</option>
+                            <option value="3-note">3-Note Voicings</option>
+                            <option value="4-note">4-Note Voicings</option>
+                            <option value="5-plus">5+ Note Voicings</option>
+                        </select>
+                    </div>
                 </div>
 
-                <button class="clear-filters-btn" id="clear-filters-btn">Clear All Filters</button>
-
-                <div class="filter-chord-count" id="filter-chord-count"></div>
+                <div class="filter-footer">
+                    <button class="clear-filters-btn" id="clear-advanced-filters-btn">Clear All Filters</button>
+                    <div class="filter-chord-count" id="advanced-filter-chord-count"></div>
+                </div>
             </div>
         </section>
 

@@ -364,6 +364,166 @@ h3 { font-size: var(--font-size-lg); }
     font-weight: 600;
 }
 
+/* Guitar Tone Control (in Sound Settings) */
+.guitar-tone-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+}
+
+.settings-option.guitar-tone-control label,
+.guitar-tone-control label {
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.guitar-tone-dropdown {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    cursor: pointer;
+    min-width: 140px;
+}
+
+.guitar-tone-dropdown:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+/* Strum Style Control (in Sound Settings) */
+.strum-style-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+}
+
+.settings-option.strum-style-control label,
+.strum-style-control label {
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.strum-style-dropdown {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    cursor: pointer;
+    min-width: 130px;
+}
+
+.strum-style-dropdown:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+/* Distortion Control (in Sound Settings) */
+.distortion-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+}
+
+.settings-option.distortion-control label,
+.distortion-control label {
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.distortion-slider-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex: 1;
+    max-width: 180px;
+}
+
+.distortion-slider {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border-color);
+    outline: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.distortion-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid var(--bg-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.distortion-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid var(--bg-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.distortion-slider:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.distortion-value {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    min-width: 35px;
+    text-align: right;
+}
+
+/* Arpeggio Speed Control (in Sound Settings) */
+.arpeggio-speed-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+}
+
+.settings-option.arpeggio-speed-control label,
+.arpeggio-speed-control label {
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.arpeggio-speed-dropdown {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.arpeggio-speed-dropdown:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
 .theory-controls-compact {
     display: flex;
     gap: var(--spacing-sm);
@@ -1909,6 +2069,64 @@ h3 { font-size: var(--font-size-lg); }
 .dark-theme .capo-control.capo-active .capo-dropdown {
     border-color: var(--accent);
     background-color: var(--accent-light);
+}
+
+/* Dark theme - Guitar Tone Control */
+.dark-theme .settings-option.guitar-tone-control label,
+.dark-theme .guitar-tone-control label {
+    color: var(--text-primary);
+}
+
+.dark-theme .guitar-tone-dropdown {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Dark theme - Strum Style Control */
+.dark-theme .settings-option.strum-style-control label,
+.dark-theme .strum-style-control label {
+    color: var(--text-primary);
+}
+
+.dark-theme .strum-style-dropdown {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Dark theme - Distortion Control */
+.dark-theme .settings-option.distortion-control label,
+.dark-theme .distortion-control label {
+    color: var(--text-primary);
+}
+
+.dark-theme .distortion-slider {
+    background: var(--border-color);
+}
+
+.dark-theme .distortion-slider::-webkit-slider-thumb {
+    border-color: var(--bg-card);
+}
+
+.dark-theme .distortion-slider::-moz-range-thumb {
+    border-color: var(--bg-card);
+}
+
+.dark-theme .distortion-value {
+    color: var(--text-secondary);
+}
+
+/* Dark theme - Arpeggio Speed Control */
+.dark-theme .settings-option.arpeggio-speed-control label,
+.dark-theme .arpeggio-speed-control label {
+    color: var(--text-primary);
+}
+
+.dark-theme .arpeggio-speed-dropdown {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-primary);
 }
 
 /* Dark theme - Scale Builder */

@@ -14,6 +14,10 @@ const App = {
         currentRootNote: null,
         voicingFilter: 'all',
         capoFret: 0, // Capo position (0 = no capo, 1-7 = fret position)
+        guitarTone: 'acoustic', // Guitar tone preset
+        strumStyle: 'single-down', // Strum style preset
+        distortion: 0, // Distortion amount (0-100)
+        arpeggioSpeed: 120, // Arpeggio tempo in BPM
         chordTypeFilter: 'all',
         voicingPatternFilter: 'all',
         fretRangeFilter: 'all',
@@ -105,6 +109,10 @@ const App = {
     init() {
         this.loadSettings();
         this.loadCapoSetting();
+        this.loadGuitarToneSetting();
+        this.loadStrumStyleSetting();
+        this.loadDistortionSetting();
+        this.loadArpeggioSpeedSetting();
         this.bindEventListeners();
         this.initVolumeControl();
         this.initSettingsPanel();
@@ -214,6 +222,26 @@ const App = {
         // Capo selector
         document.getElementById('capo-select')?.addEventListener('change', (e) => {
             this.handleCapoChange(parseInt(e.target.value, 10) || 0);
+        });
+
+        // Guitar Tone selector
+        document.getElementById('guitar-tone-select')?.addEventListener('change', (e) => {
+            this.handleGuitarToneChange(e.target.value || 'acoustic');
+        });
+
+        // Strum Style selector
+        document.getElementById('strum-style-select')?.addEventListener('change', (e) => {
+            this.handleStrumStyleChange(e.target.value || 'single-down');
+        });
+
+        // Distortion slider
+        document.getElementById('distortion-slider')?.addEventListener('input', (e) => {
+            this.handleDistortionChange(parseInt(e.target.value, 10) || 0);
+        });
+
+        // Arpeggio Speed selector
+        document.getElementById('arpeggio-speed-select')?.addEventListener('change', (e) => {
+            this.handleArpeggioSpeedChange(parseInt(e.target.value, 10) || 120);
         });
 
         // Chords toggle
@@ -601,6 +629,226 @@ const App = {
         const capoControl = document.getElementById('capo-control');
         if (capoControl) {
             capoControl.classList.toggle('capo-active', this.state.capoFret > 0);
+        }
+    },
+
+    /**
+     * Handle guitar tone change
+     * @param {string} tone - Guitar tone preset key
+     */
+    handleGuitarToneChange(tone) {
+        this.state.guitarTone = tone;
+        this.saveGuitarToneSetting();
+
+        // Sync tone to audio engine for playback
+        if (typeof AudioEngine !== 'undefined') {
+            AudioEngine.setGuitarTone(tone);
+        }
+    },
+
+    /**
+     * Load guitar tone setting from localStorage
+     */
+    loadGuitarToneSetting() {
+        try {
+            const saved = localStorage.getItem('guitarExplorerGuitarTone');
+            if (saved !== null) {
+                // Validate it's a known tone preset
+                const validTones = ['acoustic', 'bright', 'warm', 'electric', 'muted', 'nylon'];
+                if (validTones.includes(saved)) {
+                    this.state.guitarTone = saved;
+                    // Update the dropdown
+                    const toneSelect = document.getElementById('guitar-tone-select');
+                    if (toneSelect) {
+                        toneSelect.value = saved;
+                    }
+                    // Sync to audio engine
+                    if (typeof AudioEngine !== 'undefined') {
+                        AudioEngine.setGuitarTone(saved);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load guitar tone setting:', error);
+        }
+    },
+
+    /**
+     * Save guitar tone setting to localStorage
+     */
+    saveGuitarToneSetting() {
+        try {
+            localStorage.setItem('guitarExplorerGuitarTone', this.state.guitarTone);
+        } catch (error) {
+            console.error('Failed to save guitar tone setting:', error);
+        }
+    },
+
+    /**
+     * Handle strum style change
+     * @param {string} style - Strum style preset key
+     */
+    handleStrumStyleChange(style) {
+        this.state.strumStyle = style;
+        this.saveStrumStyleSetting();
+
+        // Sync strum style to audio engine for playback
+        if (typeof AudioEngine !== 'undefined') {
+            AudioEngine.setStrumStyle(style);
+        }
+    },
+
+    /**
+     * Load strum style setting from localStorage
+     */
+    loadStrumStyleSetting() {
+        try {
+            const saved = localStorage.getItem('guitarExplorerStrumStyle');
+            if (saved !== null) {
+                // Validate it's a known strum style preset
+                const validStyles = ['single-down', 'slow', 'fast', 'down-up', 'fingerpick'];
+                if (validStyles.includes(saved)) {
+                    this.state.strumStyle = saved;
+                    // Update the dropdown
+                    const styleSelect = document.getElementById('strum-style-select');
+                    if (styleSelect) {
+                        styleSelect.value = saved;
+                    }
+                    // Sync to audio engine
+                    if (typeof AudioEngine !== 'undefined') {
+                        AudioEngine.setStrumStyle(saved);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load strum style setting:', error);
+        }
+    },
+
+    /**
+     * Save strum style setting to localStorage
+     */
+    saveStrumStyleSetting() {
+        try {
+            localStorage.setItem('guitarExplorerStrumStyle', this.state.strumStyle);
+        } catch (error) {
+            console.error('Failed to save strum style setting:', error);
+        }
+    },
+
+    /**
+     * Handle distortion change
+     * @param {number} amount - Distortion amount (0-100)
+     */
+    handleDistortionChange(amount) {
+        this.state.distortion = amount;
+        this.saveDistortionSetting();
+        this.updateDistortionDisplay();
+
+        // Sync distortion to audio engine for playback
+        if (typeof AudioEngine !== 'undefined') {
+            AudioEngine.setDistortion(amount);
+        }
+    },
+
+    /**
+     * Load distortion setting from localStorage
+     */
+    loadDistortionSetting() {
+        try {
+            const saved = localStorage.getItem('guitarExplorerDistortion');
+            if (saved !== null) {
+                const amount = parseInt(saved, 10);
+                if (!isNaN(amount) && amount >= 0 && amount <= 100) {
+                    this.state.distortion = amount;
+                    // Update the slider
+                    const slider = document.getElementById('distortion-slider');
+                    if (slider) {
+                        slider.value = amount;
+                    }
+                    this.updateDistortionDisplay();
+                    // Sync to audio engine
+                    if (typeof AudioEngine !== 'undefined') {
+                        AudioEngine.setDistortion(amount);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load distortion setting:', error);
+        }
+    },
+
+    /**
+     * Save distortion setting to localStorage
+     */
+    saveDistortionSetting() {
+        try {
+            localStorage.setItem('guitarExplorerDistortion', this.state.distortion.toString());
+        } catch (error) {
+            console.error('Failed to save distortion setting:', error);
+        }
+    },
+
+    /**
+     * Update distortion display value
+     */
+    updateDistortionDisplay() {
+        const valueElement = document.getElementById('distortion-value');
+        if (valueElement) {
+            valueElement.textContent = `${this.state.distortion}%`;
+        }
+    },
+
+    /**
+     * Handle arpeggio speed change
+     * @param {number} bpm - Arpeggio tempo in BPM
+     */
+    handleArpeggioSpeedChange(bpm) {
+        this.state.arpeggioSpeed = bpm;
+        this.saveArpeggioSpeedSetting();
+
+        // Sync arpeggio tempo to audio engine for playback
+        if (typeof AudioEngine !== 'undefined') {
+            AudioEngine.setArpeggioTempo(bpm);
+        }
+    },
+
+    /**
+     * Load arpeggio speed setting from localStorage
+     */
+    loadArpeggioSpeedSetting() {
+        try {
+            const saved = localStorage.getItem('guitarExplorerArpeggioSpeed');
+            if (saved !== null) {
+                const bpm = parseInt(saved, 10);
+                // Validate it's a valid BPM value
+                const validSpeeds = [80, 120, 160, 200];
+                if (validSpeeds.includes(bpm)) {
+                    this.state.arpeggioSpeed = bpm;
+                    // Update the dropdown
+                    const speedSelect = document.getElementById('arpeggio-speed-select');
+                    if (speedSelect) {
+                        speedSelect.value = bpm.toString();
+                    }
+                    // Sync to audio engine
+                    if (typeof AudioEngine !== 'undefined') {
+                        AudioEngine.setArpeggioTempo(bpm);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load arpeggio speed setting:', error);
+        }
+    },
+
+    /**
+     * Save arpeggio speed setting to localStorage
+     */
+    saveArpeggioSpeedSetting() {
+        try {
+            localStorage.setItem('guitarExplorerArpeggioSpeed', this.state.arpeggioSpeed.toString());
+        } catch (error) {
+            console.error('Failed to save arpeggio speed setting:', error);
         }
     },
 

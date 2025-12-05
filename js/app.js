@@ -22,6 +22,13 @@ const App = {
         voicingPatternFilter: 'all',
         fretRangeFilter: 'all',
         rootNoteFilter: 'all',
+        // New filter tab system
+        filterTab: 'basic', // 'basic' or 'advanced'
+        basicChordTypeFilter: 'all', // Simplified chord type for basic tab
+        voicingStyleFilter: 'all', // shell, drop-2, drop-3, quartal, rootless, etc.
+        jazzLevelFilter: 'all', // basic, tier-1, tier-2, tier-3
+        soundCharacterFilter: 'all', // bright, warm, tense, dreamy, dark, funky
+        noteCountFilter: 'all', // all, 3-note, 4-note, 5-plus
         selectedChords: [],
         displayedChords: [],
         hasSearched: false,
@@ -113,6 +120,7 @@ const App = {
         this.loadStrumStyleSetting();
         this.loadDistortionSetting();
         this.loadArpeggioSpeedSetting();
+        this.loadFilterSettings();
         this.bindEventListeners();
         this.initVolumeControl();
         this.initSettingsPanel();
@@ -189,29 +197,62 @@ const App = {
             this.state.currentMode = e.target.value;
         });
 
-        // Voicing filter buttons
+        // Voicing filter buttons (legacy)
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => this.handleVoicingFilter(e));
         });
 
-        // Chord type filter
+        // ==========================================
+        // Filter Tab System Event Listeners
+        // ==========================================
+
+        // Filter tab switching
+        document.querySelectorAll('.filter-tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleFilterTabChange(e));
+        });
+
+        // Basic Filters Tab
+        document.getElementById('basic-chord-type-filter')?.addEventListener('change', (e) => {
+            this.handleBasicChordTypeFilter(e);
+        });
+
+        document.getElementById('basic-fret-range-filter')?.addEventListener('change', (e) => {
+            this.handleFretRangeFilter(e, 'basic');
+        });
+
+        // Difficulty filter buttons (Basic tab)
+        document.querySelectorAll('.difficulty-filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleDifficultyFilter(e));
+        });
+
+        // Advanced Filters Tab
         document.getElementById('chord-type-filter')?.addEventListener('change', (e) => {
             this.handleChordTypeFilter(e);
         });
 
-        // Voicing pattern filter
-        document.getElementById('voicing-pattern-filter')?.addEventListener('change', (e) => {
-            this.handleVoicingPatternFilter(e);
+        document.getElementById('voicing-style-filter')?.addEventListener('change', (e) => {
+            this.handleVoicingStyleFilter(e);
         });
 
-        // Fret range filter
+        document.getElementById('jazz-level-filter')?.addEventListener('change', (e) => {
+            this.handleJazzLevelFilter(e);
+        });
+
+        document.getElementById('sound-character-filter')?.addEventListener('change', (e) => {
+            this.handleSoundCharacterFilter(e);
+        });
+
         document.getElementById('fret-range-filter')?.addEventListener('change', (e) => {
-            this.handleFretRangeFilter(e);
+            this.handleFretRangeFilter(e, 'advanced');
         });
 
-        // Root note filter (old - deprecated)
-        document.getElementById('root-note-filter')?.addEventListener('change', (e) => {
-            this.handleRootNoteFilter(e);
+        document.getElementById('note-count-filter')?.addEventListener('change', (e) => {
+            this.handleNoteCountFilter(e);
+        });
+
+        // Clear filters buttons (both tabs)
+        document.getElementById('clear-advanced-filters-btn')?.addEventListener('click', () => {
+            this.clearAllFilters();
         });
 
         // Root note selector (new tab)
@@ -351,13 +392,200 @@ const App = {
     /**
      * Handle fret range filter change
      */
-    handleFretRangeFilter(e) {
+    handleFretRangeFilter(e, source = 'advanced') {
         this.state.fretRangeFilter = e.target.value;
+
+        // Sync both fret range selects
+        const basicFret = document.getElementById('basic-fret-range-filter');
+        const advancedFret = document.getElementById('fret-range-filter');
+        if (source === 'basic' && advancedFret) {
+            advancedFret.value = e.target.value;
+        } else if (source === 'advanced' && basicFret) {
+            basicFret.value = e.target.value;
+        }
+
+        this.updateFilterHighlights();
+        this.updateAdvancedFiltersIndicator();
+        this.saveFilterSettings();
 
         // Re-filter displayed chords if we have already searched
         if (this.state.hasSearched) {
             this.applyFiltersAndDisplay();
         }
+    },
+
+    // ==========================================
+    // Filter Tab System Handlers
+    // ==========================================
+
+    /**
+     * Handle filter tab change
+     */
+    handleFilterTabChange(e) {
+        const tab = e.target.dataset.filterTab || e.target.closest('[data-filter-tab]')?.dataset.filterTab;
+        if (!tab) return;
+
+        this.state.filterTab = tab;
+
+        // Update tab buttons
+        document.querySelectorAll('.filter-tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filterTab === tab);
+        });
+
+        // Update tab content
+        document.querySelectorAll('.filter-tab-content').forEach(content => {
+            content.classList.toggle('active', content.id === `${tab}-filters-content`);
+        });
+
+        this.saveFilterSettings();
+    },
+
+    /**
+     * Handle basic chord type filter change
+     */
+    handleBasicChordTypeFilter(e) {
+        this.state.basicChordTypeFilter = e.target.value;
+        this.updateFilterHighlights();
+        this.updateAdvancedFiltersIndicator();
+        this.saveFilterSettings();
+
+        if (this.state.hasSearched) {
+            this.applyFiltersAndDisplay();
+        }
+    },
+
+    /**
+     * Handle difficulty filter button click (Basic tab)
+     */
+    handleDifficultyFilter(e) {
+        const difficulty = e.target.dataset.difficulty;
+        this.state.voicingFilter = difficulty;
+
+        // Update active button
+        document.querySelectorAll('.difficulty-filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.difficulty === difficulty);
+        });
+
+        // Also update legacy filter buttons if they exist
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.voicing === difficulty);
+        });
+
+        this.updateAdvancedFiltersIndicator();
+        this.saveFilterSettings();
+
+        if (this.state.hasSearched) {
+            this.applyFiltersAndDisplay();
+        }
+    },
+
+    /**
+     * Handle voicing style filter change (Advanced tab)
+     */
+    handleVoicingStyleFilter(e) {
+        this.state.voicingStyleFilter = e.target.value;
+        this.updateFilterHighlights();
+        this.updateAdvancedFiltersIndicator();
+        this.saveFilterSettings();
+
+        if (this.state.hasSearched) {
+            this.applyFiltersAndDisplay();
+        }
+    },
+
+    /**
+     * Handle jazz level filter change (Advanced tab)
+     */
+    handleJazzLevelFilter(e) {
+        this.state.jazzLevelFilter = e.target.value;
+        this.updateFilterHighlights();
+        this.updateAdvancedFiltersIndicator();
+        this.saveFilterSettings();
+
+        if (this.state.hasSearched) {
+            this.applyFiltersAndDisplay();
+        }
+    },
+
+    /**
+     * Handle sound character filter change (Advanced tab)
+     */
+    handleSoundCharacterFilter(e) {
+        this.state.soundCharacterFilter = e.target.value;
+        this.updateFilterHighlights();
+        this.updateAdvancedFiltersIndicator();
+        this.saveFilterSettings();
+
+        if (this.state.hasSearched) {
+            this.applyFiltersAndDisplay();
+        }
+    },
+
+    /**
+     * Handle note count filter change (Advanced tab)
+     */
+    handleNoteCountFilter(e) {
+        this.state.noteCountFilter = e.target.value;
+        this.updateFilterHighlights();
+        this.updateAdvancedFiltersIndicator();
+        this.saveFilterSettings();
+
+        if (this.state.hasSearched) {
+            this.applyFiltersAndDisplay();
+        }
+    },
+
+    /**
+     * Update visual highlights on filter dropdowns
+     */
+    updateFilterHighlights() {
+        // Highlight dropdowns with active filters
+        const filterSelects = [
+            'basic-chord-type-filter',
+            'basic-fret-range-filter',
+            'chord-type-filter',
+            'voicing-style-filter',
+            'jazz-level-filter',
+            'sound-character-filter',
+            'fret-range-filter',
+            'note-count-filter'
+        ];
+
+        filterSelects.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.toggle('has-filter', el.value !== 'all');
+            }
+        });
+    },
+
+    /**
+     * Update the advanced filters indicator dot
+     */
+    updateAdvancedFiltersIndicator() {
+        const indicator = document.getElementById('advanced-indicator');
+        if (!indicator) return;
+
+        // Check if any advanced-only filters are active
+        const hasAdvancedFilters =
+            this.state.chordTypeFilter !== 'all' ||
+            this.state.voicingStyleFilter !== 'all' ||
+            this.state.jazzLevelFilter !== 'all' ||
+            this.state.soundCharacterFilter !== 'all' ||
+            this.state.noteCountFilter !== 'all';
+
+        indicator.classList.toggle('hidden', !hasAdvancedFilters);
+    },
+
+    /**
+     * Check if any advanced filters are active
+     */
+    hasAdvancedFiltersActive() {
+        return this.state.chordTypeFilter !== 'all' ||
+               this.state.voicingStyleFilter !== 'all' ||
+               this.state.jazzLevelFilter !== 'all' ||
+               this.state.soundCharacterFilter !== 'all' ||
+               this.state.noteCountFilter !== 'all';
     },
 
     /**
@@ -541,22 +769,60 @@ const App = {
     },
 
     /**
-     * Clear all new filters
+     * Clear all filters (both Basic and Advanced tabs)
      */
     clearAllFilters() {
+        // Reset Basic tab filters
+        this.state.basicChordTypeFilter = 'all';
+        this.state.voicingFilter = 'all';
+
+        // Reset Advanced tab filters
         this.state.chordTypeFilter = 'all';
-        this.state.voicingPatternFilter = 'all';
+        this.state.voicingStyleFilter = 'all';
+        this.state.jazzLevelFilter = 'all';
+        this.state.soundCharacterFilter = 'all';
+        this.state.noteCountFilter = 'all';
+
+        // Reset shared filters
         this.state.fretRangeFilter = 'all';
+        this.state.voicingPatternFilter = 'all';
         // Note: We don't reset rootNoteFilter here as it's a separate concept
 
-        // Reset dropdowns
+        // Reset Basic tab dropdowns
+        const basicChordTypeDropdown = document.getElementById('basic-chord-type-filter');
+        const basicFretRangeDropdown = document.getElementById('basic-fret-range-filter');
+        if (basicChordTypeDropdown) basicChordTypeDropdown.value = 'all';
+        if (basicFretRangeDropdown) basicFretRangeDropdown.value = 'all';
+
+        // Reset difficulty buttons
+        document.querySelectorAll('.difficulty-filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.difficulty === 'all');
+        });
+
+        // Reset legacy filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.voicing === 'all');
+        });
+
+        // Reset Advanced tab dropdowns
         const chordTypeDropdown = document.getElementById('chord-type-filter');
-        const voicingPatternDropdown = document.getElementById('voicing-pattern-filter');
+        const voicingStyleDropdown = document.getElementById('voicing-style-filter');
+        const jazzLevelDropdown = document.getElementById('jazz-level-filter');
+        const soundCharacterDropdown = document.getElementById('sound-character-filter');
         const fretRangeDropdown = document.getElementById('fret-range-filter');
+        const noteCountDropdown = document.getElementById('note-count-filter');
 
         if (chordTypeDropdown) chordTypeDropdown.value = 'all';
-        if (voicingPatternDropdown) voicingPatternDropdown.value = 'all';
+        if (voicingStyleDropdown) voicingStyleDropdown.value = 'all';
+        if (jazzLevelDropdown) jazzLevelDropdown.value = 'all';
+        if (soundCharacterDropdown) soundCharacterDropdown.value = 'all';
         if (fretRangeDropdown) fretRangeDropdown.value = 'all';
+        if (noteCountDropdown) noteCountDropdown.value = 'all';
+
+        // Update visual indicators
+        this.updateFilterHighlights();
+        this.updateAdvancedFiltersIndicator();
+        this.saveFilterSettings();
 
         // Re-filter displayed chords if we have already searched
         if (this.state.hasSearched) {
@@ -852,6 +1118,119 @@ const App = {
         }
     },
 
+    // ==========================================
+    // Filter Settings Persistence
+    // ==========================================
+
+    /**
+     * Load filter settings from localStorage
+     */
+    loadFilterSettings() {
+        try {
+            const saved = localStorage.getItem('guitarExplorerFilters');
+            if (saved) {
+                const filters = JSON.parse(saved);
+
+                // Restore filter tab
+                if (filters.filterTab) {
+                    this.state.filterTab = filters.filterTab;
+                    // Update tab UI
+                    document.querySelectorAll('.filter-tab-btn').forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.filterTab === filters.filterTab);
+                    });
+                    document.querySelectorAll('.filter-tab-content').forEach(content => {
+                        content.classList.toggle('active', content.id === `${filters.filterTab}-filters-content`);
+                    });
+                }
+
+                // Restore Basic tab filters
+                if (filters.basicChordTypeFilter) {
+                    this.state.basicChordTypeFilter = filters.basicChordTypeFilter;
+                    const el = document.getElementById('basic-chord-type-filter');
+                    if (el) el.value = filters.basicChordTypeFilter;
+                }
+
+                if (filters.voicingFilter) {
+                    this.state.voicingFilter = filters.voicingFilter;
+                    document.querySelectorAll('.difficulty-filter-btn').forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.difficulty === filters.voicingFilter);
+                    });
+                    document.querySelectorAll('.filter-btn').forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.voicing === filters.voicingFilter);
+                    });
+                }
+
+                // Restore Advanced tab filters
+                if (filters.chordTypeFilter) {
+                    this.state.chordTypeFilter = filters.chordTypeFilter;
+                    const el = document.getElementById('chord-type-filter');
+                    if (el) el.value = filters.chordTypeFilter;
+                }
+
+                if (filters.voicingStyleFilter) {
+                    this.state.voicingStyleFilter = filters.voicingStyleFilter;
+                    const el = document.getElementById('voicing-style-filter');
+                    if (el) el.value = filters.voicingStyleFilter;
+                }
+
+                if (filters.jazzLevelFilter) {
+                    this.state.jazzLevelFilter = filters.jazzLevelFilter;
+                    const el = document.getElementById('jazz-level-filter');
+                    if (el) el.value = filters.jazzLevelFilter;
+                }
+
+                if (filters.soundCharacterFilter) {
+                    this.state.soundCharacterFilter = filters.soundCharacterFilter;
+                    const el = document.getElementById('sound-character-filter');
+                    if (el) el.value = filters.soundCharacterFilter;
+                }
+
+                if (filters.noteCountFilter) {
+                    this.state.noteCountFilter = filters.noteCountFilter;
+                    const el = document.getElementById('note-count-filter');
+                    if (el) el.value = filters.noteCountFilter;
+                }
+
+                // Restore shared filters
+                if (filters.fretRangeFilter) {
+                    this.state.fretRangeFilter = filters.fretRangeFilter;
+                    const basicEl = document.getElementById('basic-fret-range-filter');
+                    const advancedEl = document.getElementById('fret-range-filter');
+                    if (basicEl) basicEl.value = filters.fretRangeFilter;
+                    if (advancedEl) advancedEl.value = filters.fretRangeFilter;
+                }
+
+                // Update visual indicators
+                this.updateFilterHighlights();
+                this.updateAdvancedFiltersIndicator();
+            }
+        } catch (error) {
+            console.error('Failed to load filter settings:', error);
+        }
+    },
+
+    /**
+     * Save filter settings to localStorage
+     */
+    saveFilterSettings() {
+        try {
+            const filters = {
+                filterTab: this.state.filterTab,
+                basicChordTypeFilter: this.state.basicChordTypeFilter,
+                voicingFilter: this.state.voicingFilter,
+                chordTypeFilter: this.state.chordTypeFilter,
+                voicingStyleFilter: this.state.voicingStyleFilter,
+                jazzLevelFilter: this.state.jazzLevelFilter,
+                soundCharacterFilter: this.state.soundCharacterFilter,
+                noteCountFilter: this.state.noteCountFilter,
+                fretRangeFilter: this.state.fretRangeFilter
+            };
+            localStorage.setItem('guitarExplorerFilters', JSON.stringify(filters));
+        } catch (error) {
+            console.error('Failed to save filter settings:', error);
+        }
+    },
+
     /**
      * Transpose a chord name by semitones
      * @param {string} chordName - Original chord name (e.g., "C Major", "Am", "F#m7")
@@ -1036,17 +1415,47 @@ const App = {
     applyFiltersAndDisplay() {
         let chords = [...this.state.selectedChords];
 
-        // Apply voicing/difficulty filter
+        // Apply voicing/difficulty filter (shared between Basic and Advanced tabs)
         chords = SelectionEngine.filterByDifficulty(chords, this.state.voicingFilter);
 
-        // Apply chord type filter
-        chords = SelectionEngine.filterByChordType(chords, this.state.chordTypeFilter);
-
-        // Apply voicing pattern filter
-        chords = SelectionEngine.filterByVoicingPattern(chords, this.state.voicingPatternFilter);
-
-        // Apply fret range filter
+        // Apply fret range filter (shared between Basic and Advanced tabs)
         chords = SelectionEngine.filterByFretRange(chords, this.state.fretRangeFilter);
+
+        // Apply Basic tab filters
+        if (this.state.basicChordTypeFilter !== 'all') {
+            chords = SelectionEngine.filterByBasicChordType(chords, this.state.basicChordTypeFilter);
+        }
+
+        // Apply Advanced tab filters
+        // Advanced chord type filter (more granular)
+        if (this.state.chordTypeFilter !== 'all') {
+            chords = SelectionEngine.filterByAdvancedChordType(chords, this.state.chordTypeFilter);
+        }
+
+        // Voicing style filter (shell, drop 2, quartal, etc.)
+        if (this.state.voicingStyleFilter !== 'all') {
+            chords = SelectionEngine.filterByVoicingStyle(chords, this.state.voicingStyleFilter);
+        }
+
+        // Jazz level filter
+        if (this.state.jazzLevelFilter !== 'all') {
+            chords = SelectionEngine.filterByJazzLevel(chords, this.state.jazzLevelFilter);
+        }
+
+        // Sound character filter
+        if (this.state.soundCharacterFilter !== 'all') {
+            chords = SelectionEngine.filterBySoundCharacter(chords, this.state.soundCharacterFilter);
+        }
+
+        // Note count filter
+        if (this.state.noteCountFilter !== 'all') {
+            chords = SelectionEngine.filterByNoteCount(chords, this.state.noteCountFilter);
+        }
+
+        // Legacy voicing pattern filter (if still used)
+        if (this.state.voicingPatternFilter !== 'all') {
+            chords = SelectionEngine.filterByVoicingPattern(chords, this.state.voicingPatternFilter);
+        }
 
         // Sort chords
         chords = SelectionEngine.sortChords(chords, 'root');
@@ -1054,11 +1463,28 @@ const App = {
         this.state.displayedChords = chords;
         this.renderChordGrid(chords);
 
-        // Update chord count
+        // Update chord count (both basic and advanced)
         this.updateChordCount(chords.length);
+        this.updateAdvancedChordCount(chords.length);
 
         // Show arpeggio section and update if expanded
         this.showArpeggioSection(chords);
+    },
+
+    /**
+     * Update advanced tab chord count display
+     */
+    updateAdvancedChordCount(count) {
+        const countElement = document.getElementById('advanced-filter-chord-count');
+        if (countElement) {
+            if (count === 0) {
+                countElement.textContent = 'No chords match your filters';
+                countElement.classList.add('no-results');
+            } else {
+                countElement.textContent = `Showing ${count} chord${count === 1 ? '' : 's'}`;
+                countElement.classList.remove('no-results');
+            }
+        }
     },
 
     /**
@@ -1088,9 +1514,16 @@ const App = {
     },
 
     /**
-     * Show advanced filters section
+     * Show filter tabs section (new Basic/Advanced tabs)
      */
     showAdvancedFilters() {
+        // Show the new filter tabs section
+        const filterTabsSection = document.getElementById('filter-tabs-section');
+        if (filterTabsSection) {
+            filterTabsSection.classList.remove('hidden');
+        }
+
+        // Also show legacy section if it exists (backwards compatibility)
         const filtersSection = document.getElementById('advanced-filters-section');
         if (filtersSection) {
             filtersSection.classList.remove('hidden');
@@ -1098,9 +1531,16 @@ const App = {
     },
 
     /**
-     * Hide advanced filters section
+     * Hide filter tabs section
      */
     hideAdvancedFilters() {
+        // Hide the new filter tabs section
+        const filterTabsSection = document.getElementById('filter-tabs-section');
+        if (filterTabsSection) {
+            filterTabsSection.classList.add('hidden');
+        }
+
+        // Also hide legacy section if it exists
         const filtersSection = document.getElementById('advanced-filters-section');
         if (filtersSection) {
             filtersSection.classList.add('hidden');
@@ -4526,6 +4966,66 @@ const App = {
                         <li><strong>Low Position (frets 0-5):</strong> Chords near the headstock, including most open chords. Great for beginners.</li>
                         <li><strong>Mid Position (frets 5-9):</strong> Chords in the middle of the neck, common for rhythm playing and transitions.</li>
                         <li><strong>High Position (frets 10+):</strong> Chords higher up the neck with brighter, more focused tones. Used in lead playing and jazz.</li>
+                    </ul>
+
+                    <h4>Basic vs Advanced Filter Tabs</h4>
+                    <p>The filter section has two tabs to accommodate different levels of filtering needs:</p>
+
+                    <p><strong>Basic Filters Tab:</strong></p>
+                    <p>Simplified controls for quick filtering:</p>
+                    <ul>
+                        <li><strong>Chord Type:</strong> Simple categories - All, Major, Minor, Seventh, Extended</li>
+                        <li><strong>Fret Range:</strong> Low (0-5), Mid (5-9), High (10+)</li>
+                        <li><strong>Difficulty:</strong> Easy, Medium, Hard - based on barre chords and stretch required</li>
+                    </ul>
+
+                    <p><strong>Advanced Filters Tab:</strong></p>
+                    <p>More granular controls for experienced players:</p>
+                    <ul>
+                        <li><strong>Chord Type:</strong> Detailed categories including Triads, 7ths, 9ths, 11ths, 13ths, Altered, Suspended, Add, Power</li>
+                        <li><strong>Voicing Style:</strong> Shell voicings, Drop 2, Drop 3, Quartal, Rootless, Barre, Open</li>
+                        <li><strong>Jazz Level:</strong> Beginner to advanced jazz chord progressions</li>
+                        <li><strong>Sound Character:</strong> Bright, Warm, Tense, Dreamy, Dark, Funky</li>
+                        <li><strong>Fret Range:</strong> Same as Basic tab (stays synced)</li>
+                        <li><strong>Note Count:</strong> 3-note, 4-note, or 5+ note voicings</li>
+                    </ul>
+
+                    <p><strong>How Filters Work Together:</strong></p>
+                    <p>All active filters use AND logic - a chord must match ALL selected criteria to appear. For example, if you select "Minor" chord type and "Low" fret range, only minor chords in the low fret position will be shown.</p>
+
+                    <p><strong>Advanced Filters Indicator:</strong></p>
+                    <p>When advanced filters are active, a pulsing dot appears on the "Advanced Filters" tab. This helps you remember when filters beyond the basic options are affecting your results. Use the "Clear Filters" button to reset all filters at once.</p>
+
+                    <h5>Jazz Level Guide</h5>
+                    <p>The Jazz Level filter organizes chords by complexity for jazz players:</p>
+                    <ul>
+                        <li><strong>Basic:</strong> Major and minor triads, simple 7th chords - foundations for any style</li>
+                        <li><strong>Tier 1 - Essentials:</strong> Dominant 7ths, major/minor 7ths, basic 9ths - the building blocks of jazz harmony</li>
+                        <li><strong>Tier 2 - Intermediate:</strong> 11ths, 13ths, altered dominants, diminished - for adding color and movement</li>
+                        <li><strong>Tier 3 - Advanced:</strong> Complex altered chords, quartal voicings, advanced extensions - for sophisticated jazz textures</li>
+                    </ul>
+
+                    <h5>Sound Character Guide</h5>
+                    <p>The Sound Character filter groups chords by their emotional quality:</p>
+                    <ul>
+                        <li><strong>Bright:</strong> Major chords, add9, 6th chords - happy, uplifting, energetic</li>
+                        <li><strong>Warm:</strong> Major 7ths, 69 chords - smooth, cozy, pleasing</li>
+                        <li><strong>Tense:</strong> Dominant 7ths, altered chords, diminished - creates movement and wants to resolve</li>
+                        <li><strong>Dreamy:</strong> Minor 9ths, major 9ths, add chords with extensions - ethereal, floating quality</li>
+                        <li><strong>Dark:</strong> Minor chords, minor 7ths, half-diminished - melancholic, serious, introspective</li>
+                        <li><strong>Funky:</strong> 9th chords, 13th chords, dominant variations - groovy, rhythmic, energetic</li>
+                    </ul>
+
+                    <h5>Voicing Style Guide</h5>
+                    <p>The Voicing Style filter helps you find specific chord construction types:</p>
+                    <ul>
+                        <li><strong>Shell:</strong> 3-note voicings with root, 3rd, and 7th (or 5th) - clean, essential tones for comping</li>
+                        <li><strong>Drop 2:</strong> The second-highest note is dropped an octave - common jazz voicing with good voice leading</li>
+                        <li><strong>Drop 3:</strong> The third-highest note is dropped an octave - wider voicing with unique color</li>
+                        <li><strong>Quartal:</strong> Built in fourths rather than thirds - modern jazz sound</li>
+                        <li><strong>Rootless:</strong> Omits the root note - allows bass player to define the root, common in jazz ensembles</li>
+                        <li><strong>Barre:</strong> Full barre chord shapes - moveable, consistent fingering</li>
+                        <li><strong>Open:</strong> Uses open strings - resonant, great for acoustic playing</li>
                     </ul>
 
                     <h4>Reading Chord Diagrams</h4>

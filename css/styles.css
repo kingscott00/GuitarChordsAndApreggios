@@ -683,7 +683,7 @@ h3 { font-size: var(--font-size-lg); }
 
 /* Results Area */
 .results-area {
-    min-height: 400px;
+    /* No min-height - allows collapsed sections to take minimal space */
 }
 
 .chord-grid {

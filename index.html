@@ -162,6 +162,43 @@
                         <option value="7">Fret 7</option>
                     </select>
                 </div>
+                <div class="settings-option guitar-tone-control" id="guitar-tone-control">
+                    <label for="guitar-tone-select">Guitar Tone</label>
+                    <select class="guitar-tone-dropdown" id="guitar-tone-select">
+                        <option value="acoustic">Acoustic</option>
+                        <option value="bright">Bright</option>
+                        <option value="warm">Warm/Mellow</option>
+                        <option value="electric">Electric Clean</option>
+                        <option value="muted">Muted/Percussive</option>
+                        <option value="nylon">Nylon Classical</option>
+                    </select>
+                </div>
+                <div class="settings-option strum-style-control" id="strum-style-control">
+                    <label for="strum-style-select">Strum Style</label>
+                    <select class="strum-style-dropdown" id="strum-style-select">
+                        <option value="single-down">Single Down</option>
+                        <option value="slow">Slow Strum</option>
+                        <option value="fast">Fast Strum</option>
+                        <option value="down-up">Down-Up</option>
+                        <option value="fingerpick">Fingerpick</option>
+                    </select>
+                </div>
+                <div class="settings-option distortion-control" id="distortion-control">
+                    <label for="distortion-slider">Distortion</label>
+                    <div class="distortion-slider-wrapper">
+                        <input type="range" class="distortion-slider" id="distortion-slider" min="0" max="100" value="0">
+                        <span class="distortion-value" id="distortion-value">0%</span>
+                    </div>
+                </div>
+                <div class="settings-option arpeggio-speed-control" id="arpeggio-speed-control">
+                    <label for="arpeggio-speed-select">Arpeggio Speed</label>
+                    <select class="arpeggio-speed-dropdown" id="arpeggio-speed-select">
+                        <option value="80">Slow (80 BPM)</option>
+                        <option value="120" selected>Normal (120 BPM)</option>
+                        <option value="160">Fast (160 BPM)</option>
+                        <option value="200">Very Fast (200 BPM)</option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>

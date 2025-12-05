@@ -16,7 +16,155 @@ const AudioEngine = {
         noteDecay: 2.5,          // seconds
         arpeggioTempo: 120,      // BPM
         tuningOffset: 0,         // semitones (-6 to +6)
-        capoFret: 0              // capo position (0-7)
+        capoFret: 0,             // capo position (0-7)
+        guitarTone: 'acoustic',  // current guitar tone preset
+        strumStyle: 'single-down', // current strum style preset
+        distortion: 0            // distortion amount (0-100)
+    },
+
+    // Guitar tone presets - modify Karplus-Strong synthesis parameters
+    tonePresets: {
+        acoustic: {
+            name: 'Acoustic',
+            decay: 0.996,
+            attack: 0.002,      // 2ms
+            release: 0.1,       // 100ms
+            noteDecay: 2.5,     // seconds
+            filterMultiplier: 8,
+            filterMax: 8000
+        },
+        bright: {
+            name: 'Bright',
+            decay: 0.994,
+            attack: 0.002,
+            release: 0.08,
+            noteDecay: 2.3,
+            filterMultiplier: 12,
+            filterMax: 12000
+        },
+        warm: {
+            name: 'Warm/Mellow',
+            decay: 0.997,
+            attack: 0.003,
+            release: 0.12,
+            noteDecay: 2.8,
+            filterMultiplier: 5,
+            filterMax: 5000
+        },
+        electric: {
+            name: 'Electric Clean',
+            decay: 0.993,
+            attack: 0.001,
+            release: 0.06,
+            noteDecay: 1.5,
+            filterMultiplier: 10,
+            filterMax: 10000
+        },
+        muted: {
+            name: 'Muted/Percussive',
+            decay: 0.985,
+            attack: 0.001,
+            release: 0.05,
+            noteDecay: 0.5,
+            filterMultiplier: 6,
+            filterMax: 6000
+        },
+        nylon: {
+            name: 'Nylon Classical',
+            decay: 0.997,
+            attack: 0.005,      // 5ms - slower attack
+            release: 0.15,
+            noteDecay: 3.0,
+            filterMultiplier: 4,
+            filterMax: 4000
+        }
+    },
+
+    // Strum style presets - modify strumming behavior
+    strumPresets: {
+        'single-down': {
+            name: 'Single Down',
+            strumSpeed: 40,      // ms between strings
+            pattern: 'single',   // 'single' or 'down-up'
+            randomVariation: 0   // ms of random timing variation
+        },
+        'slow': {
+            name: 'Slow Strum',
+            strumSpeed: 95,
+            pattern: 'single',
+            randomVariation: 0
+        },
+        'fast': {
+            name: 'Fast Strum',
+            strumSpeed: 18,
+            pattern: 'single',
+            randomVariation: 0
+        },
+        'down-up': {
+            name: 'Down-Up',
+            strumSpeed: 40,
+            pattern: 'down-up',
+            pauseBetween: 150,   // ms pause between down and up strums
+            randomVariation: 0
+        },
+        'fingerpick': {
+            name: 'Fingerpick',
+            strumSpeed: 175,
+            pattern: 'single',
+            randomVariation: 20  // +/- ms variation for natural feel
+        }
+    },
+
+    // Cached distortion curve (regenerated when amount changes)
+    distortionCurve: null,
+    lastDistortionAmount: -1,
+
+    /**
+     * Generate a distortion curve for the WaveShaperNode
+     * Uses a tanh-based curve for natural-sounding overdrive
+     * @param {number} amount - Distortion amount (0-100)
+     * @returns {Float32Array} - The distortion curve
+     */
+    makeDistortionCurve(amount) {
+        // Normalize amount to 0-1 range
+        const normalizedAmount = amount / 100;
+
+        // If amount is 0, return null (bypass distortion)
+        if (normalizedAmount === 0) {
+            return null;
+        }
+
+        const samples = 44100;
+        const curve = new Float32Array(samples);
+        const deg = Math.PI / 180;
+
+        for (let i = 0; i < samples; i++) {
+            const x = (i * 2) / samples - 1;
+            // Modified tanh-based curve for guitar-like distortion
+            const k = normalizedAmount * 100;
+            curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+        }
+
+        return curve;
+    },
+
+    /**
+     * Get the distortion curve, using cached version if amount hasn't changed
+     * @returns {Float32Array|null} - The distortion curve or null for bypass
+     */
+    getDistortionCurve() {
+        const amount = this.settings.distortion;
+
+        // Return cached curve if amount hasn't changed
+        if (amount === this.lastDistortionAmount && this.distortionCurve !== undefined) {
+            return this.distortionCurve;
+        }
+
+        // Generate and cache new curve
+        this.distortionCurve = this.makeDistortionCurve(amount);
+        this.lastDistortionAmount = amount;
+
+        return this.distortionCurve;
     },
 
     // Tuning offset labels for common tunings
@@ -191,16 +339,20 @@ const AudioEngine = {
      * Play a single note using Karplus-Strong synthesis
      * @param {number} frequency - Frequency in Hz
      * @param {number} startTime - When to start (context time)
-     * @param {number} duration - Note duration in seconds
+     * @param {number} duration - Note duration in seconds (optional, uses tone preset if not specified)
      * @param {number} velocity - Note velocity (0-1)
      */
-    playNote(frequency, startTime, duration = 2.5, velocity = 0.8) {
+    playNote(frequency, startTime, duration = null, velocity = 0.8) {
         if (!this.context) return;
+
+        // Get current tone preset parameters
+        const preset = this.tonePresets[this.settings.guitarTone] || this.tonePresets.acoustic;
+        const noteDuration = duration !== null ? duration : preset.noteDecay;
 
         // Karplus-Strong plucked string synthesis
         const sampleRate = this.context.sampleRate;
         const bufferSize = Math.round(sampleRate / frequency);
-        const buffer = this.context.createBuffer(1, sampleRate * duration, sampleRate);
+        const buffer = this.context.createBuffer(1, sampleRate * noteDuration, sampleRate);
         const data = buffer.getChannelData(0);
 
         // Initialize with noise burst
@@ -209,8 +361,8 @@ const AudioEngine = {
             data[i] = (Math.random() * 2 - 1) * velocity;
         }
 
-        // Apply Karplus-Strong algorithm
-        const decay = 0.996; // Decay factor
+        // Apply Karplus-Strong algorithm with tone-specific decay
+        const decay = preset.decay;
         const blend = 0.5;   // Blend factor for averaging
 
         for (let i = bufferSize; i < data.length; i++) {
@@ -219,10 +371,9 @@ const AudioEngine = {
             data[i] = avg * decay;
         }
 
-        // Apply envelope
-        const attackTime = 0.002;
-        const attackSamples = Math.floor(attackTime * sampleRate);
-        const releaseSamples = Math.floor(0.1 * sampleRate);
+        // Apply envelope with tone-specific attack and release
+        const attackSamples = Math.floor(preset.attack * sampleRate);
+        const releaseSamples = Math.floor(preset.release * sampleRate);
         const releaseStart = data.length - releaseSamples;
 
         for (let i = 0; i < attackSamples; i++) {
@@ -240,17 +391,49 @@ const AudioEngine = {
         const source = this.context.createBufferSource();
         source.buffer = buffer;
 
-        // Add slight filtering for more realistic sound
+        // Add filtering with tone-specific cutoff frequency
         const filter = this.context.createBiquadFilter();
         filter.type = 'lowpass';
-        filter.frequency.value = Math.min(frequency * 8, 8000);
+        filter.frequency.value = Math.min(frequency * preset.filterMultiplier, preset.filterMax);
         filter.Q.value = 1;
 
+        // Build audio graph: source → filter → [distortion] → [post-filter] → masterGain
         source.connect(filter);
-        filter.connect(this.masterGain);
+
+        // Get distortion curve (null if distortion is 0)
+        const distortionCurve = this.getDistortionCurve();
+
+        if (distortionCurve) {
+            // Create WaveShaperNode for distortion
+            const distortion = this.context.createWaveShaper();
+            distortion.curve = distortionCurve;
+            distortion.oversample = '4x'; // Reduce aliasing
+
+            // Create post-distortion lowpass filter to smooth harsh frequencies
+            const postFilter = this.context.createBiquadFilter();
+            postFilter.type = 'lowpass';
+            // Cut higher frequencies more aggressively with more distortion
+            const distAmount = this.settings.distortion / 100;
+            postFilter.frequency.value = 8000 - (distAmount * 4000); // 8000Hz to 4000Hz
+            postFilter.Q.value = 0.5;
+
+            // Create gain node to compensate for distortion volume increase
+            const distortionGain = this.context.createGain();
+            // Reduce gain slightly as distortion increases to prevent clipping
+            distortionGain.gain.value = 1 - (distAmount * 0.3);
+
+            // Connect the chain
+            filter.connect(distortion);
+            distortion.connect(postFilter);
+            postFilter.connect(distortionGain);
+            distortionGain.connect(this.masterGain);
+        } else {
+            // No distortion - connect directly to master
+            filter.connect(this.masterGain);
+        }
 
         source.start(startTime);
-        source.stop(startTime + duration);
+        source.stop(startTime + noteDuration);
 
         return source;
     },
@@ -267,35 +450,75 @@ const AudioEngine = {
         if (this.isPlaying) return;
         this.isPlaying = true;
 
+        // Get current strum preset
+        const strumPreset = this.strumPresets[this.settings.strumStyle] || this.strumPresets['single-down'];
+        const strumSpeed = strumPreset.strumSpeed;
+        const strumDelay = strumSpeed / 1000; // Convert to seconds
+        const randomVariation = strumPreset.randomVariation / 1000; // Convert to seconds
+
         const startTime = this.context.currentTime + 0.05;
-        const strumDelay = this.settings.strumSpeed / 1000; // Convert to seconds
 
-        // Get string order based on direction
-        let stringOrder = [0, 1, 2, 3, 4, 5]; // Low to high for down strum
-        if (direction === 'up') {
-            stringOrder = [5, 4, 3, 2, 1, 0]; // High to low for up strum
+        // Helper function to play a single strum
+        const playStrum = (baseTime, strumDirection) => {
+            // Get string order based on direction
+            let stringOrder = [0, 1, 2, 3, 4, 5]; // Low to high for down strum
+            if (strumDirection === 'up') {
+                stringOrder = [5, 4, 3, 2, 1, 0]; // High to low for up strum
+            }
+
+            let noteIndex = 0;
+            stringOrder.forEach((stringIndex) => {
+                const fret = chord.frets[stringIndex];
+
+                // Skip muted strings (-1)
+                if (fret === -1) return;
+
+                const frequency = this.getFrequency(stringIndex, fret);
+
+                // Add random variation if specified
+                let variation = 0;
+                if (randomVariation > 0) {
+                    variation = (Math.random() * 2 - 1) * randomVariation;
+                }
+
+                const noteTime = baseTime + (noteIndex * strumDelay) + variation;
+
+                // Slight velocity variation for realism
+                const velocity = 0.7 + Math.random() * 0.2;
+
+                this.playNote(frequency, noteTime, null, velocity);
+                noteIndex++;
+            });
+
+            return noteIndex; // Return number of notes played
+        };
+
+        // Play based on pattern
+        let totalDuration;
+        if (strumPreset.pattern === 'down-up') {
+            // Play down strum
+            const notesPlayed = playStrum(startTime, 'down');
+
+            // Calculate when up strum should start
+            const downStrumDuration = notesPlayed * strumDelay;
+            const pauseBetween = (strumPreset.pauseBetween || 150) / 1000;
+            const upStrumStart = startTime + downStrumDuration + pauseBetween;
+
+            // Play up strum
+            playStrum(upStrumStart, 'up');
+
+            // Total duration includes both strums and pause
+            totalDuration = (strumSpeed * 6 * 2) + strumPreset.pauseBetween + 100;
+        } else {
+            // Single strum (down or up based on direction parameter)
+            playStrum(startTime, direction);
+            totalDuration = (strumSpeed * 6) + 100;
         }
-
-        // Play each string
-        stringOrder.forEach((stringIndex, i) => {
-            const fret = chord.frets[stringIndex];
-
-            // Skip muted strings (-1)
-            if (fret === -1) return;
-
-            const frequency = this.getFrequency(stringIndex, fret);
-            const noteTime = startTime + (i * strumDelay);
-
-            // Slight velocity variation for realism
-            const velocity = 0.7 + Math.random() * 0.2;
-
-            this.playNote(frequency, noteTime, this.settings.noteDecay, velocity);
-        });
 
         // Reset playing state after chord duration
         setTimeout(() => {
             this.isPlaying = false;
-        }, (this.settings.strumSpeed * 6) + 100);
+        }, totalDuration);
     },
 
     /**
@@ -392,6 +615,93 @@ const AudioEngine = {
      */
     setNoteDecay(decay) {
         this.settings.noteDecay = Math.max(0.5, Math.min(5, decay));
+    },
+
+    /**
+     * Set guitar tone preset
+     * @param {string} tone - Tone preset key (acoustic, bright, warm, electric, muted, nylon)
+     */
+    setGuitarTone(tone) {
+        if (this.tonePresets[tone]) {
+            this.settings.guitarTone = tone;
+            // Update noteDecay to match the preset default
+            this.settings.noteDecay = this.tonePresets[tone].noteDecay;
+            return tone;
+        }
+        return this.settings.guitarTone;
+    },
+
+    /**
+     * Get current guitar tone
+     * @returns {string} - Current tone preset key
+     */
+    getGuitarTone() {
+        return this.settings.guitarTone;
+    },
+
+    /**
+     * Get all available tone presets
+     * @returns {Object} - Object with tone preset keys and their names
+     */
+    getTonePresetList() {
+        const list = {};
+        for (const key in this.tonePresets) {
+            list[key] = this.tonePresets[key].name;
+        }
+        return list;
+    },
+
+    /**
+     * Set strum style preset
+     * @param {string} style - Strum style preset key
+     */
+    setStrumStyle(style) {
+        if (this.strumPresets[style]) {
+            this.settings.strumStyle = style;
+            // Update strumSpeed to match the preset
+            this.settings.strumSpeed = this.strumPresets[style].strumSpeed;
+            return style;
+        }
+        return this.settings.strumStyle;
+    },
+
+    /**
+     * Get current strum style
+     * @returns {string} - Current strum style preset key
+     */
+    getStrumStyle() {
+        return this.settings.strumStyle;
+    },
+
+    /**
+     * Get all available strum style presets
+     * @returns {Object} - Object with strum style preset keys and their names
+     */
+    getStrumPresetList() {
+        const list = {};
+        for (const key in this.strumPresets) {
+            list[key] = this.strumPresets[key].name;
+        }
+        return list;
+    },
+
+    /**
+     * Set distortion amount
+     * @param {number} amount - Distortion amount (0-100)
+     */
+    setDistortion(amount) {
+        this.settings.distortion = Math.max(0, Math.min(100, amount));
+        // Invalidate cached curve so it regenerates on next note
+        this.lastDistortionAmount = -1;
+        return this.settings.distortion;
+    },
+
+    /**
+     * Get current distortion amount
+     * @returns {number} - Current distortion amount (0-100)
+     */
+    getDistortion() {
+        return this.settings.distortion;
     }
 };
 

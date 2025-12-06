@@ -84,16 +84,17 @@ const App = {
         },
         // Settings state
         settings: {
-            showTab: true,
+            showTab: false,
             showFingerInfo: true,
-            showArpeggioTab: true,
-            showArpeggioTips: true,
-            showAllArpeggioNotes: false,
+            showArpeggioTab: false,
+            showArpeggioTips: false,
+            showAllArpeggioNotes: true,
             darkTheme: false,
             leftHanded: false,
             newspaperMode: false,
             compactMode: false,
-            diagramDisplayMode: 'fingers' // 'fingers' or 'intervals'
+            diagramDisplayMode: 'intervals', // 'fingers' or 'intervals'
+            groupVoicings: true // When true, consolidate chords with same name into single cards
         },
         // Favorites state
         favorites: [],
@@ -1286,6 +1287,16 @@ const App = {
     updateChordCount(count) {
         const countElement = document.getElementById('filter-chord-count');
         if (countElement) {
+            // Check if grouping is enabled
+            const isGrouped = this.state.settings.groupVoicings;
+            let groupedCount = 0;
+
+            if (isGrouped && this.state.displayedChords.length > 0) {
+                // Calculate number of unique chord names
+                const grouped = this.groupChordsByNameFromFiltered(this.state.displayedChords);
+                groupedCount = grouped.length;
+            }
+
             // Include root note in the count message if active
             const rootNote = this.state.rootNoteFilter;
             if (rootNote !== 'all') {
@@ -1293,6 +1304,9 @@ const App = {
                 if (count === 0) {
                     countElement.textContent = `No ${displayName} chords match your filters`;
                     countElement.classList.add('no-results');
+                } else if (isGrouped) {
+                    countElement.textContent = `Showing ${groupedCount} ${displayName} chord${groupedCount === 1 ? '' : 's'} (${count} voicing${count === 1 ? '' : 's'})`;
+                    countElement.classList.remove('no-results');
                 } else {
                     countElement.textContent = `Showing ${count} ${displayName} chord${count === 1 ? '' : 's'}`;
                     countElement.classList.remove('no-results');
@@ -1300,6 +1314,9 @@ const App = {
             } else if (count === 0) {
                 countElement.textContent = 'No chords match your filters';
                 countElement.classList.add('no-results');
+            } else if (isGrouped) {
+                countElement.textContent = `Showing ${groupedCount} chord${groupedCount === 1 ? '' : 's'} (${count} voicing${count === 1 ? '' : 's'})`;
+                countElement.classList.remove('no-results');
             } else {
                 countElement.textContent = `Showing ${count} chord${count === 1 ? '' : 's'}`;
                 countElement.classList.remove('no-results');
@@ -1477,14 +1494,35 @@ const App = {
     updateAdvancedChordCount(count) {
         const countElement = document.getElementById('advanced-filter-chord-count');
         if (countElement) {
+            // Check if grouping is enabled
+            const isGrouped = this.state.settings.groupVoicings;
+            let groupedCount = 0;
+
+            if (isGrouped && this.state.displayedChords.length > 0) {
+                const grouped = this.groupChordsByNameFromFiltered(this.state.displayedChords);
+                groupedCount = grouped.length;
+            }
+
             if (count === 0) {
                 countElement.textContent = 'No chords match your filters';
                 countElement.classList.add('no-results');
+            } else if (isGrouped) {
+                countElement.textContent = `Showing ${groupedCount} chord${groupedCount === 1 ? '' : 's'} (${count} voicing${count === 1 ? '' : 's'})`;
+                countElement.classList.remove('no-results');
             } else {
                 countElement.textContent = `Showing ${count} chord${count === 1 ? '' : 's'}`;
                 countElement.classList.remove('no-results');
             }
         }
+    },
+
+    /**
+     * Update chord counts when grouping setting changes
+     */
+    updateChordCountWithGrouping() {
+        const count = this.state.displayedChords.length;
+        this.updateChordCount(count);
+        this.updateAdvancedChordCount(count);
     },
 
     /**
@@ -1559,10 +1597,221 @@ const App = {
             return;
         }
 
+        // Check if grouping is enabled
+        if (this.state.settings.groupVoicings) {
+            // Group chords by name and render one card per group
+            const grouped = this.groupChordsByNameFromFiltered(chords);
+            grouped.forEach(group => {
+                const card = this.createGroupedChordCard(group);
+                grid.appendChild(card);
+            });
+        } else {
+            // Normal rendering - each voicing as separate card
+            chords.forEach(chord => {
+                const card = this.createChordCard(chord);
+                grid.appendChild(card);
+            });
+        }
+    },
+
+    /**
+     * Group filtered chords by their name/symbol
+     * Returns array of groups, each with primary chord and all voicings
+     */
+    groupChordsByNameFromFiltered(chords) {
+        const groups = new Map();
+
         chords.forEach(chord => {
-            const card = this.createChordCard(chord);
-            grid.appendChild(card);
+            const key = `${chord.name}_${chord.symbol}`;
+            if (!groups.has(key)) {
+                groups.set(key, {
+                    name: chord.name,
+                    symbol: chord.symbol,
+                    root: chord.root,
+                    quality: chord.quality,
+                    primaryChord: chord, // First (usually easiest) voicing
+                    voicings: []
+                });
+            }
+            groups.get(key).voicings.push(chord);
         });
+
+        // Sort voicings within each group by difficulty
+        groups.forEach(group => {
+            group.voicings.sort((a, b) => a.difficulty - b.difficulty);
+            group.primaryChord = group.voicings[0]; // Use easiest as default
+        });
+
+        return Array.from(groups.values());
+    },
+
+    /**
+     * Create a chord card for a grouped set of voicings
+     */
+    createGroupedChordCard(group) {
+        const chord = group.primaryChord;
+        const card = document.createElement('div');
+        card.className = 'chord-card';
+        card.dataset.chordId = chord.id;
+        card.dataset.grouped = 'true';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'chord-card-header';
+
+        const nameContainer = document.createElement('div');
+        nameContainer.className = 'chord-name-container';
+
+        const name = document.createElement('span');
+        name.className = 'chord-name';
+        name.textContent = chord.name;
+
+        nameContainer.appendChild(name);
+        header.appendChild(nameContainer);
+
+        // Voicing line: always show dropdown for grouped cards (even if just 1 voicing after filtering)
+        const voicingLine = document.createElement('div');
+        voicingLine.className = 'chord-card-voicing-line';
+
+        if (group.voicings.length > 1) {
+            // Multiple voicings: show dropdown
+            const voicingSelect = document.createElement('select');
+            voicingSelect.id = `voicing-grouped-${chord.id}`;
+            voicingSelect.className = 'voicing-select-compact';
+
+            group.voicings.forEach(v => {
+                const option = document.createElement('option');
+                option.value = v.id;
+                option.textContent = getVoicingLabel(v);
+                if (v.id === chord.id) {
+                    option.selected = true;
+                }
+                voicingSelect.appendChild(option);
+            });
+
+            voicingSelect.addEventListener('change', (e) => {
+                this.handleVoicingChange(e.target.value, card);
+            });
+
+            voicingLine.appendChild(voicingSelect);
+        } else {
+            // Single voicing after filtering: show read-only label
+            const voicingLabel = document.createElement('span');
+            voicingLabel.className = 'voicing-label-readonly';
+            voicingLabel.textContent = getVoicingLabel(chord);
+            voicingLine.appendChild(voicingLabel);
+        }
+
+        // Body
+        const body = document.createElement('div');
+        body.className = 'chord-card-body';
+
+        // Chord diagram container
+        const diagramContainer = document.createElement('div');
+        diagramContainer.className = 'chord-diagram-container';
+
+        // Render SVG chord diagram
+        const diagram = ChordRenderer.render(chord);
+        diagramContainer.appendChild(diagram);
+
+        // Render tablature
+        const tab = TabRenderer.render(chord);
+
+        // Render finger info
+        const fingerInfo = TabRenderer.renderFingerInfo(chord);
+
+        // Info line: Roman numeral (left) + Difficulty badge (right)
+        const infoLine = document.createElement('div');
+        infoLine.className = 'chord-info-line';
+
+        // Roman numeral on the left (if chord has diatonic info)
+        const romanNumeral = document.createElement('span');
+        romanNumeral.className = 'roman-numeral-small';
+        if (chord.diatonicInfo && chord.diatonicInfo.romanNumeral) {
+            romanNumeral.textContent = chord.diatonicInfo.romanNumeral;
+        }
+        infoLine.appendChild(romanNumeral);
+
+        // Difficulty badge on the right
+        const difficultyBadge = document.createElement('span');
+        difficultyBadge.className = `difficulty-badge-small ${this.getDifficultyClass(chord.difficulty)}`;
+        difficultyBadge.textContent = this.getDifficultyLabel(chord.difficulty);
+        infoLine.appendChild(difficultyBadge);
+
+        body.appendChild(diagramContainer);
+        body.appendChild(tab);
+        body.appendChild(fingerInfo);
+        body.appendChild(infoLine);
+
+        // Actions
+        const actions = document.createElement('div');
+        actions.className = 'chord-card-actions';
+
+        const playBtn = document.createElement('button');
+        playBtn.className = 'action-btn play-btn';
+        playBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Play</span>
+        `;
+        playBtn.title = 'Play chord';
+        playBtn.addEventListener('click', (e) => {
+            const currentChord = getChordById(card.dataset.chordId);
+            this.playChord(currentChord, e.currentTarget);
+        });
+
+        const addBtn = document.createElement('button');
+        addBtn.className = 'action-btn add-btn';
+        addBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Add</span>
+        `;
+        addBtn.title = 'Add to progression';
+        addBtn.addEventListener('click', () => {
+            const currentChord = getChordById(card.dataset.chordId);
+            if (currentChord) {
+                this.addToProgression(currentChord);
+                addBtn.classList.add('added');
+                setTimeout(() => addBtn.classList.remove('added'), 300);
+            }
+        });
+
+        actions.appendChild(playBtn);
+        actions.appendChild(addBtn);
+
+        // More Info section
+        const moreInfoSection = this.createMoreInfoSection(chord);
+
+        if (this.state.allInfoExpanded) {
+            moreInfoSection.classList.remove('collapsed');
+            moreInfoSection.querySelector('.toggle-arrow').innerHTML = '&#9660;';
+        }
+
+        // Related Chords section
+        const relatedChordsSection = this.createRelatedChordsSection(chord);
+
+        card.appendChild(header);
+        card.appendChild(voicingLine);
+
+        // Capo line (only shown when capo is active)
+        if (this.state.capoFret > 0) {
+            const capoSoundsAs = document.createElement('div');
+            capoSoundsAs.className = 'capo-sounds-as';
+            const transposedName = this.getCapoTransposedName(chord);
+            capoSoundsAs.innerHTML = `<span class="capo-sounds-as-label">Capo Fret ${this.state.capoFret}:</span> <span class="capo-sounds-as-chord">${transposedName}</span>`;
+            card.appendChild(capoSoundsAs);
+        }
+
+        card.appendChild(body);
+        card.appendChild(actions);
+        card.appendChild(moreInfoSection);
+        card.appendChild(relatedChordsSection);
+
+        return card;
     },
 
     /**
@@ -4601,6 +4850,10 @@ const App = {
         if (leftHandedToggle) leftHandedToggle.checked = this.state.settings.leftHanded;
         if (newspaperModeToggle) newspaperModeToggle.checked = this.state.settings.newspaperMode;
         if (compactModeToggle) compactModeToggle.checked = this.state.settings.compactMode;
+
+        // Group Voicings toggle
+        const groupVoicingsToggle = document.getElementById('group-voicings-toggle');
+        if (groupVoicingsToggle) groupVoicingsToggle.checked = this.state.settings.groupVoicings;
     },
 
     /**
@@ -4682,6 +4935,19 @@ const App = {
             this.state.settings.compactMode = e.target.checked;
             this.applySettings();
             this.saveSettings();
+        });
+
+        // Group Voicings toggle
+        document.getElementById('group-voicings-toggle')?.addEventListener('change', (e) => {
+            this.state.settings.groupVoicings = e.target.checked;
+            this.applySettings();
+            this.saveSettings();
+            // Re-render chords with new grouping mode
+            if (this.state.displayedChords.length > 0) {
+                this.renderChordGrid(this.state.displayedChords);
+                // Update chord counts with grouping info
+                this.updateChordCountWithGrouping();
+            }
         });
 
         // Tuning offset controls
@@ -5077,6 +5343,25 @@ const App = {
                     </ul>
 
                     <p>Your display preference is saved automatically and will persist across sessions.</p>
+
+                    <h4>Group Chord Voicings</h4>
+                    <p>When enabled in Settings, chords with multiple voicings are consolidated into single cards. This reduces clutter when browsing large chord libraries.</p>
+
+                    <p><strong>How It Works:</strong></p>
+                    <ul>
+                        <li>All voicings of the same chord (e.g., all "C Major" voicings) are grouped into one card</li>
+                        <li>Use the voicing dropdown on each card to switch between available voicings</li>
+                        <li>The chord count shows both grouped count and total voicings (e.g., "Showing 52 chords (128 voicings)")</li>
+                        <li>Filters still work - only voicings matching your filter criteria appear in the dropdown</li>
+                    </ul>
+
+                    <p><strong>When to Use:</strong></p>
+                    <ul>
+                        <li><strong>Grouping ON:</strong> Great for exploring unique chords without seeing duplicates. Use when you want to browse chord types and pick a voicing later.</li>
+                        <li><strong>Grouping OFF:</strong> Better when you want to see all voicing options at once, compare voicings side-by-side, or find specific voicing patterns.</li>
+                    </ul>
+
+                    <p>The setting is saved automatically and persists across sessions.</p>
 
                     <h4>Reading Tablature (Tab)</h4>
                     <p>Tablature is a simple notation system for guitar:</p>

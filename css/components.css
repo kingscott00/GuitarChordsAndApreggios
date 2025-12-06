@@ -1676,6 +1676,30 @@
     background: rgba(74, 158, 255, 0.1);
 }
 
+/* Dark Theme - Filter Dropdowns */
+.dark-theme .filter-dropdown {
+    background-color: #1a1a2e;
+    border-color: #2d3748;
+    color: #eaeaea;
+}
+
+.dark-theme .filter-dropdown:focus {
+    border-color: #4a9eff;
+    box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.15);
+}
+
+.dark-theme .filter-dropdown option {
+    background-color: #1a1a2e;
+    color: #eaeaea;
+}
+
+.dark-theme .filter-dropdown option:hover,
+.dark-theme .filter-dropdown option:focus,
+.dark-theme .filter-dropdown option:checked {
+    background-color: #2d3748;
+    color: #eaeaea;
+}
+
 /* Dark mode chord diagram improvements */
 /* In dark mode, regular dots are light colored, so use dark text */
 .dark-theme .chord-diagram .finger-number {

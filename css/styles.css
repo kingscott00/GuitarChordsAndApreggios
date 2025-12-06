@@ -2129,6 +2129,36 @@ h3 { font-size: var(--font-size-lg); }
     color: var(--text-primary);
 }
 
+/* Dark theme - All Select/Dropdown Elements */
+/* Fix for browser quirks with select elements in dark mode */
+.dark-theme select,
+.dark-theme .selector-dropdown,
+.dark-theme .capo-dropdown,
+.dark-theme .guitar-tone-dropdown,
+.dark-theme .strum-style-dropdown,
+.dark-theme .arpeggio-speed-dropdown,
+.dark-theme .diagram-display-dropdown {
+    background-color: #1a1a2e;
+    color: #eaeaea;
+}
+
+.dark-theme select option,
+.dark-theme .selector-dropdown option,
+.dark-theme .capo-dropdown option,
+.dark-theme .guitar-tone-dropdown option,
+.dark-theme .strum-style-dropdown option,
+.dark-theme .arpeggio-speed-dropdown option,
+.dark-theme .diagram-display-dropdown option {
+    background-color: #1a1a2e;
+    color: #eaeaea;
+}
+
+.dark-theme select option:hover,
+.dark-theme select option:focus,
+.dark-theme select option:checked {
+    background-color: #2d3748;
+}
+
 /* Dark theme - Scale Builder */
 .dark-theme .scale-select {
     background: var(--bg-secondary);

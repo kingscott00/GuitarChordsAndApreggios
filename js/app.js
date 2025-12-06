@@ -84,17 +84,17 @@ const App = {
         },
         // Settings state
         settings: {
-            showTab: true,
+            showTab: false,
             showFingerInfo: true,
-            showArpeggioTab: true,
-            showArpeggioTips: true,
-            showAllArpeggioNotes: false,
+            showArpeggioTab: false,
+            showArpeggioTips: false,
+            showAllArpeggioNotes: true,
             darkTheme: false,
             leftHanded: false,
             newspaperMode: false,
             compactMode: false,
-            diagramDisplayMode: 'fingers', // 'fingers' or 'intervals'
-            groupVoicings: false // When true, consolidate chords with same name into single cards
+            diagramDisplayMode: 'intervals', // 'fingers' or 'intervals'
+            groupVoicings: true // When true, consolidate chords with same name into single cards
         },
         // Favorites state
         favorites: [],

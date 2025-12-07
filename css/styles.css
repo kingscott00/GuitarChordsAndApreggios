@@ -1250,6 +1250,28 @@ h3 { font-size: var(--font-size-lg); }
     gap: var(--spacing-md);
 }
 
+/* Voicing preference checkbox */
+.voicing-preference {
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
 /* Progression Tablature */
 .progression-tablature {
     margin-top: var(--spacing-lg);

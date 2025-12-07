@@ -3538,6 +3538,22 @@ const App = {
             };
 
             this.loadTemplate(templateId, false);
+
+            // Set inspired progression info AFTER loadTemplate (which clears it)
+            const builtInTemplate = this.getProgressionTemplates()[templateId];
+            this.state.inspiredProgressionInfo = {
+                name: builtInTemplate?.name || templateId,
+                description: 'Built-in template',
+                mood: mood,
+                key: key,
+                useCurated: false,
+                length: length,
+                degrees: builtInTemplate?.degrees || [],
+                minorDegrees: builtInTemplate?.minorDegrees || [],
+                flatDegrees: builtInTemplate?.flatDegrees || []
+            };
+            this.updateProgressionInfoDisplay();
+
             return { key };
         }
 
@@ -3580,7 +3596,9 @@ const App = {
                 mode: isMinorKey ? 'minor' : 'major'
             };
 
-            // Store inspired progression info
+            this.loadTemplate(templateId, false);
+
+            // Set inspired progression info AFTER loadTemplate (which clears it)
             const builtInTemplate = this.getProgressionTemplates()[templateId];
             this.state.inspiredProgressionInfo = {
                 name: builtInTemplate?.name || templateId,
@@ -3588,10 +3606,11 @@ const App = {
                 mood: mood,
                 key: key,
                 useCurated: false,
-                length: length
+                length: length,
+                degrees: builtInTemplate?.degrees || [],
+                minorDegrees: builtInTemplate?.minorDegrees || [],
+                flatDegrees: builtInTemplate?.flatDegrees || []
             };
-
-            this.loadTemplate(templateId, false);
             this.updateProgressionInfoDisplay();
             return { key };
         }
@@ -3634,7 +3653,10 @@ const App = {
             key: key,
             useCurated: false,
             length: length,
-            templateId: template.id
+            templateId: template.id,
+            degrees: template.degrees || [],
+            minorDegrees: template.minorDegrees || [],
+            flatDegrees: template.flatDegrees || []
         };
 
         // Get chords with voice leading
@@ -3879,9 +3901,21 @@ const App = {
         const badge = info.useCurated ? 'Curated' : 'Generated';
         const badgeClass = info.useCurated ? 'curated' : 'generated';
 
+        // Generate Roman numeral notation from degrees if available
+        let theoryNotation = '';
+        if (info.degrees && info.degrees.length > 0) {
+            const numerals = info.degrees.map((degree, idx) => {
+                const isMinor = info.minorDegrees?.includes(degree);
+                const isFlat = info.flatDegrees?.includes(degree);
+                return this.getDegreeRomanNumeral(degree, isMinor, isFlat);
+            });
+            theoryNotation = numerals.join(' - ');
+        }
+
         infoContainer.innerHTML = `
             <span class="inspire-badge ${badgeClass}">✨ Inspire Me</span>
             <span class="progression-name">${emoji} ${info.name || 'Custom Progression'}</span>
+            ${theoryNotation ? `<span class="progression-theory">${theoryNotation}</span>` : ''}
             <span class="progression-key">Key: ${info.key}</span>
         `;
     },

@@ -3397,6 +3397,37 @@ const App = {
         // Close modal
         this.closeInspireMeModal();
 
+        // Auto-focus on generated content: collapse non-essential sections, expand progression/scale builders
+
+        // Collapse chords section if expanded
+        const chordsToggle = document.getElementById('chords-toggle');
+        if (chordsToggle?.classList.contains('expanded')) {
+            this.toggleChords();
+        }
+
+        // Collapse arpeggios section if expanded
+        if (this.state.arpeggiosExpanded) {
+            this.toggleArpeggios();
+        }
+
+        // Collapse practice tools if not already collapsed
+        const practiceTools = document.getElementById('practice-tools');
+        if (practiceTools && !practiceTools.classList.contains('collapsed')) {
+            this.toggleSection('practice-tools');
+        }
+
+        // Expand progression builder if collapsed
+        const progressionBuilder = document.getElementById('progression-builder');
+        if (progressionBuilder?.classList.contains('collapsed')) {
+            this.toggleSection('progression-builder');
+        }
+
+        // Expand scale builder if collapsed
+        const scaleBuilder = document.getElementById('scale-builder');
+        if (scaleBuilder?.classList.contains('collapsed')) {
+            this.toggleSection('scale-builder');
+        }
+
         // Scroll to progression builder
         const progressionSection = document.querySelector('.progression-builder-section');
         if (progressionSection) {

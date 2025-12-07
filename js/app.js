@@ -3923,9 +3923,10 @@ const App = {
             if (isMinor) {
                 qualities.push('minor7', 'minor9');
             } else {
-                qualities.push('major7', 'dominant7', 'major9', 'add9');
+                qualities.push('major7', 'dominant7', 'major9');
             }
-            qualities.push('sus2', 'sus4', '7sus4');
+            // Sus and add9 are tonally ambiguous - work for both major and minor
+            qualities.push('sus2', 'sus4', '7sus4', 'add9');
         }
 
         // Advanced preset: everything
@@ -3933,9 +3934,10 @@ const App = {
             if (isMinor) {
                 qualities.push('minor7', 'minor9', 'minor11', 'minor13', 'minor7b5', 'halfDiminished');
             } else {
-                qualities.push('major7', 'major9', 'major11', 'major13', 'dominant7', 'dominant9', 'dominant11', 'dominant13', 'add9');
+                qualities.push('major7', 'major9', 'major11', 'major13', 'dominant7', 'dominant9', 'dominant11', 'dominant13');
             }
-            qualities.push('sus2', 'sus4', '7sus4', '7alt', '7b9', '7#9', 'diminished7', 'augmented');
+            // Sus, add9, and altered chords work for both major and minor
+            qualities.push('sus2', 'sus4', '7sus4', 'add9', '7alt', '7b9', '7#9', 'diminished7', 'augmented');
         }
 
         return qualities;

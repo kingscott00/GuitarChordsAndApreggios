@@ -209,6 +209,15 @@
 
     <!-- Main Content -->
     <main class="main-content">
+        <!-- Inspire Me Quick Start -->
+        <section class="inspire-me-section">
+            <button class="inspire-me-btn" id="inspire-me-btn">
+                <span class="inspire-icon">✨</span>
+                <span class="inspire-text">Inspire Me</span>
+            </button>
+            <p class="inspire-subtitle">Generate instant chord progressions based on mood</p>
+        </section>
+
         <!-- Selection Panel (Compact) -->
         <section class="selection-panel compact">
             <!-- Mode tabs inside the selection box -->
@@ -727,6 +736,10 @@
                     </svg>
                     Randomize
                 </button>
+                <button class="btn secondary inspire-another-btn" id="generate-another" title="Generate another mood-based progression">
+                    <span class="btn-icon">🔄</span>
+                    Generate Another
+                </button>
                 <button class="btn secondary" id="clear-progression">Clear</button>
                 <button class="btn secondary" id="add-slot">+ Add Slot</button>
                 <button class="btn secondary" id="generate-progression-tabs">Generate Tabs</button>
@@ -1088,6 +1101,135 @@
     <script src="js/data/moodMappings.js"></script>
     <script src="js/data/styleMappings.js"></script>
     <script src="js/data/scaleData.js"></script>
+    <!-- Inspire Me Modal -->
+    <div class="modal-overlay" id="inspire-me-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><span class="inspire-icon">✨</span> Inspire Me</h2>
+                <button class="modal-close" id="inspire-me-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Mood Selection -->
+                <div class="modal-section">
+                    <h3>Select Mood <span class="required">*</span></h3>
+                    <div class="mood-options">
+                        <label class="mood-option">
+                            <input type="radio" name="inspire-mood" value="happy" checked>
+                            <span class="mood-label">😊 Happy/Uplifting</span>
+                        </label>
+                        <label class="mood-option">
+                            <input type="radio" name="inspire-mood" value="sad">
+                            <span class="mood-label">😢 Sad/Melancholic</span>
+                        </label>
+                        <label class="mood-option">
+                            <input type="radio" name="inspire-mood" value="dreamy">
+                            <span class="mood-label">✨ Dreamy/Atmospheric</span>
+                        </label>
+                        <label class="mood-option">
+                            <input type="radio" name="inspire-mood" value="dark">
+                            <span class="mood-label">🌑 Dark/Mysterious</span>
+                        </label>
+                        <label class="mood-option">
+                            <input type="radio" name="inspire-mood" value="energetic">
+                            <span class="mood-label">⚡ Energetic/Rock</span>
+                        </label>
+                        <label class="mood-option">
+                            <input type="radio" name="inspire-mood" value="jazzy">
+                            <span class="mood-label">🎷 Jazzy/Sophisticated</span>
+                        </label>
+                        <label class="mood-option">
+                            <input type="radio" name="inspire-mood" value="chill">
+                            <span class="mood-label">🌊 Chill/Relaxed</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Advanced Options (Collapsible) -->
+                <div class="modal-section">
+                    <button class="advanced-toggle" id="inspire-advanced-toggle">
+                        <span>Advanced Options</span>
+                        <span class="toggle-icon">▼</span>
+                    </button>
+                    <div class="advanced-options" id="inspire-advanced-options" style="display: none;">
+                        <!-- Complexity Level -->
+                        <div class="option-group">
+                            <h4>Complexity Level</h4>
+                            <div class="radio-group-inline">
+                                <label>
+                                    <input type="radio" name="inspire-complexity" value="simple">
+                                    <span>Simple</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="inspire-complexity" value="colorful" checked>
+                                    <span>Colorful</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="inspire-complexity" value="advanced">
+                                    <span>Advanced</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Progression Length -->
+                        <div class="option-group">
+                            <h4>Progression Length</h4>
+                            <div class="radio-group-inline">
+                                <label>
+                                    <input type="radio" name="inspire-length" value="short" checked>
+                                    <span>Short (4)</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="inspire-length" value="medium">
+                                    <span>Medium (8)</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="inspire-length" value="long">
+                                    <span>Long (12+)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Key Selection -->
+                        <div class="option-group">
+                            <h4>Key Selection</h4>
+                            <div class="key-selection">
+                                <label class="key-mode-option">
+                                    <input type="radio" name="inspire-key-mode" value="random" checked>
+                                    <span>Random Key</span>
+                                </label>
+                                <label class="key-mode-option">
+                                    <input type="radio" name="inspire-key-mode" value="custom">
+                                    <span>Let me choose:</span>
+                                    <select id="inspire-key-select" disabled>
+                                        <option value="C">C Major</option>
+                                        <option value="G">G Major</option>
+                                        <option value="D">D Major</option>
+                                        <option value="A">A Major</option>
+                                        <option value="E">E Major</option>
+                                        <option value="F">F Major</option>
+                                        <option value="Am">A Minor</option>
+                                        <option value="Em">E Minor</option>
+                                        <option value="Dm">D Minor</option>
+                                        <option value="Bm">B Minor</option>
+                                        <option value="Cm">C Minor</option>
+                                        <option value="Gm">G Minor</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" id="inspire-cancel">Cancel</button>
+                <button class="btn primary" id="inspire-generate">
+                    <span>Generate!</span>
+                    <span class="btn-icon">🎵</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/engines/selectionEngine.js"></script>
     <script src="js/engines/scaleDetection.js"></script>
     <script src="js/renderers/chordRenderer.js"></script>

@@ -56,7 +56,8 @@ const App = {
             complexity: 'colorful',
             length: 'short',
             keyMode: 'random',
-            selectedKey: 'C'
+            selectedKey: 'C',
+            useCurated: true  // Use curated progressions by default
         },
         // Practice tools state
         metronome: {
@@ -3323,6 +3324,12 @@ const App = {
         keySelect.value = settings.selectedKey;
         keySelect.disabled = (settings.keyMode === 'random');
 
+        // Restore curated checkbox state
+        const curatedCheckbox = document.getElementById('inspire-use-curated');
+        if (curatedCheckbox) {
+            curatedCheckbox.checked = settings.useCurated !== false;  // Default to true
+        }
+
         modal.classList.add('active');
     },
 
@@ -3344,6 +3351,7 @@ const App = {
         const length = document.querySelector('input[name="inspire-length"]:checked')?.value || 'short';
         const keyMode = document.querySelector('input[name="inspire-key-mode"]:checked')?.value || 'random';
         const selectedKey = document.getElementById('inspire-key-select')?.value || 'C';
+        const useCurated = document.getElementById('inspire-use-curated')?.checked ?? true;
 
         // Save settings
         this.state.inspireMeSettings = {
@@ -3351,14 +3359,172 @@ const App = {
             complexity,
             length,
             keyMode,
-            selectedKey
+            selectedKey,
+            useCurated
         };
 
-        // Get mood mapping
+        // Set template preset based on complexity
+        this.state.templatePreset = complexity;
+
+        let key;
+        let progressionName = '';
+
+        // Branch: Curated vs Generated progressions
+        if (useCurated && typeof CuratedProgressions !== 'undefined') {
+            // Use curated progression database
+            const result = this.loadCuratedProgression(mood, keyMode, selectedKey);
+            key = result.key;
+            progressionName = result.name ? ` - "${result.name}"` : '';
+        } else {
+            // Use expanded templates with voice leading
+            const result = this.loadGeneratedProgression(mood, complexity, length, keyMode, selectedKey);
+            key = result.key;
+        }
+
+        // Close modal
+        this.closeInspireMeModal();
+
+        // Auto-focus on generated content: collapse non-essential sections, expand progression/scale builders
+        this.focusOnProgression();
+
+        // Show success message
+        setTimeout(() => {
+            this.showNotification(`✨ Generated ${mood} progression in ${key}${progressionName}!`);
+        }, 500);
+    },
+
+    /**
+     * Load a curated progression from the database
+     */
+    loadCuratedProgression(mood, keyMode, selectedKey) {
+        // Get curated progressions for this mood
+        const progressions = getCuratedProgressionsForMood(mood);
+        if (!progressions || progressions.length === 0) {
+            // Fallback to generated if no curated available
+            return this.loadGeneratedProgression(mood, 'colorful', 'short', keyMode, selectedKey);
+        }
+
+        // Filter by key if user selected a specific key
+        let availableProgressions = progressions;
+        if (keyMode === 'custom' && selectedKey) {
+            const keyMatches = progressions.filter(p => p.key === selectedKey || p.key === selectedKey.replace('m', ''));
+            if (keyMatches.length > 0) {
+                availableProgressions = keyMatches;
+            }
+        }
+
+        // Pick a random progression from available
+        const progression = availableProgressions[Math.floor(Math.random() * availableProgressions.length)];
+        const key = progression.key || selectedKey;
+
+        // Update current key
+        this.state.currentKey = key.replace('m', '');
+        const keyDropdown = document.getElementById('key-select');
+        if (keyDropdown) {
+            keyDropdown.value = this.state.currentKey;
+        }
+
+        // Set key hint for scale detection
+        const isMinorKey = key.endsWith('m') || mood === 'sad' || mood === 'dark';
+        this.state.progressionKeyHint = {
+            note: key.replace('m', ''),
+            mode: isMinorKey ? 'minor' : 'major'
+        };
+
+        // Clear current progression
+        this.clearProgression();
+
+        // Load the specific chord voicings
+        progression.chordIds.forEach((chordId, index) => {
+            const chord = getChordById(chordId);
+            if (!chord) return;
+
+            // Add slots if needed
+            while (index >= document.querySelectorAll('.progression-slot').length) {
+                this.addProgressionSlot();
+            }
+
+            const slot = document.querySelector(`.progression-slot[data-index="${index}"]`);
+            if (slot) {
+                this.state.progression[index] = {
+                    chordId: chord.id,
+                    name: chord.name,
+                    symbol: chord.symbol,
+                    root: chord.root
+                };
+                this.renderProgressionSlot(slot, chord, index);
+            }
+        });
+
+        // Update Scale Builder
+        this.updateScaleBuilder();
+
+        return { key, name: progression.name };
+    },
+
+    /**
+     * Load a generated progression using expanded templates with voice leading
+     */
+    loadGeneratedProgression(mood, complexity, length, keyMode, selectedKey) {
+        // Get templates for this mood from expanded library
+        let templates;
+        if (typeof ProgressionTemplates !== 'undefined' && ProgressionTemplates[mood]) {
+            templates = ProgressionTemplates[mood];
+        } else {
+            // Fallback to old mood mappings
+            const mappings = this.getInspireMeMappings();
+            const moodMap = mappings[mood] || mappings.happy;
+
+            // Use old template system
+            let templateId;
+            if (length === 'short') {
+                templateId = moodMap.templates[Math.floor(Math.random() * moodMap.templates.length)];
+            } else if (length === 'medium') {
+                const mediumTemplates = ['i-v-vi-iii-iv-i-iv-v', 'i-bii-ii-v', '8-bar-blues'];
+                const available = mediumTemplates.filter(t => this.getProgressionTemplates()[t]);
+                templateId = available.length > 0
+                    ? available[Math.floor(Math.random() * available.length)]
+                    : moodMap.templates[Math.floor(Math.random() * moodMap.templates.length)];
+            } else {
+                templateId = '12-bar-blues';
+            }
+
+            const key = keyMode === 'random' ? moodMap.keys[Math.floor(Math.random() * moodMap.keys.length)] : selectedKey;
+            this.state.currentKey = key.replace('m', '');
+            const keyDropdown = document.getElementById('key-select');
+            if (keyDropdown) keyDropdown.value = this.state.currentKey;
+
+            const isMinorKey = key.endsWith('m');
+            this.state.progressionKeyHint = {
+                note: key.replace('m', ''),
+                mode: isMinorKey ? 'minor' : 'major'
+            };
+
+            this.loadTemplate(templateId, false);
+            return { key };
+        }
+
+        // Filter templates by length preference
+        let filteredTemplates = templates;
+        if (length === 'short') {
+            filteredTemplates = templates.filter(t => t.degrees.length <= 4);
+        } else if (length === 'medium') {
+            filteredTemplates = templates.filter(t => t.degrees.length >= 5 && t.degrees.length <= 8);
+        } else {
+            filteredTemplates = templates.filter(t => t.degrees.length >= 8);
+        }
+
+        // Fallback if no templates match length
+        if (filteredTemplates.length === 0) {
+            filteredTemplates = templates;
+        }
+
+        // Pick a random template
+        const template = filteredTemplates[Math.floor(Math.random() * filteredTemplates.length)];
+
+        // Determine key
         const mappings = this.getInspireMeMappings();
         const moodMap = mappings[mood] || mappings.happy;
-
-        // Select key
         let key;
         if (keyMode === 'random') {
             key = moodMap.keys[Math.floor(Math.random() * moodMap.keys.length)];
@@ -3367,48 +3533,192 @@ const App = {
         }
 
         // Update current key
-        this.state.currentKey = key.replace('m', ''); // Remove 'm' suffix for minor keys
+        this.state.currentKey = key.replace('m', '');
         const keyDropdown = document.getElementById('key-select');
         if (keyDropdown) {
             keyDropdown.value = this.state.currentKey;
         }
 
-        // Select template based on length
-        let templateId;
-        if (length === 'short') {
-            // Pick random from available templates
-            templateId = moodMap.templates[Math.floor(Math.random() * moodMap.templates.length)];
-        } else if (length === 'medium') {
-            // Prefer 8-chord templates or repeat
-            const mediumTemplates = ['i-v-vi-iii-iv-i-iv-v', 'i-bii-ii-v', '8-bar-blues'];
-            const available = mediumTemplates.filter(t => this.getProgressionTemplates()[t]);
-            templateId = available.length > 0
-                ? available[Math.floor(Math.random() * available.length)]
-                : moodMap.templates[Math.floor(Math.random() * moodMap.templates.length)];
-        } else { // long
-            // Use 12-bar or repeat template
-            templateId = '12-bar-blues';
-        }
-
-        // Set template preset based on complexity (override mood default if specified)
-        this.state.templatePreset = complexity;
-
-        // Set key hint for scale detection (to ensure scales match the intended tonality)
-        const isMinorKey = key.endsWith('m');
-        const keyNote = key.replace('m', ''); // Remove 'm' suffix if present
+        // Set key hint for scale detection
+        const isMinorKey = key.endsWith('m') || template.rootMinor;
         this.state.progressionKeyHint = {
-            note: keyNote,
+            note: key.replace('m', ''),
             mode: isMinorKey ? 'minor' : 'major'
         };
 
-        // Load the template
-        this.loadTemplate(templateId, false);
+        // Clear current progression
+        this.clearProgression();
 
-        // Close modal
-        this.closeInspireMeModal();
+        // Get chords with voice leading
+        const chords = this.getChordsForKeyWithVoiceLeading(key.replace('m', ''), template);
 
-        // Auto-focus on generated content: collapse non-essential sections, expand progression/scale builders
+        // Load chords into slots
+        chords.forEach((chordInfo, index) => {
+            if (!chordInfo) return;
 
+            // Add slots if needed
+            while (index >= document.querySelectorAll('.progression-slot').length) {
+                this.addProgressionSlot();
+            }
+
+            const slot = document.querySelector(`.progression-slot[data-index="${index}"]`);
+            if (slot) {
+                const chord = getChordById(chordInfo.chordId);
+                if (chord) {
+                    this.state.progression[index] = chordInfo;
+                    this.renderProgressionSlot(slot, chord, index);
+                }
+            }
+        });
+
+        // Update Scale Builder
+        this.updateScaleBuilder();
+
+        return { key };
+    },
+
+    /**
+     * Get chords for a key with voice leading optimization
+     */
+    getChordsForKeyWithVoiceLeading(key, template) {
+        const noteOrder = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const majorIntervals = [0, 2, 4, 5, 7, 9, 11];
+
+        const keyIndex = noteOrder.indexOf(key);
+        if (keyIndex === -1) return [];
+
+        const scaleNotes = majorIntervals.map(interval =>
+            noteOrder[(keyIndex + interval) % 12]
+        );
+
+        const chordPool = getAllChords();
+        const maxDifficulty = {
+            'simple': 2,
+            'colorful': 3,
+            'advanced': 5
+        }[this.state.templatePreset] || 3;
+
+        const selectedChords = [];
+        const usedChordIds = new Set();  // Track used chord IDs to prevent duplicates
+        let previousChord = null;
+
+        template.degrees.forEach((degree, idx) => {
+            const noteIndex = (degree - 1) % 7;
+
+            // Handle flat degrees
+            let root;
+            if (template.flatDegrees?.includes(degree)) {
+                const flatIndex = (keyIndex + majorIntervals[noteIndex] - 1 + 12) % 12;
+                root = noteOrder[flatIndex];
+            } else {
+                root = scaleNotes[noteIndex];
+            }
+
+            // Determine chord quality
+            let allowedQualities;
+            if (template.qualityOverrides && template.qualityOverrides.hasOwnProperty(idx)) {
+                allowedQualities = [template.qualityOverrides[idx]];
+            } else {
+                let isMinor = false;
+                if (template.minorDegrees?.includes(degree)) {
+                    isMinor = true;
+                } else if (template.rootMinor && degree === 1) {
+                    isMinor = true;
+                } else {
+                    const defaultMinorDegrees = [2, 3, 6];
+                    isMinor = defaultMinorDegrees.includes(degree);
+                }
+                allowedQualities = this.buildAllowedQualities(isMinor, this.state.templatePreset);
+            }
+
+            // Filter chords
+            let matchingChords = chordPool.filter(c =>
+                c.root === root &&
+                allowedQualities.includes(c.quality) &&
+                c.difficulty <= maxDifficulty &&
+                !usedChordIds.has(c.id)  // Exclude already used chords
+            );
+
+            // Apply full voicings filter if enabled
+            if (this.state.preferFullVoicings) {
+                const fullVoicings = matchingChords.filter(c => this.countChordStrings(c) >= 4);
+                if (fullVoicings.length > 0) {
+                    matchingChords = fullVoicings;
+                }
+            }
+
+            // Fallback: allow duplicates if no unique matches
+            if (matchingChords.length === 0) {
+                matchingChords = chordPool.filter(c =>
+                    c.root === root &&
+                    allowedQualities.includes(c.quality) &&
+                    c.difficulty <= maxDifficulty
+                );
+            }
+
+            // Ultimate fallback: any chord with matching root
+            if (matchingChords.length === 0) {
+                matchingChords = chordPool.filter(c => c.root === root);
+            }
+
+            if (matchingChords.length === 0) {
+                selectedChords.push(null);
+                return;
+            }
+
+            // Apply voice leading selection
+            let chord;
+            if (typeof VoiceLeading !== 'undefined' && previousChord) {
+                chord = VoiceLeading.selectBestVoicing(matchingChords, previousChord, {
+                    strictness: 'medium',
+                    allowRandom: true
+                });
+            } else if (previousChord) {
+                // Simple voice leading: prefer chords close to previous position
+                const prevPos = this.getChordPosition(previousChord);
+                matchingChords.sort((a, b) => {
+                    const posA = this.getChordPosition(a);
+                    const posB = this.getChordPosition(b);
+                    return Math.abs(posA - prevPos) - Math.abs(posB - prevPos);
+                });
+                // Select from top 40% for some variety
+                const topCount = Math.max(1, Math.ceil(matchingChords.length * 0.4));
+                chord = matchingChords[Math.floor(Math.random() * topCount)];
+            } else {
+                // First chord: prefer open/low position
+                matchingChords.sort((a, b) => this.getChordPosition(a) - this.getChordPosition(b));
+                const topCount = Math.max(1, Math.ceil(matchingChords.length * 0.3));
+                chord = matchingChords[Math.floor(Math.random() * topCount)];
+            }
+
+            usedChordIds.add(chord.id);
+            previousChord = chord;
+
+            selectedChords.push({
+                chordId: chord.id,
+                name: chord.name,
+                symbol: chord.symbol,
+                root: chord.root
+            });
+        });
+
+        return selectedChords;
+    },
+
+    /**
+     * Get the average fret position of a chord
+     */
+    getChordPosition(chord) {
+        if (!chord || !chord.frets) return 0;
+        const frettedNotes = chord.frets.filter(f => f > 0);
+        if (frettedNotes.length === 0) return 0;
+        return frettedNotes.reduce((a, b) => a + b, 0) / frettedNotes.length;
+    },
+
+    /**
+     * Focus UI on progression after generation
+     */
+    focusOnProgression() {
         // Collapse chords section if expanded
         const chordsToggle = document.getElementById('chords-toggle');
         if (chordsToggle?.classList.contains('expanded')) {
@@ -3443,11 +3753,6 @@ const App = {
         if (progressionSection) {
             progressionSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-
-        // Show success message
-        setTimeout(() => {
-            this.showNotification(`✨ Generated ${mood} progression in ${key}!`);
-        }, 500);
     },
 
     /**

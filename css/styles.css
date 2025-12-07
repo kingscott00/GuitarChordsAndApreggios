@@ -2957,6 +2957,45 @@ h3 { font-size: var(--font-size-lg); }
     color: var(--text-primary);
 }
 
+/* Curated Progressions Toggle */
+.curated-toggle-group {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+    border: 1px solid var(--accent-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+}
+
+.curated-toggle-label {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    cursor: pointer;
+}
+
+.curated-toggle-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    accent-color: var(--accent-color);
+    cursor: pointer;
+}
+
+.curated-toggle-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.curated-toggle-text strong {
+    font-size: var(--font-size-base);
+    color: var(--text-primary);
+}
+
+.curated-toggle-text small {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
 /* Advanced Options Toggle */
 .advanced-toggle {
     width: 100%;

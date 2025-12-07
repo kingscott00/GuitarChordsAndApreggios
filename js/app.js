@@ -44,6 +44,10 @@ const App = {
         beatsPerChord: 4,
         progressionTempo: 100,
         savedProgressions: [],
+        // Template filter settings
+        useFilteredChordsForTemplates: false,  // true = Use Main Filters, false = Custom Preset
+        templatePreset: 'colorful',  // 'simple' | 'colorful' | 'advanced'
+        template_filtersExpanded: false,  // UI state for collapsible section
         // Practice tools state
         metronome: {
             playing: false,
@@ -3219,6 +3223,45 @@ const App = {
         document.getElementById('random-progression')?.addEventListener('click', () => this.randomizeProgression());
         document.getElementById('generate-progression-tabs')?.addEventListener('click', () => this.generateProgressionTablature());
 
+        // Template filters toggle
+        document.getElementById('template-filters-toggle')?.addEventListener('click', () => {
+            this.state.template_filtersExpanded = !this.state.template_filtersExpanded;
+            const content = document.getElementById('template-filters-content');
+            const toggle = document.getElementById('template-filters-toggle');
+
+            if (this.state.template_filtersExpanded) {
+                content.style.display = 'block';
+                toggle.classList.add('expanded');
+            } else {
+                content.style.display = 'none';
+                toggle.classList.remove('expanded');
+            }
+        });
+
+        // Filter source radio buttons (Main Filters vs Custom Preset)
+        document.querySelectorAll('input[name="template-filter-source"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.state.useFilteredChordsForTemplates = (e.target.value === 'main');
+
+                // Enable/disable preset options based on selection
+                const presetOptions = document.getElementById('preset-options');
+                if (e.target.value === 'preset') {
+                    presetOptions.style.opacity = '1';
+                    presetOptions.style.pointerEvents = 'auto';
+                } else {
+                    presetOptions.style.opacity = '0.5';
+                    presetOptions.style.pointerEvents = 'none';
+                }
+            });
+        });
+
+        // Preset radio buttons (Simple, Colorful, Advanced)
+        document.querySelectorAll('input[name="template-preset"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.state.templatePreset = e.target.value;
+            });
+        });
+
         // Initialize slot listeners
         this.initProgressionSlots();
     },
@@ -3822,6 +3865,51 @@ const App = {
     },
 
     /**
+     * Build allowed chord qualities based on preset
+     */
+    buildAllowedQualities(isMinor, preset) {
+        const qualities = [];
+
+        // Base qualities always included
+        if (isMinor) {
+            qualities.push('minor');
+        } else {
+            qualities.push('major');
+        }
+
+        // Simple preset: basic 7th chords only
+        if (preset === 'simple') {
+            if (isMinor) {
+                qualities.push('minor7');
+            } else {
+                qualities.push('major7', 'dominant7');
+            }
+        }
+
+        // Colorful preset: 7ths, 9ths, sus, add9
+        else if (preset === 'colorful') {
+            if (isMinor) {
+                qualities.push('minor7', 'minor9');
+            } else {
+                qualities.push('major7', 'dominant7', 'major9', 'add9');
+            }
+            qualities.push('sus2', 'sus4', '7sus4');
+        }
+
+        // Advanced preset: everything
+        else if (preset === 'advanced') {
+            if (isMinor) {
+                qualities.push('minor7', 'minor9', 'minor11', 'minor13', 'minor7b5', 'halfDiminished');
+            } else {
+                qualities.push('major7', 'major9', 'major11', 'major13', 'dominant7', 'dominant9', 'dominant11', 'dominant13', 'add9');
+            }
+            qualities.push('sus2', 'sus4', '7sus4', '7alt', '7b9', '7#9', 'diminished7', 'augmented');
+        }
+
+        return qualities;
+    },
+
+    /**
      * Get chords for a key based on scale degrees
      */
     getChordsForKey(key, degrees, template = null, randomize = false) {
@@ -3836,6 +3924,18 @@ const App = {
         const scaleNotes = majorIntervals.map(interval =>
             noteOrder[(keyIndex + interval) % 12]
         );
+
+        // Determine chord pool source
+        const chordPool = this.state.useFilteredChordsForTemplates && this.state.displayedChords?.length > 0
+            ? this.state.displayedChords
+            : getAllChords();
+
+        // Get preset max difficulty
+        const maxDifficulty = {
+            'simple': 2,
+            'colorful': 3,
+            'advanced': 5
+        }[this.state.templatePreset];
 
         // Map degrees to chords
         return degrees.map((degree, idx) => {
@@ -3855,39 +3955,38 @@ const App = {
                 isMinor = defaultMinorDegrees.includes(degree);
             }
 
-            // Find all matching chords for this root
-            const allChords = getAllChords();
-            let matchingChords = [];
+            // Build allowed qualities based on preset
+            const allowedQualities = this.buildAllowedQualities(isMinor, this.state.templatePreset);
 
-            if (isMinor) {
-                // Look for minor chords
-                matchingChords = allChords.filter(c =>
-                    c.root === root && (c.quality === 'minor' || c.quality === 'minor7')
-                );
-            } else {
-                // Look for major/dominant chords
-                matchingChords = allChords.filter(c =>
-                    c.root === root && (c.quality === 'major' || c.quality === 'dominant7' || c.quality === 'major7')
-                );
+            // Filter chords by root and allowed qualities
+            let matchingChords = chordPool.filter(c =>
+                c.root === root && allowedQualities.includes(c.quality)
+            );
+
+            // Apply difficulty filter (only when using presets, not when using main filters)
+            if (!this.state.useFilteredChordsForTemplates) {
+                matchingChords = matchingChords.filter(c => c.difficulty <= maxDifficulty);
             }
 
-            // Fallback: find any chord with this root
+            // Fallback: find any chord with this root if no matches
             if (matchingChords.length === 0) {
-                matchingChords = allChords.filter(c => c.root === root);
+                matchingChords = chordPool.filter(c => c.root === root);
             }
 
             if (matchingChords.length === 0) {
                 return null;
             }
 
-            // Select chord - random or first (easiest)
+            // Select chord - smart selection instead of always picking easiest
             let chord;
-            if (randomize && matchingChords.length > 1) {
+            if (randomize) {
+                // Random from entire pool
                 chord = matchingChords[Math.floor(Math.random() * matchingChords.length)];
             } else {
-                // Sort by difficulty and pick the easiest
+                // Pick from top 30% difficulty range to prefer interesting voicings
                 matchingChords.sort((a, b) => a.difficulty - b.difficulty);
-                chord = matchingChords[0];
+                const topCandidates = matchingChords.slice(0, Math.ceil(matchingChords.length * 0.3));
+                chord = topCandidates[Math.floor(Math.random() * topCandidates.length)];
             }
 
             return {

@@ -612,6 +612,40 @@
                     <button class="btn secondary small" id="random-progression" title="Randomize chords in template">Random</button>
                 </div>
             </div>
+
+            <!-- Template Filters Section -->
+            <div class="template-filters-section">
+                <button class="template-filters-toggle" id="template-filters-toggle">
+                    Template Filters <span class="toggle-icon">▼</span>
+                </button>
+
+                <div class="template-filters-content" id="template-filters-content" style="display: none;">
+                    <!-- Filter Source -->
+                    <div class="filter-row">
+                        <label class="filter-group-label">Filter Source:</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="template-filter-source" value="main" id="template-source-main">
+                                Use Main Filters (from chord display)
+                            </label>
+                            <label>
+                                <input type="radio" name="template-filter-source" value="preset" id="template-source-preset" checked>
+                                Custom Preset:
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Preset Selection (nested radio group) -->
+                    <div class="filter-row preset-options" id="preset-options">
+                        <div class="radio-group preset-radios">
+                            <label><input type="radio" name="template-preset" value="simple"> Simple</label>
+                            <label><input type="radio" name="template-preset" value="colorful" checked> Colorful</label>
+                            <label><input type="radio" name="template-preset" value="advanced"> Advanced</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="progression-slots" id="progression-slots">
                 <div class="progression-slot empty" data-index="0">
                     <span class="slot-placeholder">+</span>

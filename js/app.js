@@ -3641,8 +3641,11 @@ const App = {
             }
 
             // Build tab for this chord
+            // Note: chord.frets is ordered low to high (E, A, D, G, B, e)
+            // but we display high to low (e, B, G, D, A, E), so reverse
+            const reversedFrets = [...chord.frets].reverse();
             for (let stringIdx = 0; stringIdx < 6; stringIdx++) {
-                const fret = chord.frets[stringIdx];
+                const fret = reversedFrets[stringIdx];
                 if (fret === -1) {
                     strings[stringIdx].push('--');
                 } else {

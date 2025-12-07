@@ -3548,12 +3548,52 @@ const App = {
         } else if (length === 'medium') {
             filteredTemplates = templates.filter(t => t.degrees.length >= 5 && t.degrees.length <= 8);
         } else {
-            filteredTemplates = templates.filter(t => t.degrees.length >= 8);
+            filteredTemplates = templates.filter(t => t.degrees.length >= 9);
         }
 
-        // Fallback if no templates match length
+        // If no templates match length, use built-in templates that support longer progressions
         if (filteredTemplates.length === 0) {
-            filteredTemplates = templates;
+            const mappings = this.getInspireMeMappings();
+            const moodMap = mappings[mood] || mappings.happy;
+
+            let templateId;
+            if (length === 'medium') {
+                // Use built-in 8-bar templates
+                const mediumTemplates = ['i-v-vi-iii-iv-i-iv-v', '8-bar-blues', 'i-bii-ii-v'];
+                const available = mediumTemplates.filter(t => this.getProgressionTemplates()[t]);
+                templateId = available.length > 0
+                    ? available[Math.floor(Math.random() * available.length)]
+                    : 'i-v-vi-iii-iv-i-iv-v';
+            } else {
+                // Use built-in 12-bar blues for long
+                templateId = '12-bar-blues';
+            }
+
+            const key = keyMode === 'random' ? moodMap.keys[Math.floor(Math.random() * moodMap.keys.length)] : selectedKey;
+            this.state.currentKey = key.replace('m', '');
+            const keyDropdown = document.getElementById('key-select');
+            if (keyDropdown) keyDropdown.value = this.state.currentKey;
+
+            const isMinorKey = key.endsWith('m');
+            this.state.progressionKeyHint = {
+                note: key.replace('m', ''),
+                mode: isMinorKey ? 'minor' : 'major'
+            };
+
+            // Store inspired progression info
+            const builtInTemplate = this.getProgressionTemplates()[templateId];
+            this.state.inspiredProgressionInfo = {
+                name: builtInTemplate?.name || templateId,
+                description: 'Built-in template',
+                mood: mood,
+                key: key,
+                useCurated: false,
+                length: length
+            };
+
+            this.loadTemplate(templateId, false);
+            this.updateProgressionInfoDisplay();
+            return { key };
         }
 
         // Pick a random template

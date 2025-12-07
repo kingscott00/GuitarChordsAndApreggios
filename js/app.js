@@ -3805,6 +3805,24 @@ const App = {
                 minorDegrees: [6],
                 category: 'pop'
             },
+            'i-iii-vi-iv': {
+                name: 'I - iii - vi - IV (Modern Pop)',
+                degrees: [1, 3, 6, 4],
+                minorDegrees: [3, 6],
+                category: 'pop'
+            },
+            'vi-v-iv-v': {
+                name: 'vi - V - IV - V (Emotional Buildup)',
+                degrees: [6, 5, 4, 5],
+                minorDegrees: [6],
+                category: 'pop'
+            },
+            'vi-iv-v-i': {
+                name: 'vi - IV - V - I (Alternative)',
+                degrees: [6, 4, 5, 1],
+                minorDegrees: [6],
+                category: 'pop'
+            },
             // Country/Folk Templates
             'i-iv-i-v': {
                 name: 'I - IV - I - V (Country)',
@@ -3835,6 +3853,24 @@ const App = {
                 minorDegrees: [3, 6, 2],
                 category: 'jazz'
             },
+            'i-vi-ii-v-alt': {
+                name: 'I - vi - ii - V (Jazz Turnaround Alt)',
+                degrees: [1, 6, 2, 5],
+                minorDegrees: [6, 2],
+                category: 'jazz'
+            },
+            'iii-vi-ii-v-i': {
+                name: 'iii - vi - ii - V - I (Circle Progression)',
+                degrees: [3, 6, 2, 5, 1],
+                minorDegrees: [3, 6, 2],
+                category: 'jazz'
+            },
+            'i-iv-biii-bvi': {
+                name: 'I - IV - ♭III - ♭VI (Coltrane Changes)',
+                degrees: [1, 4, 3, 6],
+                flatDegrees: [3, 6],
+                category: 'jazz'
+            },
             // Blues Templates
             '12-bar-blues': {
                 name: '12-Bar Blues',
@@ -3859,8 +3895,14 @@ const App = {
                 minorDegrees: [3],
                 category: 'rock'
             },
+            'i-bvii-bvi-bvii-rock': {
+                name: 'I - bVII - bVI - bVII (Rock Anthem)',
+                degrees: [1, 7, 6, 7],
+                flatDegrees: [7, 6],
+                category: 'rock'
+            },
             // Modal Templates
-            'i-bvii-bvi-bvii': {
+            'i-bvii-bvi-bvii-aeolian': {
                 name: 'i - bVII - bVI - bVII (Aeolian)',
                 degrees: [1, 7, 6, 7],
                 flatDegrees: [7, 6],
@@ -3891,6 +3933,85 @@ const App = {
                 degrees: [1, 4, 6, 5],
                 minorDegrees: [6],
                 category: 'emotional'
+            },
+            // Lo-fi/Dreamy Templates
+            'i-iii-iv-iv-minor': {
+                name: 'I - iii - IV - iv (Wistful/Dreamy)',
+                degrees: [1, 3, 4, 4],
+                minorDegrees: [3],
+                qualityOverrides: {3: 'minor'}, // 4th slot (index 3) should be minor iv
+                category: 'lofi'
+            },
+            'i-ii-iv-i': {
+                name: 'I - II - IV - I (Suspended/Dreamy)',
+                degrees: [1, 2, 4, 1],
+                category: 'lofi'
+            },
+            // Bossa Nova/Latin Templates
+            'i-bii-ii-v': {
+                name: 'I - ♭II - ii - V (Bossa Turnaround)',
+                degrees: [1, 2, 2, 5],
+                flatDegrees: [2],
+                minorDegrees: [2],
+                category: 'latin'
+            },
+            'i-iv-bvii-bvi-minor': {
+                name: 'i - iv - ♭VII - ♭VI (Minor Bossa)',
+                degrees: [1, 4, 7, 6],
+                flatDegrees: [7, 6],
+                minorDegrees: [1, 4],
+                rootMinor: true,
+                category: 'latin'
+            },
+            // Gospel/R&B Templates
+            'i-iii-iv-i': {
+                name: 'I - iii - IV - I (Gospel/R&B)',
+                degrees: [1, 3, 4, 1],
+                minorDegrees: [3],
+                category: 'gospel'
+            },
+            'i-iv-i-v': {
+                name: 'I - IV - I - V (Gospel Turnaround)',
+                degrees: [1, 4, 1, 5],
+                category: 'gospel'
+            },
+            // Singer-Songwriter Templates
+            'i-v-vi-iii-iv-i-iv-v': {
+                name: 'I - V - vi - iii - IV - I - IV - V (8-Bar Storytelling)',
+                degrees: [1, 5, 6, 3, 4, 1, 4, 5],
+                minorDegrees: [6, 3],
+                category: 'singer-songwriter'
+            },
+            // Metal/Hard Rock Templates
+            'i-bvi-bvii-metal': {
+                name: 'i - ♭VI - ♭VII (Power Progression)',
+                degrees: [1, 6, 7],
+                flatDegrees: [6, 7],
+                minorDegrees: [1],
+                rootMinor: true,
+                category: 'metal'
+            },
+            'i-bvii-bvi-v-phrygian': {
+                name: 'i - ♭VII - ♭VI - V (Phrygian Metal)',
+                degrees: [1, 7, 6, 5],
+                flatDegrees: [7, 6],
+                minorDegrees: [1],
+                rootMinor: true,
+                category: 'metal'
+            },
+            // Descending Bass Templates
+            'i-i7-vi-vi-b6-iv': {
+                name: 'I - I - vi - vi - IV (Descending Bass)',
+                degrees: [1, 1, 6, 6, 4],
+                minorDegrees: [6],
+                category: 'descending'
+            },
+            // Suspended Motion Templates
+            'i-isus4-i-isus2': {
+                name: 'I - Isus4 - I - Isus2 (Sus Motion)',
+                degrees: [1, 1, 1, 1],
+                qualityOverrides: {0: 'major', 1: 'sus4', 2: 'major', 3: 'sus2'},
+                category: 'suspended'
             }
         };
     },
@@ -3975,21 +4096,28 @@ const App = {
             const noteIndex = (degree - 1) % 7;
             const root = scaleNotes[noteIndex];
 
-            // Determine if this degree should be minor
-            // Check template first, then default scale rules
-            let isMinor = false;
-            if (template?.minorDegrees?.includes(degree)) {
-                isMinor = true;
-            } else if (template?.rootMinor && degree === 1) {
-                isMinor = true;
+            // Check for quality override for this specific slot
+            let allowedQualities;
+            if (template?.qualityOverrides && template.qualityOverrides.hasOwnProperty(idx)) {
+                // Use specific quality override for this slot
+                allowedQualities = [template.qualityOverrides[idx]];
             } else {
-                // Default: in major scale ii, iii, vi are minor
-                const defaultMinorDegrees = [2, 3, 6];
-                isMinor = defaultMinorDegrees.includes(degree);
-            }
+                // Determine if this degree should be minor
+                // Check template first, then default scale rules
+                let isMinor = false;
+                if (template?.minorDegrees?.includes(degree)) {
+                    isMinor = true;
+                } else if (template?.rootMinor && degree === 1) {
+                    isMinor = true;
+                } else {
+                    // Default: in major scale ii, iii, vi are minor
+                    const defaultMinorDegrees = [2, 3, 6];
+                    isMinor = defaultMinorDegrees.includes(degree);
+                }
 
-            // Build allowed qualities based on preset
-            const allowedQualities = this.buildAllowedQualities(isMinor, this.state.templatePreset);
+                // Build allowed qualities based on preset
+                allowedQualities = this.buildAllowedQualities(isMinor, this.state.templatePreset);
+            }
 
             // Filter chords by root and allowed qualities
             let matchingChords = chordPool.filter(c =>

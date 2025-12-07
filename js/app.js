@@ -99,7 +99,7 @@ const App = {
         // Settings state
         settings: {
             showTab: false,
-            showFingerInfo: true,
+            showFingerInfo: false,
             showArpeggioTab: false,
             showArpeggioTips: false,
             showAllArpeggioNotes: true,

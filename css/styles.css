@@ -3031,6 +3031,17 @@ h3 { font-size: var(--font-size-lg); }
     font-size: var(--font-size-base);
 }
 
+.progression-inspire-info .progression-theory {
+    font-family: 'Courier New', monospace;
+    font-size: var(--font-size-sm);
+    color: var(--accent-secondary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.5px;
+}
+
 .progression-inspire-info .progression-key {
     color: var(--text-secondary);
     font-size: var(--font-size-sm);

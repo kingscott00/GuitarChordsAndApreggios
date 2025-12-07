@@ -3198,7 +3198,11 @@ const App = {
     initProgressionBuilder() {
         // Template selector
         const templateSelect = document.getElementById('template-select');
-        templateSelect?.addEventListener('change', (e) => this.loadTemplate(e.target.value));
+        templateSelect?.addEventListener('change', (e) => {
+            if (e.target.value) {
+                this.loadTemplate(e.target.value);
+            }
+        });
 
         // Beats per chord selector
         const beatsSelect = document.getElementById('beats-per-chord');
@@ -3357,6 +3361,9 @@ const App = {
             this.renderProgressionSlot(targetSlot, chord);
             targetSlot.classList.remove('selected');
 
+            // Break template since user manually added a chord
+            this.breakTemplate();
+
             // Update Scale Builder
             this.updateScaleBuilder();
         }
@@ -3491,6 +3498,9 @@ const App = {
             slot.innerHTML = '<span class="slot-placeholder">+</span>';
         }
 
+        // Break template since user manually removed a chord
+        this.breakTemplate();
+
         // Update Scale Builder
         this.updateScaleBuilder();
     },
@@ -3505,6 +3515,9 @@ const App = {
         const temp = progression[fromIndex];
         progression[fromIndex] = progression[toIndex];
         progression[toIndex] = temp;
+
+        // Break template since user reordered chords
+        this.breakTemplate();
 
         // Re-render both slots
         this.renderAllProgressionSlots();
@@ -3715,8 +3728,26 @@ const App = {
             }
         });
 
+        // Keep dropdown selected on the loaded template
+        const templateSelect = document.getElementById('template-select');
+        if (templateSelect) {
+            templateSelect.value = templateId;
+        }
+
         // Update Scale Builder after loading template
         this.updateScaleBuilder();
+    },
+
+    /**
+     * Reset template state when user manually modifies progression
+     */
+    breakTemplate() {
+        this.state.progressionTemplate = null;
+        this.state.progressionDegrees = [];
+        const templateSelect = document.getElementById('template-select');
+        if (templateSelect) {
+            templateSelect.value = '';
+        }
     },
 
     /**

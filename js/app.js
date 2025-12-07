@@ -3196,11 +3196,12 @@ const App = {
      * Initialize the progression builder
      */
     initProgressionBuilder() {
-        // Template selector
-        const templateSelect = document.getElementById('template-select');
-        templateSelect?.addEventListener('change', (e) => {
-            if (e.target.value) {
-                this.loadTemplate(e.target.value);
+        // Load Template button
+        document.getElementById('load-template')?.addEventListener('click', () => {
+            const templateSelect = document.getElementById('template-select');
+            const templateId = templateSelect?.value;
+            if (templateId) {
+                this.loadTemplate(templateId);
             }
         });
 
@@ -3224,7 +3225,7 @@ const App = {
         document.getElementById('clear-progression')?.addEventListener('click', () => this.clearProgression());
         document.getElementById('add-slot')?.addEventListener('click', () => this.addProgressionSlot());
         document.getElementById('save-progression')?.addEventListener('click', () => this.promptSaveProgression());
-        document.getElementById('random-progression')?.addEventListener('click', () => this.randomizeProgression());
+        document.getElementById('randomize-progression')?.addEventListener('click', () => this.randomizeProgression());
         document.getElementById('generate-progression-tabs')?.addEventListener('click', () => this.generateProgressionTablature());
 
         // Template filters toggle

@@ -609,7 +609,7 @@
                             <option value="i-iv-vi-v">I - IV - vi - V (Uplifting)</option>
                         </optgroup>
                     </select>
-                    <button class="btn secondary small" id="random-progression" title="Randomize chords in template">Random</button>
+                    <button class="btn secondary small" id="load-template" title="Load selected template">Load</button>
                 </div>
             </div>
 
@@ -687,6 +687,14 @@
                         <rect x="6" y="6" width="12" height="12"></rect>
                     </svg>
                     Stop
+                </button>
+                <button class="btn secondary" id="randomize-progression" title="Re-randomize current template with different chord voicings">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    Randomize
                 </button>
                 <button class="btn secondary" id="clear-progression">Clear</button>
                 <button class="btn secondary" id="add-slot">+ Add Slot</button>

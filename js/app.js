@@ -48,6 +48,14 @@ const App = {
         useFilteredChordsForTemplates: false,  // true = Use Main Filters, false = Custom Preset
         templatePreset: 'colorful',  // 'simple' | 'colorful' | 'advanced'
         template_filtersExpanded: false,  // UI state for collapsible section
+        // Inspire Me settings
+        inspireMeSettings: {
+            mood: 'happy',
+            complexity: 'colorful',
+            length: 'short',
+            keyMode: 'random',
+            selectedKey: 'C'
+        },
         // Practice tools state
         metronome: {
             playing: false,
@@ -130,6 +138,7 @@ const App = {
         this.initVolumeControl();
         this.initSettingsPanel();
         this.initCollapsibleSections();
+        this.initInspireMe();
         this.initArpeggioSequenceBuilder();
         this.initProgressionBuilder();
         this.initScaleBuilder();
@@ -3189,6 +3198,278 @@ const App = {
     },
 
     // ==========================================
+    // INSPIRE ME FEATURE
+    // ==========================================
+
+    /**
+     * Initialize Inspire Me feature
+     */
+    initInspireMe() {
+        const modal = document.getElementById('inspire-me-modal');
+        const openBtn = document.getElementById('inspire-me-btn');
+        const closeBtn = document.getElementById('inspire-me-close');
+        const cancelBtn = document.getElementById('inspire-cancel');
+        const generateBtn = document.getElementById('inspire-generate');
+        const advancedToggle = document.getElementById('inspire-advanced-toggle');
+        const advancedOptions = document.getElementById('inspire-advanced-options');
+        const generateAnotherBtn = document.getElementById('generate-another');
+
+        // Open modal
+        openBtn?.addEventListener('click', () => {
+            this.openInspireMeModal();
+        });
+
+        // Close modal
+        closeBtn?.addEventListener('click', () => {
+            this.closeInspireMeModal();
+        });
+
+        cancelBtn?.addEventListener('click', () => {
+            this.closeInspireMeModal();
+        });
+
+        // Click outside to close
+        modal?.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeInspireMeModal();
+            }
+        });
+
+        // Advanced options toggle
+        advancedToggle?.addEventListener('click', () => {
+            const isExpanded = advancedOptions.style.display === 'block';
+            advancedOptions.style.display = isExpanded ? 'none' : 'block';
+            advancedToggle.classList.toggle('expanded');
+        });
+
+        // Key mode toggle (enable/disable dropdown)
+        document.querySelectorAll('input[name="inspire-key-mode"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const keySelect = document.getElementById('inspire-key-select');
+                keySelect.disabled = (e.target.value === 'random');
+            });
+        });
+
+        // Generate button
+        generateBtn?.addEventListener('click', () => {
+            this.generateInspiredProgression();
+        });
+
+        // Generate Another button
+        generateAnotherBtn?.addEventListener('click', () => {
+            this.openInspireMeModal();
+        });
+    },
+
+    /**
+     * Get mood-to-progression mappings
+     */
+    getInspireMeMappings() {
+        return {
+            happy: {
+                templates: ['i-v-vi-iv', 'i-iv-v-i', 'i-v-iv-i'],
+                keys: ['C', 'G', 'D', 'A'],
+                defaultPreset: 'colorful'
+            },
+            sad: {
+                templates: ['vi-iv-i-v', 'i-bvii-bvi-bvii-aeolian', 'vi-iv-v-i'],
+                keys: ['Am', 'Em', 'Dm'],
+                defaultPreset: 'colorful'
+            },
+            dreamy: {
+                templates: ['i-iii-iv-iv-minor', 'i-ii-iv-i', 'i-isus4-i-isus2'],
+                keys: ['C', 'D', 'E', 'A'],
+                defaultPreset: 'advanced'
+            },
+            dark: {
+                templates: ['i-bvii-bvi-bvii-aeolian', 'i-bvii-bvi-v-phrygian', 'i-iv-bvii-bvi-minor'],
+                keys: ['Am', 'Dm', 'Em'],
+                defaultPreset: 'advanced'
+            },
+            energetic: {
+                templates: ['i-bvii-iv', 'i-bvii-bvi-bvii-rock', 'i-iii-iv'],
+                keys: ['E', 'A', 'D', 'G'],
+                defaultPreset: 'colorful'
+            },
+            jazzy: {
+                templates: ['ii-v-i', 'i-vi-ii-v-alt', 'iii-vi-ii-v-i'],
+                keys: ['C', 'F', 'G', 'D'],
+                defaultPreset: 'advanced'
+            },
+            chill: {
+                templates: ['i-bii-ii-v', 'i-v-i-iv', 'i-iii-iv-i'],
+                keys: ['C', 'G', 'D'],
+                defaultPreset: 'colorful'
+            }
+        };
+    },
+
+    /**
+     * Open Inspire Me modal
+     */
+    openInspireMeModal() {
+        const modal = document.getElementById('inspire-me-modal');
+
+        // Restore previous settings
+        const settings = this.state.inspireMeSettings;
+        document.querySelector(`input[name="inspire-mood"][value="${settings.mood}"]`).checked = true;
+        document.querySelector(`input[name="inspire-complexity"][value="${settings.complexity}"]`).checked = true;
+        document.querySelector(`input[name="inspire-length"][value="${settings.length}"]`).checked = true;
+        document.querySelector(`input[name="inspire-key-mode"][value="${settings.keyMode}"]`).checked = true;
+
+        const keySelect = document.getElementById('inspire-key-select');
+        keySelect.value = settings.selectedKey;
+        keySelect.disabled = (settings.keyMode === 'random');
+
+        modal.classList.add('active');
+    },
+
+    /**
+     * Close Inspire Me modal
+     */
+    closeInspireMeModal() {
+        const modal = document.getElementById('inspire-me-modal');
+        modal.classList.remove('active');
+    },
+
+    /**
+     * Generate inspired progression
+     */
+    generateInspiredProgression() {
+        // Get selected values
+        const mood = document.querySelector('input[name="inspire-mood"]:checked')?.value || 'happy';
+        const complexity = document.querySelector('input[name="inspire-complexity"]:checked')?.value || 'colorful';
+        const length = document.querySelector('input[name="inspire-length"]:checked')?.value || 'short';
+        const keyMode = document.querySelector('input[name="inspire-key-mode"]:checked')?.value || 'random';
+        const selectedKey = document.getElementById('inspire-key-select')?.value || 'C';
+
+        // Save settings
+        this.state.inspireMeSettings = {
+            mood,
+            complexity,
+            length,
+            keyMode,
+            selectedKey
+        };
+
+        // Get mood mapping
+        const mappings = this.getInspireMeMappings();
+        const moodMap = mappings[mood] || mappings.happy;
+
+        // Select key
+        let key;
+        if (keyMode === 'random') {
+            key = moodMap.keys[Math.floor(Math.random() * moodMap.keys.length)];
+        } else {
+            key = selectedKey;
+        }
+
+        // Update current key
+        this.state.currentKey = key.replace('m', ''); // Remove 'm' suffix for minor keys
+        const keyDropdown = document.getElementById('key-select');
+        if (keyDropdown) {
+            keyDropdown.value = this.state.currentKey;
+        }
+
+        // Select template based on length
+        let templateId;
+        if (length === 'short') {
+            // Pick random from available templates
+            templateId = moodMap.templates[Math.floor(Math.random() * moodMap.templates.length)];
+        } else if (length === 'medium') {
+            // Prefer 8-chord templates or repeat
+            const mediumTemplates = ['i-v-vi-iii-iv-i-iv-v', 'i-bii-ii-v', '8-bar-blues'];
+            const available = mediumTemplates.filter(t => this.getProgressionTemplates()[t]);
+            templateId = available.length > 0
+                ? available[Math.floor(Math.random() * available.length)]
+                : moodMap.templates[Math.floor(Math.random() * moodMap.templates.length)];
+        } else { // long
+            // Use 12-bar or repeat template
+            templateId = '12-bar-blues';
+        }
+
+        // Set template preset based on complexity (override mood default if specified)
+        this.state.templatePreset = complexity;
+
+        // Load the template
+        this.loadTemplate(templateId, false);
+
+        // Close modal
+        this.closeInspireMeModal();
+
+        // Auto-focus on generated content: collapse non-essential sections, expand progression/scale builders
+
+        // Collapse chords section if expanded
+        const chordsToggle = document.getElementById('chords-toggle');
+        if (chordsToggle?.classList.contains('expanded')) {
+            this.toggleChords();
+        }
+
+        // Collapse arpeggios section if expanded
+        if (this.state.arpeggiosExpanded) {
+            this.toggleArpeggios();
+        }
+
+        // Collapse practice tools if not already collapsed
+        const practiceTools = document.getElementById('practice-tools');
+        if (practiceTools && !practiceTools.classList.contains('collapsed')) {
+            this.toggleSection('practice-tools');
+        }
+
+        // Expand progression builder if collapsed
+        const progressionBuilder = document.getElementById('progression-builder');
+        if (progressionBuilder?.classList.contains('collapsed')) {
+            this.toggleSection('progression-builder');
+        }
+
+        // Expand scale builder if collapsed
+        const scaleBuilder = document.getElementById('scale-builder');
+        if (scaleBuilder?.classList.contains('collapsed')) {
+            this.toggleSection('scale-builder');
+        }
+
+        // Scroll to progression builder
+        const progressionSection = document.querySelector('.progression-builder-section');
+        if (progressionSection) {
+            progressionSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Show success message
+        setTimeout(() => {
+            this.showNotification(`✨ Generated ${mood} progression in ${key}!`);
+        }, 500);
+    },
+
+    /**
+     * Show notification message
+     */
+    showNotification(message) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = 'inspire-notification';
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10001;
+            animation: slideInRight 0.3s ease;
+        `;
+
+        document.body.appendChild(notification);
+
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    },
+
     // PROGRESSION BUILDER METHODS
     // ==========================================
 
@@ -3388,9 +3669,13 @@ const App = {
         if (availableChords.length > 1) {
             dropdownHTML = `
                 <select class="slot-chord-select" data-index="${slotIndex}">
-                    ${availableChords.map(c =>
-                        `<option value="${c.id}" ${c.id === chord.id ? 'selected' : ''}>${c.name} (${c.symbol})</option>`
-                    ).join('')}
+                    ${availableChords.map(c => {
+                        const voicingDesc = this.getVoicingDescription(c);
+                        const label = voicingDesc
+                            ? `${c.name} (${c.symbol}) - ${voicingDesc}`
+                            : `${c.name} (${c.symbol})`;
+                        return `<option value="${c.id}" ${c.id === chord.id ? 'selected' : ''}>${label}</option>`;
+                    }).join('')}
                 </select>
             `;
         }
@@ -3418,6 +3703,45 @@ const App = {
                 this.changeProgressionChord(slotIndex, e.target.value);
             });
         }
+    },
+
+    /**
+     * Get voicing description for a chord
+     */
+    getVoicingDescription(chord) {
+        if (!chord) return '';
+
+        // Check if it's an open chord
+        if (chord.categories?.isOpenChord) {
+            return 'Open Position';
+        }
+
+        // For barre chords or positioned chords
+        if (chord.position) {
+            const positionSuffix = this.getPositionSuffix(chord.position);
+            return `${chord.position}${positionSuffix} Position`;
+        }
+
+        // Fallback: calculate from frets
+        const minFret = Math.min(...chord.frets.filter(f => f > 0));
+        if (minFret > 0 && minFret < 20) {
+            const positionSuffix = this.getPositionSuffix(minFret);
+            return `${minFret}${positionSuffix} Position`;
+        }
+
+        return '';
+    },
+
+    /**
+     * Get ordinal suffix for position number
+     */
+    getPositionSuffix(num) {
+        const j = num % 10;
+        const k = num % 100;
+        if (j === 1 && k !== 11) return 'st';
+        if (j === 2 && k !== 12) return 'nd';
+        if (j === 3 && k !== 13) return 'rd';
+        return 'th';
     },
 
     /**

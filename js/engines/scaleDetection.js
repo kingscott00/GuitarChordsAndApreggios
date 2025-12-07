@@ -7,9 +7,10 @@ const ScaleDetection = {
     /**
      * Analyze a chord progression and suggest scales
      * @param {Array} chords - Array of chord objects from progression
+     * @param {Object} keyHint - Optional hint about the intended key (e.g., {note: 'E', mode: 'major'})
      * @returns {Object} - Suggested scales and per-chord modes
      */
-    analyzeProgression(chords) {
+    analyzeProgression(chords, keyHint = null) {
         if (!chords || chords.length === 0) {
             return {
                 mainScale: null,
@@ -23,7 +24,7 @@ const ScaleDetection = {
         const chordData = chords.map(chord => this.parseChord(chord));
 
         // Try to detect the key
-        const detectedKey = this.detectKey(chordData);
+        const detectedKey = this.detectKey(chordData, keyHint);
 
         // Get main scale suggestion
         const mainScale = this.getMainScale(detectedKey, chordData);
@@ -70,8 +71,10 @@ const ScaleDetection = {
 
     /**
      * Detect the key from chord progression
+     * @param {Array} chordData - Parsed chord data
+     * @param {Object} keyHint - Optional hint about intended key {note: 'E', mode: 'major'}
      */
-    detectKey(chordData) {
+    detectKey(chordData, keyHint = null) {
         // Try each possible key and see which fits best
         const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         let bestKey = { note: 'C', mode: 'major', score: 0 };
@@ -79,7 +82,12 @@ const ScaleDetection = {
         for (const keyNote of notes) {
             // Try major key
             const majorChords = this.getDiatonicChords(keyNote, 'major');
-            const majorScore = this.scoreKeyFit(chordData, majorChords);
+            let majorScore = this.scoreKeyFit(chordData, majorChords);
+
+            // Apply bonus if this matches the key hint
+            if (keyHint && keyHint.note === keyNote && keyHint.mode === 'major') {
+                majorScore += 100; // Strong bias toward hinted key
+            }
 
             if (majorScore > bestKey.score) {
                 bestKey = { note: keyNote, mode: 'major', score: majorScore };
@@ -87,7 +95,12 @@ const ScaleDetection = {
 
             // Try minor key
             const minorChords = this.getDiatonicChords(keyNote, 'minor');
-            const minorScore = this.scoreKeyFit(chordData, minorChords);
+            let minorScore = this.scoreKeyFit(chordData, minorChords);
+
+            // Apply bonus if this matches the key hint
+            if (keyHint && keyHint.note === keyNote && keyHint.mode === 'minor') {
+                minorScore += 100; // Strong bias toward hinted key
+            }
 
             if (minorScore > bestKey.score) {
                 bestKey = { note: keyNote, mode: 'minor', score: minorScore };

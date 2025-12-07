@@ -38,6 +38,7 @@ const App = {
         progression: [],
         progressionTemplate: null, // Currently loaded template
         progressionDegrees: [], // Roman numeral degrees for each slot
+        progressionKeyHint: null, // Optional hint about intended key {note: 'E', mode: 'major'} for scale detection
         progressionPlaying: false,
         progressionPlaybackIndex: 0,
         progressionPlaybackTimer: null,
@@ -3391,6 +3392,14 @@ const App = {
         // Set template preset based on complexity (override mood default if specified)
         this.state.templatePreset = complexity;
 
+        // Set key hint for scale detection (to ensure scales match the intended tonality)
+        const isMinorKey = key.endsWith('m');
+        const keyNote = key.replace('m', ''); // Remove 'm' suffix if present
+        this.state.progressionKeyHint = {
+            note: keyNote,
+            mode: isMinorKey ? 'minor' : 'major'
+        };
+
         // Load the template
         this.loadTemplate(templateId, false);
 
@@ -3644,6 +3653,9 @@ const App = {
 
             // Break template since user manually added a chord
             this.breakTemplate();
+
+            // Clear key hint since user is manually editing
+            this.state.progressionKeyHint = null;
 
             // Update Scale Builder
             this.updateScaleBuilder();
@@ -3909,6 +3921,7 @@ const App = {
     clearProgression() {
         this.stopProgression();
         this.state.progression = [];
+        this.state.progressionKeyHint = null; // Clear key hint
 
         const slotsContainer = document.getElementById('progression-slots');
         slotsContainer.innerHTML = '';
@@ -6872,8 +6885,8 @@ const App = {
         // Hide empty state
         document.getElementById('scale-empty-state')?.classList.add('hidden');
 
-        // Analyze progression
-        const analysis = ScaleDetection.analyzeProgression(this.state.progression);
+        // Analyze progression with optional key hint
+        const analysis = ScaleDetection.analyzeProgression(this.state.progression, this.state.progressionKeyHint);
 
         // Preserve user's scale type preference if they had selected one
         const previousScaleType = this.state.scaleBuilder.currentScale?.type;

@@ -3196,10 +3196,9 @@ const App = {
      * Initialize the progression builder
      */
     initProgressionBuilder() {
-        // Load Template button
-        document.getElementById('load-template')?.addEventListener('click', () => {
-            const templateSelect = document.getElementById('template-select');
-            const templateId = templateSelect?.value;
+        // Template dropdown - auto-load on selection
+        document.getElementById('template-select')?.addEventListener('change', (e) => {
+            const templateId = e.target.value;
             if (templateId) {
                 this.loadTemplate(templateId);
             }

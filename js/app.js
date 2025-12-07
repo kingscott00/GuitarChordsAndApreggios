@@ -3388,9 +3388,13 @@ const App = {
         if (availableChords.length > 1) {
             dropdownHTML = `
                 <select class="slot-chord-select" data-index="${slotIndex}">
-                    ${availableChords.map(c =>
-                        `<option value="${c.id}" ${c.id === chord.id ? 'selected' : ''}>${c.name} (${c.symbol})</option>`
-                    ).join('')}
+                    ${availableChords.map(c => {
+                        const voicingDesc = this.getVoicingDescription(c);
+                        const label = voicingDesc
+                            ? `${c.name} (${c.symbol}) - ${voicingDesc}`
+                            : `${c.name} (${c.symbol})`;
+                        return `<option value="${c.id}" ${c.id === chord.id ? 'selected' : ''}>${label}</option>`;
+                    }).join('')}
                 </select>
             `;
         }
@@ -3418,6 +3422,45 @@ const App = {
                 this.changeProgressionChord(slotIndex, e.target.value);
             });
         }
+    },
+
+    /**
+     * Get voicing description for a chord
+     */
+    getVoicingDescription(chord) {
+        if (!chord) return '';
+
+        // Check if it's an open chord
+        if (chord.categories?.isOpenChord) {
+            return 'Open Position';
+        }
+
+        // For barre chords or positioned chords
+        if (chord.position) {
+            const positionSuffix = this.getPositionSuffix(chord.position);
+            return `${chord.position}${positionSuffix} Position`;
+        }
+
+        // Fallback: calculate from frets
+        const minFret = Math.min(...chord.frets.filter(f => f > 0));
+        if (minFret > 0 && minFret < 20) {
+            const positionSuffix = this.getPositionSuffix(minFret);
+            return `${minFret}${positionSuffix} Position`;
+        }
+
+        return '';
+    },
+
+    /**
+     * Get ordinal suffix for position number
+     */
+    getPositionSuffix(num) {
+        const j = num % 10;
+        const k = num % 100;
+        if (j === 1 && k !== 11) return 'st';
+        if (j === 2 && k !== 12) return 'nd';
+        if (j === 3 && k !== 13) return 'rd';
+        return 'th';
     },
 
     /**

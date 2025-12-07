@@ -39,6 +39,7 @@ const App = {
         progressionTemplate: null, // Currently loaded template
         progressionDegrees: [], // Roman numeral degrees for each slot
         progressionKeyHint: null, // Optional hint about intended key {note: 'E', mode: 'major'} for scale detection
+        inspiredProgressionInfo: null, // Info about Inspire Me generated progression {name, mood, key, useCurated}
         progressionPlaying: false,
         progressionPlaybackIndex: 0,
         progressionPlaybackTimer: null,
@@ -3371,8 +3372,8 @@ const App = {
 
         // Branch: Curated vs Generated progressions
         if (useCurated && typeof CuratedProgressions !== 'undefined') {
-            // Use curated progression database
-            const result = this.loadCuratedProgression(mood, keyMode, selectedKey);
+            // Use curated progression database (pass length for filtering)
+            const result = this.loadCuratedProgression(mood, keyMode, selectedKey, length);
             key = result.key;
             progressionName = result.name ? ` - "${result.name}"` : '';
         } else {
@@ -3396,18 +3397,41 @@ const App = {
     /**
      * Load a curated progression from the database
      */
-    loadCuratedProgression(mood, keyMode, selectedKey) {
+    loadCuratedProgression(mood, keyMode, selectedKey, length = 'short') {
         // Get curated progressions for this mood
         const progressions = getCuratedProgressionsForMood(mood);
         if (!progressions || progressions.length === 0) {
             // Fallback to generated if no curated available
-            return this.loadGeneratedProgression(mood, 'colorful', 'short', keyMode, selectedKey);
+            return this.loadGeneratedProgression(mood, 'colorful', length, keyMode, selectedKey);
         }
 
-        // Filter by key if user selected a specific key
+        // Filter by length preference
         let availableProgressions = progressions;
+        const lengthRanges = {
+            'short': { min: 1, max: 4 },
+            'medium': { min: 5, max: 8 },
+            'long': { min: 9, max: 20 }
+        };
+        const range = lengthRanges[length] || lengthRanges.short;
+
+        let lengthFiltered = progressions.filter(p =>
+            p.chordIds.length >= range.min && p.chordIds.length <= range.max
+        );
+
+        // If no progressions match length, try to find closest or fall back to generated
+        if (lengthFiltered.length === 0) {
+            if (length === 'medium' || length === 'long') {
+                // Fall back to generated mode for medium/long since we have few curated long progressions
+                return this.loadGeneratedProgression(mood, this.state.templatePreset, length, keyMode, selectedKey);
+            }
+            lengthFiltered = progressions; // Use all for short
+        }
+
+        availableProgressions = lengthFiltered;
+
+        // Filter by key if user selected a specific key
         if (keyMode === 'custom' && selectedKey) {
-            const keyMatches = progressions.filter(p => p.key === selectedKey || p.key === selectedKey.replace('m', ''));
+            const keyMatches = availableProgressions.filter(p => p.key === selectedKey || p.key === selectedKey.replace('m', ''));
             if (keyMatches.length > 0) {
                 availableProgressions = keyMatches;
             }
@@ -3434,6 +3458,16 @@ const App = {
         // Clear current progression
         this.clearProgression();
 
+        // Store inspired progression info for Randomize and display
+        this.state.inspiredProgressionInfo = {
+            name: progression.name,
+            description: progression.description,
+            mood: mood,
+            key: key,
+            useCurated: true,
+            length: length
+        };
+
         // Load the specific chord voicings
         progression.chordIds.forEach((chordId, index) => {
             const chord = getChordById(chordId);
@@ -3458,6 +3492,9 @@ const App = {
 
         // Update Scale Builder
         this.updateScaleBuilder();
+
+        // Update the progression info display
+        this.updateProgressionInfoDisplay();
 
         return { key, name: progression.name };
     },
@@ -3549,6 +3586,17 @@ const App = {
         // Clear current progression
         this.clearProgression();
 
+        // Store inspired progression info for Randomize and display
+        this.state.inspiredProgressionInfo = {
+            name: template.name || template.description,
+            description: template.description,
+            mood: mood,
+            key: key,
+            useCurated: false,
+            length: length,
+            templateId: template.id
+        };
+
         // Get chords with voice leading
         const chords = this.getChordsForKeyWithVoiceLeading(key.replace('m', ''), template);
 
@@ -3573,6 +3621,9 @@ const App = {
 
         // Update Scale Builder
         this.updateScaleBuilder();
+
+        // Update the progression info display
+        this.updateProgressionInfoDisplay();
 
         return { key };
     },
@@ -3753,6 +3804,46 @@ const App = {
         if (progressionSection) {
             progressionSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+    },
+
+    /**
+     * Update the progression info display (shows Inspire Me name/badge)
+     */
+    updateProgressionInfoDisplay() {
+        const infoContainer = document.getElementById('progression-inspire-info');
+        if (!infoContainer) return;
+
+        const info = this.state.inspiredProgressionInfo;
+
+        if (!info) {
+            // Hide the display
+            infoContainer.classList.add('hidden');
+            infoContainer.innerHTML = '';
+            return;
+        }
+
+        // Show the display with progression info
+        infoContainer.classList.remove('hidden');
+
+        const moodEmojis = {
+            happy: '😊',
+            sad: '😢',
+            dreamy: '✨',
+            dark: '🌑',
+            energetic: '⚡',
+            jazzy: '🎷',
+            chill: '🌊'
+        };
+
+        const emoji = moodEmojis[info.mood] || '🎵';
+        const badge = info.useCurated ? 'Curated' : 'Generated';
+        const badgeClass = info.useCurated ? 'curated' : 'generated';
+
+        infoContainer.innerHTML = `
+            <span class="inspire-badge ${badgeClass}">✨ Inspire Me</span>
+            <span class="progression-name">${emoji} ${info.name || 'Custom Progression'}</span>
+            <span class="progression-key">Key: ${info.key}</span>
+        `;
     },
 
     /**
@@ -4254,6 +4345,10 @@ const App = {
         // Hide tablature
         document.getElementById('progression-tablature')?.classList.add('hidden');
 
+        // Clear inspired progression info
+        this.state.inspiredProgressionInfo = null;
+        this.updateProgressionInfoDisplay();
+
         // Update Scale Builder
         this.updateScaleBuilder();
     },
@@ -4395,10 +4490,12 @@ const App = {
     breakTemplate() {
         this.state.progressionTemplate = null;
         this.state.progressionDegrees = [];
+        this.state.inspiredProgressionInfo = null;  // Clear Inspire Me info when user modifies
         const templateSelect = document.getElementById('template-select');
         if (templateSelect) {
             templateSelect.value = '';
         }
+        this.updateProgressionInfoDisplay();
     },
 
     /**
@@ -4416,6 +4513,22 @@ const App = {
      * Randomize progression with current template
      */
     randomizeProgression() {
+        // Check if this was an Inspire Me progression
+        if (this.state.inspiredProgressionInfo) {
+            const info = this.state.inspiredProgressionInfo;
+            const settings = this.state.inspireMeSettings;
+
+            if (info.useCurated) {
+                // Regenerate a new curated progression with same mood/settings
+                this.loadCuratedProgression(info.mood, settings.keyMode, settings.selectedKey, info.length);
+            } else {
+                // Regenerate a generated progression with same mood/settings
+                this.loadGeneratedProgression(info.mood, settings.complexity, info.length, settings.keyMode, settings.selectedKey);
+            }
+            return;
+        }
+
+        // Fall back to template-based randomization
         const templateId = this.state.progressionTemplate || document.getElementById('template-select')?.value;
         if (templateId) {
             this.loadTemplate(templateId, true);

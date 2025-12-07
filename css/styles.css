@@ -2996,6 +2996,49 @@ h3 { font-size: var(--font-size-lg); }
     color: var(--text-secondary);
 }
 
+/* Progression Inspire Me Info Display */
+.progression-inspire-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: var(--radius-md);
+    flex-wrap: wrap;
+}
+
+.progression-inspire-info.hidden {
+    display: none;
+}
+
+.progression-inspire-info .inspire-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+}
+
+.progression-inspire-info .progression-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+}
+
+.progression-inspire-info .progression-key {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
 /* Advanced Options Toggle */
 .advanced-toggle {
     width: 100%;

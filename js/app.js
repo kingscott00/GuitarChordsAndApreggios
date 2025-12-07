@@ -48,6 +48,7 @@ const App = {
         // Template filter settings
         useFilteredChordsForTemplates: false,  // true = Use Main Filters, false = Custom Preset
         templatePreset: 'colorful',  // 'simple' | 'colorful' | 'advanced'
+        preferFullVoicings: true,  // Filter to 4+ string voicings (enabled by default)
         template_filtersExpanded: false,  // UI state for collapsible section
         // Inspire Me settings
         inspireMeSettings: {
@@ -3556,6 +3557,11 @@ const App = {
             });
         });
 
+        // Prefer full voicings checkbox
+        document.getElementById('prefer-full-voicings')?.addEventListener('change', (e) => {
+            this.state.preferFullVoicings = e.target.checked;
+        });
+
         // Initialize slot listeners
         this.initProgressionSlots();
     },
@@ -4404,6 +4410,17 @@ const App = {
     },
 
     /**
+     * Count the number of strings used in a chord voicing
+     * @param {Object} chord - Chord object with frets array
+     * @returns {number} - Number of strings (non-muted)
+     */
+    countChordStrings(chord) {
+        if (!chord || !chord.frets) return 0;
+        // Count strings where fret is not -1 (not muted)
+        return chord.frets.filter(fret => fret !== -1).length;
+    },
+
+    /**
      * Get chords for a key based on scale degrees
      */
     getChordsForKey(key, degrees, template = null, randomize = false) {
@@ -4467,6 +4484,15 @@ const App = {
             // Apply difficulty filter (only when using presets, not when using main filters)
             if (!this.state.useFilteredChordsForTemplates) {
                 matchingChords = matchingChords.filter(c => c.difficulty <= maxDifficulty);
+            }
+
+            // Apply string count filter if "Prefer full voicings" is enabled
+            if (this.state.preferFullVoicings) {
+                const fullVoicings = matchingChords.filter(c => this.countChordStrings(c) >= 4);
+                // Only apply filter if we have full voicings available
+                if (fullVoicings.length > 0) {
+                    matchingChords = fullVoicings;
+                }
             }
 
             // Fallback: find any chord with this root if no matches

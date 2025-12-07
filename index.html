@@ -571,6 +571,11 @@
                 </svg>
             </button>
             <div class="section-content">
+            <!-- Inspire Me Progression Info Display -->
+            <div class="progression-inspire-info hidden" id="progression-inspire-info">
+                <!-- Populated by JavaScript when Inspire Me generates a progression -->
+            </div>
+
             <div class="progression-header">
                 <div class="progression-templates">
                     <label for="template-select">Templates:</label>
@@ -1146,6 +1151,19 @@
                     </div>
                 </div>
 
+                <!-- Curated Progressions Toggle -->
+                <div class="modal-section">
+                    <div class="curated-toggle-group">
+                        <label class="curated-toggle-label">
+                            <input type="checkbox" id="inspire-use-curated" checked>
+                            <span class="curated-toggle-text">
+                                <strong>Use curated progressions</strong>
+                                <small>Hand-picked voicings that sound great together</small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Advanced Options (Collapsible) -->
                 <div class="modal-section">
                     <button class="advanced-toggle" id="inspire-advanced-toggle">
@@ -1232,6 +1250,9 @@
         </div>
     </div>
 
+    <script src="js/data/progressionTemplates.js"></script>
+    <script src="js/data/curatedProgressions.js"></script>
+    <script src="js/utils/voiceLeading.js"></script>
     <script src="js/engines/selectionEngine.js"></script>
     <script src="js/engines/scaleDetection.js"></script>
     <script src="js/renderers/chordRenderer.js"></script>

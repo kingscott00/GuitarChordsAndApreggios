@@ -86,10 +86,15 @@ const ProgressionTemplates = {
         { id: 'dreamy-13', name: 'Dream Logic', degrees: [1, 7, 4, 1], flatDegrees: [7], description: 'Surreal feeling' },
         { id: 'dreamy-14', name: 'Twilight', degrees: [1, 4, 6, 5], minorDegrees: [6], description: 'Magic hour' },
         { id: 'dreamy-15', name: 'Ocean', degrees: [1, 4, 1, 5], description: 'Wave-like motion' },
-        // 8-bar extended templates for Medium length
-        { id: 'dreamy-16', name: 'Starfall', degrees: [1, 3, 4, 1, 6, 4, 5, 1], minorDegrees: [3, 6], description: '8-bar celestial drift' },
-        { id: 'dreamy-17', name: 'Endless Sky', degrees: [1, 4, 6, 4, 1, 5, 4, 1], minorDegrees: [6], description: '8-bar expansive atmosphere' },
-        { id: 'dreamy-18', name: 'Moonbeam', degrees: [1, 6, 4, 5, 1, 3, 4, 1], minorDegrees: [6, 3], description: '8-bar ethereal glow' }
+        // 5-6 chord flowing templates for Medium length (dreamy works well with odd/asymmetric lengths)
+        { id: 'dreamy-16', name: 'Drifting', degrees: [1, 3, 4, 5, 1], minorDegrees: [3], description: '5-chord floating' },
+        { id: 'dreamy-17', name: 'Soft Glow', degrees: [1, 6, 4, 5, 1, 4], minorDegrees: [6], description: '6-chord gentle cycle' },
+        { id: 'dreamy-18', name: 'Vapor', degrees: [1, 4, 6, 4, 1], minorDegrees: [6], description: '5-chord misty loop' },
+        { id: 'dreamy-19', name: 'Lullaby', degrees: [1, 6, 4, 1, 5, 1], minorDegrees: [6], description: '6-chord soothing' },
+        // 8+ chord extended templates for Long length
+        { id: 'dreamy-20', name: 'Starfall', degrees: [1, 3, 4, 1, 6, 4, 5, 1], minorDegrees: [3, 6], description: '8-bar celestial drift' },
+        { id: 'dreamy-21', name: 'Endless Sky', degrees: [1, 4, 6, 4, 1, 5, 4, 1], minorDegrees: [6], description: '8-bar expansive atmosphere' },
+        { id: 'dreamy-22', name: 'Moonbeam', degrees: [1, 6, 4, 5, 1, 3, 4, 1], minorDegrees: [6, 3], description: '8-bar ethereal glow' }
     ],
 
     // ==========================================

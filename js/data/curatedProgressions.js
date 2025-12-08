@@ -108,7 +108,7 @@ const CuratedProgressions = {
             chordIds: ['cmaj7_open', 'fmaj7_open', 'em7_open', 'am7_open'],
             tags: ['neo-soul', 'smooth', 'warm']
         },
-        // Extended progressions
+        // Extended progressions (8 chords for Medium length)
         {
             id: 'happy-ext-1',
             name: 'Journey Home',
@@ -116,6 +116,30 @@ const CuratedProgressions = {
             key: 'G',
             chordIds: ['g_major_open', 'd_major_open', 'e_minor_open', 'c_major_open', 'g_major_open', 'd_major_open', 'c_major_open', 'g_major_open'],
             tags: ['extended', 'story', 'folk']
+        },
+        {
+            id: 'happy-ext-2',
+            name: 'Celebration Road',
+            description: '8-bar party anthem',
+            key: 'C',
+            chordIds: ['c_major_open', 'g_major_open', 'a_minor_open', 'f_major_barre', 'c_major_open', 'g_major_open', 'f_major_barre', 'c_major_open'],
+            tags: ['extended', 'anthem', 'pop']
+        },
+        {
+            id: 'happy-ext-3',
+            name: 'Festival Sunrise',
+            description: '8-bar uplifting journey',
+            key: 'D',
+            chordIds: ['d_major_open', 'a_major_open', 'g_major_open', 'd_major_open', 'e_minor_open', 'g_major_open', 'a_major_open', 'd_major_open'],
+            tags: ['extended', 'festival', 'uplifting']
+        },
+        {
+            id: 'happy-ext-4',
+            name: 'Golden Memories',
+            description: '8-bar nostalgic happiness',
+            key: 'G',
+            chordIds: ['gmaj7_open', 'cmaj7_open', 'am7_open', 'd7_open', 'gmaj7_open', 'em7_open', 'cmaj7_open', 'gmaj7_open'],
+            tags: ['extended', 'jazzy', 'warm']
         }
     ],
 
@@ -203,8 +227,32 @@ const CuratedProgressions = {
             name: 'Long Goodbye',
             description: 'Extended emotional journey',
             key: 'Am',
-            chordIds: ['a_minor_open', 'c_major_open', 'g_major_open', 'f_major_barre', 'a_minor_open', 'e_major_open'],
+            chordIds: ['a_minor_open', 'c_major_open', 'g_major_open', 'f_major_barre', 'a_minor_open', 'g_major_open', 'f_major_barre', 'e_major_open'],
             tags: ['extended', 'emotional', 'dramatic']
+        },
+        {
+            id: 'sad-ext-2',
+            name: 'Fading Memories',
+            description: '8-bar melancholic reflection',
+            key: 'Em',
+            chordIds: ['e_minor_open', 'c_major_open', 'g_major_open', 'd_major_open', 'e_minor_open', 'a_minor_open', 'c_major_open', 'e_minor_open'],
+            tags: ['extended', 'reflective', 'folk']
+        },
+        {
+            id: 'sad-ext-3',
+            name: 'Midnight Tears',
+            description: '8-bar jazzy sadness',
+            key: 'Am',
+            chordIds: ['am7_open', 'dm7_open', 'gmaj7_open', 'cmaj7_open', 'fmaj7_open', 'dm7_open', 'e7_open', 'am7_open'],
+            tags: ['extended', 'jazzy', 'sophisticated']
+        },
+        {
+            id: 'sad-ext-4',
+            name: 'Winter Walk',
+            description: '8-bar contemplative journey',
+            key: 'Dm',
+            chordIds: ['d_minor_barre', 'a_minor_open', 'c_major_open', 'g_major_open', 'd_minor_barre', 'f_major_barre', 'a_minor_open', 'd_minor_barre'],
+            tags: ['extended', 'contemplative', 'moody']
         }
     ],
 
@@ -294,6 +342,39 @@ const CuratedProgressions = {
             key: 'D',
             chordIds: ['d_major_open', 'gadd9_open', 'asus2_open', 'd_major_open'],
             tags: ['peaceful', 'hopeful', 'gentle']
+        },
+        // Extended progressions (8 chords for Medium length)
+        {
+            id: 'dreamy-ext-1',
+            name: 'Starlit Journey',
+            description: '8-bar ethereal exploration',
+            key: 'C',
+            chordIds: ['cmaj7_open', 'em7_open', 'fmaj7_open', 'gmaj7_open', 'am7_open', 'fmaj7_open', 'gmaj7_open', 'cmaj7_open'],
+            tags: ['extended', 'ethereal', 'ambient']
+        },
+        {
+            id: 'dreamy-ext-2',
+            name: 'Cloud Wanderer',
+            description: '8-bar floating atmosphere',
+            key: 'G',
+            chordIds: ['gmaj7_open', 'cadd9_open', 'em7_open', 'cmaj7_open', 'gadd9_open', 'am7_open', 'cmaj7_open', 'gmaj7_open'],
+            tags: ['extended', 'floating', 'peaceful']
+        },
+        {
+            id: 'dreamy-ext-3',
+            name: 'Moonlit Waters',
+            description: '8-bar reflective ambience',
+            key: 'D',
+            chordIds: ['dsus2_open', 'gadd9_open', 'asus2_open', 'd_major_open', 'gadd9_open', 'a_major_open', 'dsus2_open', 'd_major_open'],
+            tags: ['extended', 'ambient', 'sus']
+        },
+        {
+            id: 'dreamy-ext-4',
+            name: 'Endless Horizon',
+            description: '8-bar lo-fi dreamscape',
+            key: 'C',
+            chordIds: ['cmaj7_open', 'am7_open', 'dm7_open', 'gmaj7_open', 'cmaj7_open', 'fmaj7_open', 'em7_open', 'cmaj7_open'],
+            tags: ['extended', 'lo-fi', 'dreamy']
         }
     ],
 
@@ -385,6 +466,39 @@ const CuratedProgressions = {
             key: 'Am',
             chordIds: ['a_minor_open', 'e_major_open', 'a_minor_open', 'dm7_open'],
             tags: ['eerie', 'haunting', 'atmospheric']
+        },
+        // Extended progressions (8 chords for Medium length)
+        {
+            id: 'dark-ext-1',
+            name: 'Into the Void',
+            description: '8-bar descent into darkness',
+            key: 'Am',
+            chordIds: ['a_minor_open', 'f_major_barre', 'c_major_open', 'e_major_open', 'a_minor_open', 'dm7_open', 'e7_open', 'a_minor_open'],
+            tags: ['extended', 'dramatic', 'intense']
+        },
+        {
+            id: 'dark-ext-2',
+            name: 'Cryptic Ritual',
+            description: '8-bar mysterious ceremony',
+            key: 'Em',
+            chordIds: ['e_minor_open', 'c_major_open', 'a_minor_open', 'b7_open', 'e_minor_open', 'd_major_open', 'c_major_open', 'e_minor_open'],
+            tags: ['extended', 'mysterious', 'ritual']
+        },
+        {
+            id: 'dark-ext-3',
+            name: 'Storm Unleashed',
+            description: '8-bar power chord fury',
+            key: 'E',
+            chordIds: ['e5_power', 'c5_power', 'g5_power', 'd5_power', 'a5_power', 'f5_power', 'g5_power', 'e5_power'],
+            tags: ['extended', 'metal', 'powerful']
+        },
+        {
+            id: 'dark-ext-4',
+            name: 'Noir Detective',
+            description: '8-bar film noir jazz',
+            key: 'Dm',
+            chordIds: ['dm7_open', 'g7_open', 'cmaj7_open', 'a7_open', 'dm7_open', 'e7_open', 'am7_open', 'dm7_open'],
+            tags: ['extended', 'noir', 'jazzy']
         }
     ],
 
@@ -476,6 +590,39 @@ const CuratedProgressions = {
             key: 'A',
             chordIds: ['a_major_open', 'e_major_open', 'd_major_open', 'a_major_open'],
             tags: ['festival', 'fun', 'energetic']
+        },
+        // Extended progressions (8 chords for Medium length)
+        {
+            id: 'energetic-ext-1',
+            name: 'Arena Rock',
+            description: '8-bar stadium anthem',
+            key: 'E',
+            chordIds: ['e_major_open', 'd_major_open', 'a_major_open', 'e_major_open', 'g_major_open', 'd_major_open', 'a_major_open', 'e_major_open'],
+            tags: ['extended', 'arena', 'rock']
+        },
+        {
+            id: 'energetic-ext-2',
+            name: 'Highway Cruiser',
+            description: '8-bar driving rock',
+            key: 'G',
+            chordIds: ['g_major_open', 'c_major_open', 'd_major_open', 'g_major_open', 'e_minor_open', 'c_major_open', 'd_major_open', 'g_major_open'],
+            tags: ['extended', 'driving', 'classic']
+        },
+        {
+            id: 'energetic-ext-3',
+            name: 'Power Surge',
+            description: '8-bar power chord assault',
+            key: 'E',
+            chordIds: ['e5_power', 'g5_power', 'a5_power', 'd5_power', 'e5_power', 'c5_power', 'a5_power', 'e5_power'],
+            tags: ['extended', 'metal', 'power']
+        },
+        {
+            id: 'energetic-ext-4',
+            name: 'Punk Marathon',
+            description: '8-bar high-energy punk',
+            key: 'A',
+            chordIds: ['a_major_open', 'd_major_open', 'e_major_open', 'a_major_open', 'd_major_open', 'a_major_open', 'e_major_open', 'a_major_open'],
+            tags: ['extended', 'punk', 'fast']
         }
     ],
 
@@ -564,10 +711,34 @@ const CuratedProgressions = {
         {
             id: 'jazzy-ext-1',
             name: 'Jazz Ballad',
-            description: 'Extended romantic progression',
+            description: '8-bar romantic progression',
             key: 'C',
             chordIds: ['cmaj7_open', 'em7_open', 'fmaj7_open', 'g7_open', 'am7_open', 'dm7_open', 'g7_open', 'cmaj7_open'],
             tags: ['ballad', 'romantic', 'extended']
+        },
+        {
+            id: 'jazzy-ext-2',
+            name: 'Bebop Journey',
+            description: '8-bar classic jazz exploration',
+            key: 'G',
+            chordIds: ['gmaj7_open', 'em7_open', 'am7_open', 'd7_open', 'gmaj7_open', 'cmaj7_open', 'am7_open', 'gmaj7_open'],
+            tags: ['extended', 'bebop', 'classic']
+        },
+        {
+            id: 'jazzy-ext-3',
+            name: 'Late Night Session',
+            description: '8-bar smoky club vibes',
+            key: 'Am',
+            chordIds: ['am7_open', 'dm7_open', 'g7_open', 'cmaj7_open', 'fmaj7_open', 'dm7_open', 'e7_open', 'am7_open'],
+            tags: ['extended', 'minor', 'sophisticated']
+        },
+        {
+            id: 'jazzy-ext-4',
+            name: 'Smooth Operator',
+            description: '8-bar silky smooth jazz',
+            key: 'C',
+            chordIds: ['cmaj7_open', 'fmaj7_open', 'em7_open', 'am7_open', 'dm7_open', 'g7_open', 'fmaj7_open', 'cmaj7_open'],
+            tags: ['extended', 'smooth', 'elegant']
         }
     ],
 
@@ -651,14 +822,38 @@ const CuratedProgressions = {
             chordIds: ['gmaj7_open', 'am7_open', 'cmaj7_open', 'd7_open'],
             tags: ['driving', 'smooth', 'night']
         },
-        // Extended chill
+        // Extended chill (8 chords for Medium length)
         {
             id: 'chill-ext-1',
             name: 'Meditation',
-            description: 'Extended peaceful progression',
+            description: '8-bar peaceful progression',
             key: 'C',
-            chordIds: ['cmaj7_open', 'fmaj7_open', 'cmaj7_open', 'gmaj7_open', 'am7_open', 'fmaj7_open'],
+            chordIds: ['cmaj7_open', 'fmaj7_open', 'cmaj7_open', 'gmaj7_open', 'am7_open', 'fmaj7_open', 'gmaj7_open', 'cmaj7_open'],
             tags: ['meditation', 'peaceful', 'extended']
+        },
+        {
+            id: 'chill-ext-2',
+            name: 'Beach Sunset',
+            description: '8-bar coastal relaxation',
+            key: 'G',
+            chordIds: ['gmaj7_open', 'cmaj7_open', 'em7_open', 'am7_open', 'gmaj7_open', 'cadd9_open', 'd_major_open', 'gmaj7_open'],
+            tags: ['extended', 'beach', 'relaxing']
+        },
+        {
+            id: 'chill-ext-3',
+            name: 'Lazy Afternoon',
+            description: '8-bar laid-back groove',
+            key: 'C',
+            chordIds: ['c_major_open', 'g_major_open', 'a_minor_open', 'f_major_barre', 'c_major_open', 'e_minor_open', 'f_major_barre', 'c_major_open'],
+            tags: ['extended', 'mellow', 'acoustic']
+        },
+        {
+            id: 'chill-ext-4',
+            name: 'Night Drive',
+            description: '8-bar smooth cruising',
+            key: 'G',
+            chordIds: ['gmaj7_open', 'am7_open', 'cmaj7_open', 'd7_open', 'gmaj7_open', 'em7_open', 'am7_open', 'gmaj7_open'],
+            tags: ['extended', 'smooth', 'night']
         }
     ]
 };

@@ -3517,7 +3517,7 @@ const App = {
             if (length === 'short') {
                 templateId = moodMap.templates[Math.floor(Math.random() * moodMap.templates.length)];
             } else if (length === 'medium') {
-                const mediumTemplates = ['i-v-vi-iii-iv-i-iv-v', 'i-bii-ii-v', '8-bar-blues'];
+                const mediumTemplates = ['i-v-vi-iii-iv-i-iv-v', '8-bar-blues'];
                 const available = mediumTemplates.filter(t => this.getProgressionTemplates()[t]);
                 templateId = available.length > 0
                     ? available[Math.floor(Math.random() * available.length)]
@@ -3538,6 +3538,13 @@ const App = {
             };
 
             this.loadTemplate(templateId, false);
+
+            // Clear template dropdown and state to be consistent with expanded templates path
+            const templateSelectEl = document.getElementById('template-select');
+            if (templateSelectEl) {
+                templateSelectEl.value = '';
+            }
+            this.state.progressionTemplate = null;
 
             // Set inspired progression info AFTER loadTemplate (which clears it)
             const builtInTemplate = this.getProgressionTemplates()[templateId];
@@ -3575,7 +3582,7 @@ const App = {
             let templateId;
             if (length === 'medium') {
                 // Use built-in 8-bar templates
-                const mediumTemplates = ['i-v-vi-iii-iv-i-iv-v', '8-bar-blues', 'i-bii-ii-v'];
+                const mediumTemplates = ['i-v-vi-iii-iv-i-iv-v', '8-bar-blues'];
                 const available = mediumTemplates.filter(t => this.getProgressionTemplates()[t]);
                 templateId = available.length > 0
                     ? available[Math.floor(Math.random() * available.length)]
@@ -3597,6 +3604,13 @@ const App = {
             };
 
             this.loadTemplate(templateId, false);
+
+            // Clear template dropdown and state to be consistent with expanded templates path
+            const templateSelectEl = document.getElementById('template-select');
+            if (templateSelectEl) {
+                templateSelectEl.value = '';
+            }
+            this.state.progressionTemplate = null;
 
             // Set inspired progression info AFTER loadTemplate (which clears it)
             const builtInTemplate = this.getProgressionTemplates()[templateId];

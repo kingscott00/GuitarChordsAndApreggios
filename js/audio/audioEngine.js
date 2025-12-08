@@ -336,7 +336,8 @@ const AudioEngine = {
     },
 
     /**
-     * Play a single note using Karplus-Strong synthesis
+     * Play a single note using Karplus-Strong synthesis with fractional delay
+     * Uses linear interpolation for sub-sample precision pitch accuracy
      * @param {number} frequency - Frequency in Hz
      * @param {number} startTime - When to start (context time)
      * @param {number} duration - Note duration in seconds (optional, uses tone preset if not specified)
@@ -349,25 +350,43 @@ const AudioEngine = {
         const preset = this.tonePresets[this.settings.guitarTone] || this.tonePresets.acoustic;
         const noteDuration = duration !== null ? duration : preset.noteDecay;
 
-        // Karplus-Strong plucked string synthesis
+        // Karplus-Strong plucked string synthesis with fractional delay for pitch accuracy
         const sampleRate = this.context.sampleRate;
-        const bufferSize = Math.round(sampleRate / frequency);
+
+        // Calculate exact period for target frequency (fractional samples)
+        const exactPeriod = sampleRate / frequency;
+        // Use floor for the integer delay, we'll interpolate for the fractional part
+        const intPeriod = Math.floor(exactPeriod);
+        // Fractional part for linear interpolation (0 to 1)
+        const frac = exactPeriod - intPeriod;
+
         const buffer = this.context.createBuffer(1, sampleRate * noteDuration, sampleRate);
         const data = buffer.getChannelData(0);
 
-        // Initialize with noise burst
-        const noiseLength = bufferSize * 2;
+        // Initialize with noise burst (need intPeriod + 2 samples for interpolation)
+        const noiseLength = intPeriod * 2 + 2;
         for (let i = 0; i < noiseLength; i++) {
             data[i] = (Math.random() * 2 - 1) * velocity;
         }
 
-        // Apply Karplus-Strong algorithm with tone-specific decay
+        // Apply Karplus-Strong algorithm with fractional delay interpolation
         const decay = preset.decay;
         const blend = 0.5;   // Blend factor for averaging
 
-        for (let i = bufferSize; i < data.length; i++) {
-            // Average of two samples with decay
-            const avg = blend * data[i - bufferSize] + (1 - blend) * data[i - bufferSize + 1];
+        for (let i = intPeriod + 1; i < data.length; i++) {
+            // Use linear interpolation to achieve fractional delay
+            // This gives us sub-sample precision for accurate pitch
+            const idx1 = i - intPeriod;
+            const idx2 = i - intPeriod - 1;
+
+            // Interpolate between samples to get fractional delay position
+            const sample1 = data[idx1];
+            const sample2 = data[idx2];
+            const interpolated = sample1 + frac * (sample2 - sample1);
+
+            // Apply the standard Karplus-Strong averaging with the next sample
+            const nextSample = data[idx1 - 1];
+            const avg = blend * interpolated + (1 - blend) * nextSample;
             data[i] = avg * decay;
         }
 

@@ -343,7 +343,40 @@ const CuratedProgressions = {
             chordIds: ['d_major_open', 'gadd9_open', 'asus2_open', 'd_major_open'],
             tags: ['peaceful', 'hopeful', 'gentle']
         },
-        // Extended progressions (8 chords for Medium length)
+        // Flowing progressions (5-6 chords for Medium length - dreamy works best with asymmetric lengths)
+        {
+            id: 'dreamy-flow-1',
+            name: 'Drifting Clouds',
+            description: '5-chord floating progression',
+            key: 'C',
+            chordIds: ['cmaj7_open', 'em7_open', 'fmaj7_open', 'gmaj7_open', 'cmaj7_open'],
+            tags: ['flowing', 'ethereal', 'ambient']
+        },
+        {
+            id: 'dreamy-flow-2',
+            name: 'Twilight Reverie',
+            description: '6-chord dreamscape',
+            key: 'G',
+            chordIds: ['gmaj7_open', 'em7_open', 'cmaj7_open', 'am7_open', 'dmaj7_open', 'gmaj7_open'],
+            tags: ['flowing', 'spacey', 'gentle']
+        },
+        {
+            id: 'dreamy-flow-3',
+            name: 'Soft Focus',
+            description: '5-chord ambient loop',
+            key: 'D',
+            chordIds: ['dsus2_open', 'gadd9_open', 'asus2_open', 'gadd9_open', 'd_major_open'],
+            tags: ['flowing', 'sus', 'minimal']
+        },
+        {
+            id: 'dreamy-flow-4',
+            name: 'Aurora Dreams',
+            description: '6-chord ethereal journey',
+            key: 'C',
+            chordIds: ['cadd9_open', 'am7_open', 'fmaj7_open', 'gmaj7_open', 'em7_open', 'cmaj7_open'],
+            tags: ['flowing', 'colorful', 'peaceful']
+        },
+        // Extended progressions (8+ chords for Long length)
         {
             id: 'dreamy-ext-1',
             name: 'Starlit Journey',

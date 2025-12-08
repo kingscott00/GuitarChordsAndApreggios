@@ -3254,6 +3254,13 @@ const App = {
             });
         });
 
+        // Mood change - update length options dynamically
+        document.querySelectorAll('input[name="inspire-mood"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.updateLengthOptionsForMood(e.target.value);
+            });
+        });
+
         // Generate button
         generateBtn?.addEventListener('click', () => {
             this.generateInspiredProgression();
@@ -3309,6 +3316,115 @@ const App = {
     },
 
     /**
+     * Get mood-specific progression length options
+     * Returns options tailored to what makes musical sense for each mood
+     */
+    getMoodLengthOptions() {
+        return {
+            happy: {
+                options: [
+                    { value: 'short', label: 'Short (4)', min: 1, max: 4 },
+                    { value: 'medium', label: 'Medium (8)', min: 5, max: 8 },
+                    { value: 'long', label: 'Long (12+)', min: 9, max: 20 }
+                ],
+                default: 'short'
+            },
+            sad: {
+                options: [
+                    { value: 'short', label: 'Short (4)', min: 1, max: 4 },
+                    { value: 'medium', label: 'Medium (6-8)', min: 5, max: 8 },
+                    { value: 'long', label: 'Extended (10+)', min: 9, max: 20 }
+                ],
+                default: 'short'
+            },
+            dreamy: {
+                options: [
+                    { value: 'short', label: 'Minimal (3-4)', min: 1, max: 4 },
+                    { value: 'medium', label: 'Flowing (5-6)', min: 5, max: 6 },
+                    { value: 'long', label: 'Extended (8+)', min: 7, max: 20 }
+                ],
+                default: 'short'
+            },
+            dark: {
+                options: [
+                    { value: 'short', label: 'Short (4)', min: 1, max: 4 },
+                    { value: 'medium', label: 'Medium (8)', min: 5, max: 8 },
+                    { value: 'long', label: 'Epic (12+)', min: 9, max: 20 }
+                ],
+                default: 'short'
+            },
+            energetic: {
+                options: [
+                    { value: 'short', label: 'Punchy (3-4)', min: 1, max: 4 },
+                    { value: 'medium', label: 'Standard (8)', min: 5, max: 8 },
+                    { value: 'long', label: 'Extended (12+)', min: 9, max: 20 }
+                ],
+                default: 'short'
+            },
+            jazzy: {
+                options: [
+                    { value: 'short', label: 'Turnaround (3-4)', min: 1, max: 4 },
+                    { value: 'medium', label: 'Standard (8)', min: 5, max: 8 },
+                    { value: 'long', label: 'Full Form (12+)', min: 9, max: 20 }
+                ],
+                default: 'short'
+            },
+            chill: {
+                options: [
+                    { value: 'short', label: 'Loop (4)', min: 1, max: 4 },
+                    { value: 'medium', label: 'Groove (8)', min: 5, max: 8 },
+                    { value: 'long', label: 'Session (12+)', min: 9, max: 20 }
+                ],
+                default: 'short'
+            }
+        };
+    },
+
+    /**
+     * Update the progression length radio buttons based on the selected mood
+     */
+    updateLengthOptionsForMood(mood) {
+        const lengthOptions = this.getMoodLengthOptions();
+        const moodOptions = lengthOptions[mood] || lengthOptions.happy;
+
+        const radioGroup = document.querySelector('.option-group:has(input[name="inspire-length"]) .radio-group-inline');
+        if (!radioGroup) return;
+
+        // Get currently selected value before updating
+        const currentValue = document.querySelector('input[name="inspire-length"]:checked')?.value || 'short';
+
+        // Clear existing options
+        radioGroup.innerHTML = '';
+
+        // Create new options for this mood
+        moodOptions.options.forEach(option => {
+            const label = document.createElement('label');
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = 'inspire-length';
+            input.value = option.value;
+
+            // Check if this was the previously selected value, or use default
+            if (option.value === currentValue) {
+                input.checked = true;
+            }
+
+            const span = document.createElement('span');
+            span.textContent = option.label;
+
+            label.appendChild(input);
+            label.appendChild(span);
+            radioGroup.appendChild(label);
+        });
+
+        // If no option is checked (previous value doesn't exist for this mood), check the default
+        if (!document.querySelector('input[name="inspire-length"]:checked')) {
+            const defaultRadio = document.querySelector(`input[name="inspire-length"][value="${moodOptions.default}"]`);
+            if (defaultRadio) defaultRadio.checked = true;
+        }
+    },
+
+    /**
      * Open Inspire Me modal
      */
     openInspireMeModal() {
@@ -3318,12 +3434,18 @@ const App = {
         const settings = this.state.inspireMeSettings;
         document.querySelector(`input[name="inspire-mood"][value="${settings.mood}"]`).checked = true;
         document.querySelector(`input[name="inspire-complexity"][value="${settings.complexity}"]`).checked = true;
-        document.querySelector(`input[name="inspire-length"][value="${settings.length}"]`).checked = true;
         document.querySelector(`input[name="inspire-key-mode"][value="${settings.keyMode}"]`).checked = true;
 
         const keySelect = document.getElementById('inspire-key-select');
         keySelect.value = settings.selectedKey;
         keySelect.disabled = (settings.keyMode === 'random');
+
+        // Update length options for the current mood, then restore selected length
+        this.updateLengthOptionsForMood(settings.mood);
+        const lengthRadio = document.querySelector(`input[name="inspire-length"][value="${settings.length}"]`);
+        if (lengthRadio) {
+            lengthRadio.checked = true;
+        }
 
         // Restore curated checkbox state
         const curatedCheckbox = document.getElementById('inspire-use-curated');
@@ -3405,14 +3527,12 @@ const App = {
             return this.loadGeneratedProgression(mood, 'colorful', length, keyMode, selectedKey);
         }
 
-        // Filter by length preference
+        // Filter by length preference using mood-specific ranges
         let availableProgressions = progressions;
-        const lengthRanges = {
-            'short': { min: 1, max: 4 },
-            'medium': { min: 5, max: 8 },
-            'long': { min: 9, max: 20 }
-        };
-        const range = lengthRanges[length] || lengthRanges.short;
+        const moodLengthOptions = this.getMoodLengthOptions();
+        const moodOptions = moodLengthOptions[mood] || moodLengthOptions.happy;
+        const lengthOption = moodOptions.options.find(opt => opt.value === length) || moodOptions.options[0];
+        const range = { min: lengthOption.min, max: lengthOption.max };
 
         let lengthFiltered = progressions.filter(p =>
             p.chordIds.length >= range.min && p.chordIds.length <= range.max
@@ -3564,15 +3684,15 @@ const App = {
             return { key };
         }
 
-        // Filter templates by length preference
-        let filteredTemplates = templates;
-        if (length === 'short') {
-            filteredTemplates = templates.filter(t => t.degrees.length <= 4);
-        } else if (length === 'medium') {
-            filteredTemplates = templates.filter(t => t.degrees.length >= 5 && t.degrees.length <= 8);
-        } else {
-            filteredTemplates = templates.filter(t => t.degrees.length >= 9);
-        }
+        // Filter templates by length preference using mood-specific ranges
+        const moodLengthOptions = this.getMoodLengthOptions();
+        const moodOptions = moodLengthOptions[mood] || moodLengthOptions.happy;
+        const lengthOption = moodOptions.options.find(opt => opt.value === length) || moodOptions.options[0];
+        const range = { min: lengthOption.min, max: lengthOption.max };
+
+        let filteredTemplates = templates.filter(t =>
+            t.degrees.length >= range.min && t.degrees.length <= range.max
+        );
 
         // If no templates match length, use built-in templates that support longer progressions
         if (filteredTemplates.length === 0) {

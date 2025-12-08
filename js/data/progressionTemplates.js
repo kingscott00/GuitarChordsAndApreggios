@@ -29,7 +29,11 @@ const ProgressionTemplates = {
         { id: 'happy-15', name: 'Playful', degrees: [1, 2, 4, 5], minorDegrees: [2], description: 'Bouncy feel' },
         { id: 'happy-16', name: 'Summer Hit', degrees: [1, 5, 2, 4], minorDegrees: [2], description: 'Radio friendly' },
         { id: 'happy-17', name: 'Grateful', degrees: [1, 4, 1, 5, 4, 1], description: 'Thankful energy' },
-        { id: 'happy-18', name: 'Carefree', degrees: [1, 4, 5, 4], description: 'Easy going' }
+        { id: 'happy-18', name: 'Carefree', degrees: [1, 4, 5, 4], description: 'Easy going' },
+        // 8-bar extended templates for Medium length
+        { id: 'happy-19', name: 'Epic Adventure', degrees: [1, 5, 6, 4, 1, 5, 4, 1], minorDegrees: [6], description: '8-bar epic journey' },
+        { id: 'happy-20', name: 'Festival Night', degrees: [1, 4, 5, 1, 6, 4, 5, 1], minorDegrees: [6], description: '8-bar celebration' },
+        { id: 'happy-21', name: 'Road Trip', degrees: [1, 5, 4, 5, 1, 4, 5, 1], description: '8-bar driving anthem' }
     ],
 
     // ==========================================
@@ -53,7 +57,11 @@ const ProgressionTemplates = {
         { id: 'sad-12', name: 'Winter', degrees: [6, 4, 6, 5], minorDegrees: [6], description: 'Cold and grey' },
         { id: 'sad-13', name: 'Solitude', degrees: [1, 4, 6, 5], minorDegrees: [6], description: 'Alone with thoughts' },
         { id: 'sad-14', name: 'Broken', degrees: [6, 5, 4, 1], minorDegrees: [6], description: 'Shattered' },
-        { id: 'sad-15', name: 'Missing You', degrees: [1, 6, 2, 5], minorDegrees: [6, 2], description: 'Yearning' }
+        { id: 'sad-15', name: 'Missing You', degrees: [1, 6, 2, 5], minorDegrees: [6, 2], description: 'Yearning' },
+        // 8-bar extended templates for Medium length
+        { id: 'sad-16', name: 'Long Road Home', degrees: [6, 4, 1, 5, 6, 4, 5, 1], minorDegrees: [6], description: '8-bar emotional journey' },
+        { id: 'sad-17', name: 'Fading Light', degrees: [1, 6, 4, 5, 1, 6, 4, 1], minorDegrees: [6], description: '8-bar melancholic cycle' },
+        { id: 'sad-18', name: 'Tears Fall', degrees: [6, 5, 4, 5, 6, 4, 1, 5], minorDegrees: [6], description: '8-bar heartbreak' }
     ],
 
     // ==========================================
@@ -77,7 +85,11 @@ const ProgressionTemplates = {
         { id: 'dreamy-12', name: 'Haze', degrees: [4, 3, 6, 1], minorDegrees: [3, 6], description: 'Foggy morning' },
         { id: 'dreamy-13', name: 'Dream Logic', degrees: [1, 7, 4, 1], flatDegrees: [7], description: 'Surreal feeling' },
         { id: 'dreamy-14', name: 'Twilight', degrees: [1, 4, 6, 5], minorDegrees: [6], description: 'Magic hour' },
-        { id: 'dreamy-15', name: 'Ocean', degrees: [1, 4, 1, 5], description: 'Wave-like motion' }
+        { id: 'dreamy-15', name: 'Ocean', degrees: [1, 4, 1, 5], description: 'Wave-like motion' },
+        // 8-bar extended templates for Medium length
+        { id: 'dreamy-16', name: 'Starfall', degrees: [1, 3, 4, 1, 6, 4, 5, 1], minorDegrees: [3, 6], description: '8-bar celestial drift' },
+        { id: 'dreamy-17', name: 'Endless Sky', degrees: [1, 4, 6, 4, 1, 5, 4, 1], minorDegrees: [6], description: '8-bar expansive atmosphere' },
+        { id: 'dreamy-18', name: 'Moonbeam', degrees: [1, 6, 4, 5, 1, 3, 4, 1], minorDegrees: [6, 3], description: '8-bar ethereal glow' }
     ],
 
     // ==========================================
@@ -101,7 +113,11 @@ const ProgressionTemplates = {
         { id: 'dark-12', name: 'Ritual', degrees: [1, 2, 7, 1], flatDegrees: [2, 7], rootMinor: true, description: 'Ancient ceremony' },
         { id: 'dark-13', name: 'Midnight', degrees: [6, 4, 1, 5], minorDegrees: [6], description: 'Darkest hour' },
         { id: 'dark-14', name: 'Eclipse', degrees: [1, 4, 6, 7], flatDegrees: [7], minorDegrees: [6], rootMinor: true, description: 'Light fading' },
-        { id: 'dark-15', name: 'Cryptic', degrees: [1, 5, 7, 4], flatDegrees: [7], rootMinor: true, minorDegrees: [4], description: 'Hidden meaning' }
+        { id: 'dark-15', name: 'Cryptic', degrees: [1, 5, 7, 4], flatDegrees: [7], rootMinor: true, minorDegrees: [4], description: 'Hidden meaning' },
+        // 8-bar extended templates for Medium length
+        { id: 'dark-16', name: 'Descent', degrees: [1, 7, 6, 7, 1, 4, 7, 1], flatDegrees: [7, 6], rootMinor: true, description: '8-bar dark journey' },
+        { id: 'dark-17', name: 'Nightmare', degrees: [1, 4, 1, 5, 6, 4, 5, 1], minorDegrees: [6], rootMinor: true, description: '8-bar tension cycle' },
+        { id: 'dark-18', name: 'Ritual Night', degrees: [1, 7, 4, 1, 6, 7, 4, 1], flatDegrees: [7], minorDegrees: [6], rootMinor: true, description: '8-bar mysterious ceremony' }
     ],
 
     // ==========================================
@@ -126,7 +142,11 @@ const ProgressionTemplates = {
         { id: 'energetic-13', name: 'Fire', degrees: [1, 4, 7, 4], flatDegrees: [7], description: 'Burning intensity' },
         { id: 'energetic-14', name: 'Sprint', degrees: [1, 5, 4, 5, 1], description: 'Fast and furious' },
         { id: 'energetic-15', name: 'Electric', degrees: [1, 3, 4, 5], minorDegrees: [3], description: 'Shocking energy' },
-        { id: 'energetic-16', name: 'Rebel', degrees: [1, 7, 4, 7], flatDegrees: [7], description: 'Against the grain' }
+        { id: 'energetic-16', name: 'Rebel', degrees: [1, 7, 4, 7], flatDegrees: [7], description: 'Against the grain' },
+        // 8-bar extended templates for Medium length
+        { id: 'energetic-17', name: 'Arena Anthem', degrees: [1, 5, 6, 4, 1, 5, 4, 1], minorDegrees: [6], description: '8-bar stadium rocker' },
+        { id: 'energetic-18', name: 'Overdrive', degrees: [1, 4, 5, 1, 7, 4, 5, 1], flatDegrees: [7], description: '8-bar power surge' },
+        { id: 'energetic-19', name: 'Full Throttle', degrees: [1, 5, 4, 5, 1, 4, 5, 1], description: '8-bar high octane' }
     ],
 
     // ==========================================
@@ -151,7 +171,11 @@ const ProgressionTemplates = {
         { id: 'jazzy-12', name: 'Bebop Line', degrees: [1, 2, 3, 4, 5], minorDegrees: [2, 3], description: 'Walking up' },
         { id: 'jazzy-13', name: 'Cool', degrees: [1, 4, 1, 5], description: 'West coast jazz' },
         { id: 'jazzy-14', name: 'Chromatic', degrees: [1, 7, 6, 5], flatDegrees: [7, 6], description: 'Sliding tones' },
-        { id: 'jazzy-15', name: 'Standards', degrees: [1, 4, 2, 5, 1], minorDegrees: [2], description: 'Timeless elegance' }
+        { id: 'jazzy-15', name: 'Standards', degrees: [1, 4, 2, 5, 1], minorDegrees: [2], description: 'Timeless elegance' },
+        // 8-bar extended templates for Medium length
+        { id: 'jazzy-16', name: 'Jazz Club', degrees: [1, 6, 2, 5, 1, 4, 2, 5], minorDegrees: [6, 2], description: '8-bar sophisticated swing' },
+        { id: 'jazzy-17', name: 'Blue Hour', degrees: [2, 5, 1, 6, 2, 5, 1, 1], minorDegrees: [2, 6], description: '8-bar jazz ballad' },
+        { id: 'jazzy-18', name: 'Bebop Night', degrees: [1, 6, 2, 5, 3, 6, 2, 5], minorDegrees: [6, 2, 3], description: '8-bar bebop changes' }
     ],
 
     // ==========================================
@@ -175,7 +199,11 @@ const ProgressionTemplates = {
         { id: 'chill-12', name: 'Garden', degrees: [1, 3, 4, 5], minorDegrees: [3], description: 'Nature sounds' },
         { id: 'chill-13', name: 'Meditate', degrees: [1, 4, 1, 4, 5, 1], description: 'Inner peace' },
         { id: 'chill-14', name: 'Unwind', degrees: [4, 1, 4, 5], description: 'Letting go' },
-        { id: 'chill-15', name: 'Mellow', degrees: [1, 6, 2, 5], minorDegrees: [6, 2], description: 'Smooth and soft' }
+        { id: 'chill-15', name: 'Mellow', degrees: [1, 6, 2, 5], minorDegrees: [6, 2], description: 'Smooth and soft' },
+        // 8-bar extended templates for Medium length
+        { id: 'chill-16', name: 'Lazy River', degrees: [1, 4, 6, 5, 1, 4, 5, 1], minorDegrees: [6], description: '8-bar flowing relaxation' },
+        { id: 'chill-17', name: 'Sunset Beach', degrees: [1, 5, 6, 4, 1, 5, 4, 1], minorDegrees: [6], description: '8-bar coastal vibes' },
+        { id: 'chill-18', name: 'Slow Dance', degrees: [1, 6, 4, 5, 1, 6, 4, 1], minorDegrees: [6], description: '8-bar gentle sway' }
     ]
 };
 

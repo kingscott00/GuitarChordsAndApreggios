@@ -423,8 +423,53 @@ User clicks "Inspire Me"
 3. Filter by key if user selected custom key
 4. Randomly select one progression from filtered list
 5. Load exact chord voicings from database (pre-optimized for voice leading)
-6. Detect key mode (major/minor) based on progression key
-7. Update Scale Builder with appropriate scales
+6. **Set Key Hint** for scale detection (see detailed explanation below)
+7. **Update Scale Builder** by calling the scale detection algorithm with the key hint
+
+#### Step 6 Detail: Setting the Key Hint
+
+The key hint tells the scale detection algorithm what key the progression was designed for:
+
+```javascript
+// Determine if this is a minor key:
+const isMinorKey = key.endsWith('m')     // "Am" → minor
+                || mood === 'sad'         // Sad mood defaults to minor
+                || mood === 'dark';       // Dark mood defaults to minor
+
+// Create the key hint object:
+progressionKeyHint = {
+    note: key.replace('m', ''),  // "Am" → "A", "G" → "G"
+    mode: isMinorKey ? 'minor' : 'major'
+};
+```
+
+**Examples:**
+| Progression Key | Mood | Resulting Key Hint |
+|-----------------|------|-------------------|
+| "G" | Happy | `{note: "G", mode: "major"}` |
+| "Am" | Sad | `{note: "A", mode: "minor"}` |
+| "C" | Sad | `{note: "C", mode: "minor"}` (mood overrides) |
+| "Em" | Dark | `{note: "E", mode: "minor"}` |
+| "D" | Dreamy | `{note: "D", mode: "major"}` |
+
+#### Step 7 Detail: Scale Detection with Key Hint
+
+The `updateScaleBuilder()` method calls the **same scale detection algorithm** used for all progressions, but passes the key hint:
+
+```javascript
+// In updateScaleBuilder():
+const analysis = ScaleDetection.analyzeProgression(
+    this.state.progression,      // The actual chord objects
+    this.state.progressionKeyHint  // The key hint from step 6
+);
+```
+
+The key hint provides a **+100 point bonus** in the key detection scoring. Since each diatonic chord match only scores +10 points, this virtually guarantees the hinted key will be selected (unless the progression truly doesn't fit that key).
+
+**Why use the same algorithm with a hint?**
+- For **curated progressions**: The hint ensures scales match the composer's intended key
+- For **manual progressions**: If a user builds their own progression (no hint), the algorithm figures out the key purely from chord analysis
+- **When users edit**: If a user modifies an Inspired progression, the key hint is cleared (`progressionKeyHint = null`), so the algorithm re-analyzes based on the new chord content
 
 ### GENERATED PATH (loadGeneratedProgression)
 
@@ -489,51 +534,206 @@ For each degree in the template:
 
 ## 7. Scale Detection Algorithm
 
-When a progression is loaded, the app automatically suggests scales.
+When a progression is loaded, the app automatically suggests scales. **Both curated and generated progressions use this same algorithm**, but Inspire Me progressions pass a "key hint" that biases the result toward the intended key.
 
-### Phase 1: Key Detection (detectKey)
+### Complete Flow Diagram
 
-1. Try all 12 possible root notes (C through B)
-2. For each root, test both major and minor modes
-3. Score each key by counting how many progression chords fit diatonically:
-   - Each exact match = +10 points
-   - Quality matching is flexible (major7 ≈ major, minor7 ≈ minor)
-4. Apply +100 bonus if result matches the key hint from Inspire Me
-5. Return highest-scoring key {note, mode, score}
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     SCALE DETECTION COMPLETE FLOW                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                    Progression Loaded (from any source)
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  updateScaleBuilder() is called                                             │
+│                                                                             │
+│  Calls: ScaleDetection.analyzeProgression(chords, keyHint)                  │
+│                                                                             │
+│  • chords = array of chord objects from progression slots                   │
+│  • keyHint = {note: "A", mode: "minor"} from Inspire Me                     │
+│            = null if user manually built progression                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  PHASE 1: detectKey(chordData, keyHint)                                     │
+│                                                                             │
+│  For each of 12 notes (C, C#, D, D#, E, F, F#, G, G#, A, A#, B):            │
+│    For each mode (major, minor):                                            │
+│      • Get diatonic chords for this key/mode                                │
+│      • Score = count matching chords × 10                                   │
+│      • IF keyHint matches this key/mode: Score += 100                       │
+│                                                                             │
+│  Return: {note, mode, score} with highest score                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  PHASE 2: getMainScale(detectedKey, chordData)                              │
+│                                                                             │
+│  IF detectedKey.mode === 'major':                                           │
+│      Return: {root}  Ionian (Major Scale)                                   │
+│  ELSE IF detectedKey.mode === 'minor':                                      │
+│      Return: {root} Aeolian (Natural Minor Scale)                           │
+│  ELSE (no clear key):                                                       │
+│      Return: Pentatonic based on first chord                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  PHASE 3: getAlternativeScales(detectedKey, chordData)                      │
+│                                                                             │
+│  Always add:                                                                │
+│    1. Pentatonic (Major or Minor matching key)                              │
+│    2. Blues Scale                                                           │
+│                                                                             │
+│  Conditionally add:                                                         │
+│    3. Dorian - if progression has minor chords in major key context         │
+│    4. Mixolydian - if progression has dominant7 chords                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  PHASE 4: getPerChordModes(chordData, detectedKey)                          │
+│                                                                             │
+│  For each chord in progression:                                             │
+│    • Determine chord's relationship to detected key                         │
+│    • Suggest appropriate mode based on chord function                       │
+│    • Calculate chord tones for highlighting                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  RESULT OBJECT                                                              │
+│                                                                             │
+│  {                                                                          │
+│    mainScale: { root, type, name, description },                            │
+│    alternativeScales: [ {root, type, name, description}, ... ],             │
+│    perChordModes: [ {chordName, scale, chordTones}, ... ],                  │
+│    key: { note, mode, score }                                               │
+│  }                                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Phase 1: Key Detection (detectKey) - Detailed
+
+The algorithm tests all 24 possible keys (12 notes × 2 modes):
+
+```javascript
+// Pseudocode for key detection
+for (const keyNote of ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']) {
+
+    // Test MAJOR key
+    const majorChords = getDiatonicChords(keyNote, 'major');
+    // Returns: I(maj), ii(min), iii(min), IV(maj), V(maj), vi(min), vii°(dim)
+
+    let majorScore = 0;
+    for (each chord in progression) {
+        if (chord fits one of the diatonic chords) {
+            majorScore += 10;
+        }
+    }
+
+    // KEY HINT BONUS - This is crucial for Inspire Me
+    if (keyHint && keyHint.note === keyNote && keyHint.mode === 'major') {
+        majorScore += 100;  // Strong bias toward intended key
+    }
+
+    // Test MINOR key
+    const minorChords = getDiatonicChords(keyNote, 'minor');
+    // Returns: i(min), ii°(dim), III(maj), iv(min), v(min), VI(maj), VII(maj)
+
+    let minorScore = 0;
+    for (each chord in progression) {
+        if (chord fits one of the diatonic chords) {
+            minorScore += 10;
+        }
+    }
+
+    if (keyHint && keyHint.note === keyNote && keyHint.mode === 'minor') {
+        minorScore += 100;
+    }
+
+    // Track best scoring key
+    if (majorScore > bestScore) bestKey = {keyNote, 'major', majorScore};
+    if (minorScore > bestScore) bestKey = {keyNote, 'minor', minorScore};
+}
+```
+
+**Quality Matching Flexibility:**
+The algorithm treats extended chords as equivalent to their base quality:
+- `major7` matches `major`
+- `minor7` matches `minor`
+- `dominant7` matches `major` (V chord)
+
+### Scoring Examples
+
+**Example 1: "Heartbreak Hotel" (Am → F → C → G) with keyHint = {A, minor}**
+
+| Key Tested | Diatonic Matches | Base Score | Hint Bonus | Total |
+|------------|------------------|------------|------------|-------|
+| A minor | Am(i), F(VI), C(III), G(VII) = 4 | 40 | +100 | **140** ← Winner |
+| C major | Am(vi), F(IV), C(I), G(V) = 4 | 40 | 0 | 40 |
+| G major | Am(?), F(?), C(IV), G(I) = 2 | 20 | 0 | 20 |
+
+Result: A minor wins because of the key hint, even though C major has equal diatonic matches.
+
+**Example 2: Same progression WITHOUT keyHint (user-built)**
+
+| Key Tested | Diatonic Matches | Base Score | Hint Bonus | Total |
+|------------|------------------|------------|------------|-------|
+| A minor | Am(i), F(VI), C(III), G(VII) = 4 | 40 | 0 | 40 |
+| C major | Am(vi), F(IV), C(I), G(V) = 4 | 40 | 0 | 40 |
+
+Result: Tie! Algorithm picks first match (implementation-dependent), could be either A minor or C major.
 
 ### Phase 2: Main Scale Selection (getMainScale)
 
-Based on detected key:
+Simple mapping based on detected key:
 - **Major key detected** → Suggest Ionian (Major) scale
 - **Minor key detected** → Suggest Aeolian (Natural Minor) scale
-- **No clear key** → Suggest Pentatonic based on first chord
+- **No clear key (score = 0)** → Suggest Pentatonic based on first chord's quality
 
 ### Phase 3: Alternative Scales (getAlternativeScales)
 
-Always suggested:
+**Always suggested:**
 1. **Pentatonic** (Major or Minor depending on key)
-   - "Simplified 5-note version - great for beginners"
+   - "Simplified 5-note version - great for beginners, sounds good everywhere"
 2. **Blues Scale**
    - "Adds bluesy flavor with the blue note (b5)"
 
-Conditional suggestions:
-3. **Dorian** - If progression has minor chords in a major key context
-   - "Minor scale with brighter sound - great for jazz and funk"
-4. **Mixolydian** - If progression contains dominant7 chords
+**Conditionally suggested:**
+3. **Dorian** - If progression has minor chords AND detected key is major
+   - "Minor scale with a brighter sound - great for jazz and funk"
+4. **Mixolydian** - If progression contains any dominant7 chords
    - "Major scale with b7 - perfect for blues and rock"
 
 ### Phase 4: Per-Chord Modes (getPerChordModes)
 
-For advanced players, suggests which mode to play over each individual chord:
+For advanced players, the algorithm determines which mode best highlights each chord based on its relationship to the detected key:
 
-| Chord Quality | Suggested Mode | Reason |
-|---------------|----------------|--------|
-| Major/Maj7 | Ionian | Bright major sound |
-| Minor/Min7 (ii) | Dorian | Jazzy minor feel |
-| Minor/Min7 (iii) | Phrygian | Dark, Spanish flavor |
-| Minor/Min7 (vi) | Aeolian | Standard minor |
-| Dominant7 | Mixolydian | Bluesy rock sound |
-| Diminished | Locrian | Unstable, tense |
+| Chord Interval from Key | Chord Quality | Suggested Mode | Description |
+|------------------------|---------------|----------------|-------------|
+| Root (0 semitones) | Major/Maj7 | Ionian | Bright major sound |
+| 2 semitones | Minor/Min7 | Dorian | Minor scale with jazzy feel |
+| 4 semitones | Minor/Min7 | Phrygian | Dark, Spanish-flavored minor |
+| 9 semitones | Minor/Min7 | Aeolian | Standard minor sound |
+| Any | Dominant7 | Mixolydian | Major scale with b7 - bluesy rock |
+| Any | Diminished | Locrian | Unstable, tense sound |
+| Default | Major | Ionian | Bright major sound |
+| Default | Minor | Aeolian | Standard minor sound |
+
+### Key Hint Behavior Summary
+
+| Scenario | keyHint Value | Effect on Scale Detection |
+|----------|---------------|---------------------------|
+| Curated progression from Inspire Me | Set from progression.key + mood | +100 bonus ensures intended key wins |
+| Generated progression from Inspire Me | Set from selected/random key + mood | +100 bonus ensures intended key wins |
+| User manually builds progression | `null` | Algorithm analyzes purely from chord content |
+| User edits an Inspired progression | Cleared to `null` on edit | Algorithm re-analyzes without bias |
+| User clears progression | Cleared to `null` | Empty state shown |
 
 ---
 

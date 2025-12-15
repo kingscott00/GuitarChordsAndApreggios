@@ -3549,17 +3549,26 @@ const App = {
 
         availableProgressions = lengthFiltered;
 
+        // Determine if we need to transpose
+        let needsTransposition = false;
+        let targetKey = selectedKey;
+
         // Filter by key if user selected a specific key
         if (keyMode === 'custom' && selectedKey) {
             const keyMatches = availableProgressions.filter(p => p.key === selectedKey || p.key === selectedKey.replace('m', ''));
             if (keyMatches.length > 0) {
                 availableProgressions = keyMatches;
+            } else {
+                // No exact match - we'll transpose to the selected key
+                needsTransposition = true;
             }
         }
 
         // Pick a random progression from available
         const progression = availableProgressions[Math.floor(Math.random() * availableProgressions.length)];
-        const key = progression.key || selectedKey;
+
+        // Determine the final key (use selected key if transposing, otherwise use progression's key)
+        const key = needsTransposition ? targetKey : (progression.key || selectedKey);
 
         // Update current key
         this.state.currentKey = key.replace('m', '');
@@ -3585,30 +3594,57 @@ const App = {
             mood: mood,
             key: key,
             useCurated: true,
-            length: length
+            length: length,
+            originalKey: progression.key,  // Store original key for reference
+            wasTransposed: needsTransposition
         };
 
-        // Load the specific chord voicings
-        progression.chordIds.forEach((chordId, index) => {
-            const chord = getChordById(chordId);
-            if (!chord) return;
+        // Load chords - transpose if needed
+        if (needsTransposition) {
+            // Transpose the progression to the target key
+            const transposedChords = this.transposeCuratedProgression(progression, targetKey);
+            transposedChords.forEach((chord, index) => {
+                if (!chord) return;
 
-            // Add slots if needed
-            while (index >= document.querySelectorAll('.progression-slot').length) {
-                this.addProgressionSlot();
-            }
+                // Add slots if needed
+                while (index >= document.querySelectorAll('.progression-slot').length) {
+                    this.addProgressionSlot();
+                }
 
-            const slot = document.querySelector(`.progression-slot[data-index="${index}"]`);
-            if (slot) {
-                this.state.progression[index] = {
-                    chordId: chord.id,
-                    name: chord.name,
-                    symbol: chord.symbol,
-                    root: chord.root
-                };
-                this.renderProgressionSlot(slot, chord, index);
-            }
-        });
+                const slot = document.querySelector(`.progression-slot[data-index="${index}"]`);
+                if (slot) {
+                    this.state.progression[index] = {
+                        chordId: chord.id,
+                        name: chord.name,
+                        symbol: chord.symbol,
+                        root: chord.root
+                    };
+                    this.renderProgressionSlot(slot, chord, index);
+                }
+            });
+        } else {
+            // Load the specific chord voicings directly (original behavior)
+            progression.chordIds.forEach((chordId, index) => {
+                const chord = getChordById(chordId);
+                if (!chord) return;
+
+                // Add slots if needed
+                while (index >= document.querySelectorAll('.progression-slot').length) {
+                    this.addProgressionSlot();
+                }
+
+                const slot = document.querySelector(`.progression-slot[data-index="${index}"]`);
+                if (slot) {
+                    this.state.progression[index] = {
+                        chordId: chord.id,
+                        name: chord.name,
+                        symbol: chord.symbol,
+                        root: chord.root
+                    };
+                    this.renderProgressionSlot(slot, chord, index);
+                }
+            });
+        }
 
         // Update Scale Builder
         this.updateScaleBuilder();
@@ -3617,6 +3653,125 @@ const App = {
         this.updateProgressionInfoDisplay();
 
         return { key, name: progression.name };
+    },
+
+    /**
+     * Transpose a chord from one key to another
+     * Returns a suitable chord voicing in the target key with the same quality
+     * @param {Object} originalChord - The original chord object
+     * @param {string} originalKey - The original key (e.g., 'G', 'Am')
+     * @param {string} targetKey - The target key (e.g., 'E', 'Cm')
+     * @param {Object} previousChord - Previous chord for voice leading (optional)
+     * @param {Set} usedChordIds - Set of already used chord IDs to avoid duplicates
+     * @returns {Object|null} - A chord object in the target key, or null if not found
+     */
+    transposeChord(originalChord, originalKey, targetKey, previousChord = null, usedChordIds = new Set()) {
+        const noteOrder = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const flatToSharp = { 'Db': 'C#', 'Eb': 'D#', 'Fb': 'E', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#', 'Cb': 'B' };
+
+        // Normalize keys (remove 'm' for minor, handle flats)
+        const normalizeNote = (note) => {
+            const base = note.replace('m', '');
+            return flatToSharp[base] || base;
+        };
+
+        const origKeyNote = normalizeNote(originalKey);
+        const targetKeyNote = normalizeNote(targetKey);
+        const origChordRoot = normalizeNote(originalChord.root);
+
+        // Calculate the interval from original chord root relative to original key
+        const origKeyIndex = noteOrder.indexOf(origKeyNote);
+        const origChordIndex = noteOrder.indexOf(origChordRoot);
+        const interval = (origChordIndex - origKeyIndex + 12) % 12;
+
+        // Apply same interval to target key to get new root
+        const targetKeyIndex = noteOrder.indexOf(targetKeyNote);
+        const newRootIndex = (targetKeyIndex + interval) % 12;
+        const newRoot = noteOrder[newRootIndex];
+
+        // Find matching chord in target key with same quality
+        const chordPool = getAllChords();
+        const quality = originalChord.quality;
+
+        // First pass: Find chords with same root and quality, excluding already used
+        let matchingChords = chordPool.filter(c =>
+            c.root === newRoot &&
+            c.quality === quality &&
+            !usedChordIds.has(c.id)
+        );
+
+        // Fallback: Allow duplicates if no unique matches found
+        if (matchingChords.length === 0) {
+            matchingChords = chordPool.filter(c =>
+                c.root === newRoot &&
+                c.quality === quality
+            );
+        }
+
+        // Ultimate fallback: Find any chord with same root (but exclude power chords)
+        if (matchingChords.length === 0) {
+            matchingChords = chordPool.filter(c =>
+                c.root === newRoot &&
+                c.quality !== 'power'
+            );
+        }
+
+        if (matchingChords.length === 0) {
+            return null;
+        }
+
+        // Apply voice leading if we have a previous chord
+        let selectedChord;
+        if (previousChord) {
+            const prevPos = this.getChordPosition(previousChord);
+            matchingChords.sort((a, b) => {
+                const posA = this.getChordPosition(a);
+                const posB = this.getChordPosition(b);
+                return Math.abs(posA - prevPos) - Math.abs(posB - prevPos);
+            });
+            // Select from top 40% for variety
+            const topCount = Math.max(1, Math.ceil(matchingChords.length * 0.4));
+            selectedChord = matchingChords[Math.floor(Math.random() * topCount)];
+        } else {
+            // First chord: prefer open/low position
+            matchingChords.sort((a, b) => this.getChordPosition(a) - this.getChordPosition(b));
+            const topCount = Math.max(1, Math.ceil(matchingChords.length * 0.3));
+            selectedChord = matchingChords[Math.floor(Math.random() * topCount)];
+        }
+
+        return selectedChord;
+    },
+
+    /**
+     * Transpose an entire curated progression to a new key
+     * @param {Object} progression - The curated progression object
+     * @param {string} targetKey - The target key
+     * @returns {Array} - Array of transposed chord objects
+     */
+    transposeCuratedProgression(progression, targetKey) {
+        const originalKey = progression.key;
+        const transposedChords = [];
+        const usedChordIds = new Set();
+        let previousChord = null;
+
+        for (const chordId of progression.chordIds) {
+            const originalChord = getChordById(chordId);
+            if (!originalChord) {
+                transposedChords.push(null);
+                continue;
+            }
+
+            const transposed = this.transposeChord(originalChord, originalKey, targetKey, previousChord, usedChordIds);
+            if (transposed) {
+                usedChordIds.add(transposed.id);
+                previousChord = transposed;
+                transposedChords.push(transposed);
+            } else {
+                transposedChords.push(null);
+            }
+        }
+
+        return transposedChords;
     },
 
     /**
@@ -3894,18 +4049,39 @@ const App = {
                 }
             }
 
-            // Fallback: allow duplicates if no unique matches
+            // Fallback 1: Try different voicings of the same quality (still avoid exact duplicates)
             if (matchingChords.length === 0) {
+                // First try: same quality, different voicing (exclude exact ID matches but allow same quality)
                 matchingChords = chordPool.filter(c =>
                     c.root === root &&
                     allowedQualities.includes(c.quality) &&
-                    c.difficulty <= maxDifficulty
+                    c.difficulty <= maxDifficulty &&
+                    !usedChordIds.has(c.id)
+                );
+                // If still nothing, allow any voicing of same quality (may repeat voicing)
+                if (matchingChords.length === 0) {
+                    matchingChords = chordPool.filter(c =>
+                        c.root === root &&
+                        allowedQualities.includes(c.quality) &&
+                        c.difficulty <= maxDifficulty
+                    );
+                }
+            }
+
+            // Fallback 2: Relax difficulty limit but keep quality requirements
+            if (matchingChords.length === 0) {
+                matchingChords = chordPool.filter(c =>
+                    c.root === root &&
+                    allowedQualities.includes(c.quality)
                 );
             }
 
-            // Ultimate fallback: any chord with matching root
+            // Ultimate fallback: any chord with matching root (but EXCLUDE power chords)
             if (matchingChords.length === 0) {
-                matchingChords = chordPool.filter(c => c.root === root);
+                matchingChords = chordPool.filter(c =>
+                    c.root === root &&
+                    c.quality !== 'power'
+                );
             }
 
             if (matchingChords.length === 0) {
@@ -4726,12 +4902,23 @@ const App = {
             const info = this.state.inspiredProgressionInfo;
             const settings = this.state.inspireMeSettings;
 
+            // For more variety, occasionally switch to a related key (50% chance)
+            let effectiveKeyMode = settings.keyMode;
+            let effectiveKey = settings.selectedKey;
+
+            if (settings.keyMode === 'random' || Math.random() < 0.5) {
+                // Pick a related/parallel key for variety
+                const relatedKeys = this.getRelatedKeys(info.key);
+                effectiveKey = relatedKeys[Math.floor(Math.random() * relatedKeys.length)];
+                effectiveKeyMode = 'custom';  // Force custom to use our selected related key
+            }
+
             if (info.useCurated) {
-                // Regenerate a new curated progression with same mood/settings
-                this.loadCuratedProgression(info.mood, settings.keyMode, settings.selectedKey, info.length);
+                // Regenerate a new curated progression with same mood but potentially different key
+                this.loadCuratedProgression(info.mood, effectiveKeyMode, effectiveKey, info.length);
             } else {
-                // Regenerate a generated progression with same mood/settings
-                this.loadGeneratedProgression(info.mood, settings.complexity, info.length, settings.keyMode, settings.selectedKey);
+                // Regenerate a generated progression with same mood but potentially different key
+                this.loadGeneratedProgression(info.mood, settings.complexity, info.length, effectiveKeyMode, effectiveKey);
             }
             return;
         }
@@ -4741,6 +4928,46 @@ const App = {
         if (templateId) {
             this.loadTemplate(templateId, true);
         }
+    },
+
+    /**
+     * Get musically related keys for variety in randomization
+     * @param {string} key - The current key (e.g., 'G', 'Am', 'C')
+     * @returns {Array} - Array of related keys
+     */
+    getRelatedKeys(key) {
+        const noteOrder = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const isMinor = key.endsWith('m');
+        const rootNote = key.replace('m', '');
+        const rootIndex = noteOrder.indexOf(rootNote);
+
+        if (rootIndex === -1) return [key];
+
+        const relatedKeys = [key];  // Always include the original key
+
+        if (isMinor) {
+            // For minor keys: relative major (3 semitones up), parallel major, dominant minor
+            const relativeMajor = noteOrder[(rootIndex + 3) % 12];
+            const parallelMajor = rootNote;
+            const dominantMinor = noteOrder[(rootIndex + 7) % 12] + 'm';
+            const subdominantMinor = noteOrder[(rootIndex + 5) % 12] + 'm';
+
+            relatedKeys.push(relativeMajor, parallelMajor, dominantMinor, subdominantMinor);
+        } else {
+            // For major keys: relative minor (3 semitones down), parallel minor, dominant major
+            const relativeMinor = noteOrder[(rootIndex + 9) % 12] + 'm';
+            const parallelMinor = rootNote + 'm';
+            const dominantMajor = noteOrder[(rootIndex + 7) % 12];
+            const subdominantMajor = noteOrder[(rootIndex + 5) % 12];
+
+            relatedKeys.push(relativeMinor, parallelMinor, dominantMajor, subdominantMajor);
+        }
+
+        // Filter to keys that are commonly used/sound good on guitar
+        const guitarFriendlyKeys = ['C', 'G', 'D', 'A', 'E', 'F', 'Am', 'Em', 'Dm', 'Bm', 'Cm', 'Gm'];
+        const filteredKeys = relatedKeys.filter(k => guitarFriendlyKeys.includes(k));
+
+        return filteredKeys.length > 0 ? filteredKeys : relatedKeys;
     },
 
     /**

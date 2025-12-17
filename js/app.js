@@ -197,14 +197,20 @@ const App = {
             btn.addEventListener('click', (e) => this.handleModeChange(e));
         });
 
-        // Mood dropdown
+        // Mood dropdown - auto-triggers showChords when value selected
         document.getElementById('mood-dropdown')?.addEventListener('change', (e) => {
             this.state.currentMood = e.target.value || null;
+            if (this.state.selectionMode === 'mood' && this.state.currentMood) {
+                this.showChords();
+            }
         });
 
-        // Style dropdown
+        // Style dropdown - auto-triggers showChords when value selected
         document.getElementById('style-dropdown')?.addEventListener('change', (e) => {
             this.state.currentStyle = e.target.value || null;
+            if (this.state.selectionMode === 'style' && this.state.currentStyle) {
+                this.showChords();
+            }
         });
 
         // Theory selectors
@@ -274,9 +280,13 @@ const App = {
             this.clearAllFilters();
         });
 
-        // Root note selector (new tab)
+        // Root note selector (new tab) - auto-triggers showChords when value selected
         document.getElementById('root-note-select')?.addEventListener('change', (e) => {
             this.state.currentRootNote = e.target.value || null;
+            // Auto-trigger showChords when a root note is selected (or clear when deselected)
+            if (this.state.selectionMode === 'root-note') {
+                this.showChords();
+            }
         });
 
         // Capo selector
@@ -781,8 +791,9 @@ const App = {
      */
     resetRootNoteFilter() {
         this.state.rootNoteFilter = 'all';
-        const dropdown = document.getElementById('root-note-filter');
-        if (dropdown) dropdown.value = 'all';
+        this.state.currentRootNote = null;
+        const dropdown = document.getElementById('root-note-select');
+        if (dropdown) dropdown.value = '';
         this.hideRootNoteIndicator();
         this.dimMoodStyleTheoryTabs(false);
     },
@@ -1368,8 +1379,12 @@ const App = {
             this.resetRootNoteFilter();
         }
 
-        // Reset the three new filters to "All" when mood/style/theory changes
+        // Reset filters without triggering a render (we'll render after getting chords)
+        // Store hasSearched temporarily to prevent clearAllFilters from rendering with old data
+        const wasSearched = this.state.hasSearched;
+        this.state.hasSearched = false;
         this.clearAllFilters();
+        this.state.hasSearched = wasSearched;
 
         // Get chords based on selection mode
         switch (this.state.selectionMode) {
@@ -1406,6 +1421,8 @@ const App = {
                 if (this.state.currentRootNote) {
                     // Get all chords and filter by root note
                     chords = SelectionEngine.filterByRootNote(getAllChords(), this.state.currentRootNote);
+                    // Sync rootNoteFilter for count display
+                    this.state.rootNoteFilter = this.state.currentRootNote;
                     selectionInfo = {
                         name: `${this.state.currentRootNote} Chords`,
                         description: `All chord voicings with ${this.state.currentRootNote} as the root note`,
@@ -1414,6 +1431,7 @@ const App = {
                 } else {
                     // No root note selected, show all
                     chords = getAllChords();
+                    this.state.rootNoteFilter = 'all';
                 }
                 break;
         }
@@ -1439,7 +1457,7 @@ const App = {
      */
     displayAllChords() {
         this.state.selectedChords = getAllChords();
-        this.state.hasSearched = false;
+        this.state.hasSearched = true; // Enable filter changes to trigger re-render
         this.hideSelectionInfo();
         this.applyFiltersAndDisplay();
     },

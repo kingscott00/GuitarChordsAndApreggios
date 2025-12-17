@@ -499,6 +499,14 @@ const SelectionEngine = {
     filterByBasicChordType(chords, type) {
         if (type === 'all' || !type) return chords;
 
+        // Define exact quality matches for each filter type
+        const qualityGroups = {
+            major: ['major', 'major7', 'major9', 'major11', 'major13', 'maj7', 'maj9', 'maj13', '6', 'add9'],
+            minor: ['minor', 'minor7', 'minor9', 'minor11', 'minor13', 'm7', 'm9', 'm11', 'm13', 'm7b5', 'half-diminished', 'minmaj7'],
+            seventh: ['dominant7', '7', 'major7', 'minor7', 'maj7', 'm7', 'dim7', 'm7b5', '7sus4', '7b9', '7#9', '7b5', '7#5', '9', '11', '13'],
+            diminished: ['diminished', 'diminished7', 'dim', 'dim7', 'm7b5', 'half-diminished', 'half-dim']
+        };
+
         return chords.filter(chord => {
             const quality = chord.quality || '';
             const name = chord.name.toLowerCase();
@@ -506,18 +514,21 @@ const SelectionEngine = {
 
             switch (type) {
                 case 'major':
-                    // Major chords including triads and 7ths
-                    return quality === 'major' || quality === 'major7' ||
-                           quality.includes('maj') && !quality.includes('min');
+                    // Major chords - use exact quality matching
+                    return qualityGroups.major.includes(quality) ||
+                           (quality.startsWith('maj') && !quality.includes('min'));
 
                 case 'minor':
-                    // Minor chords including triads and 7ths
-                    return quality === 'minor' || quality === 'minor7' ||
-                           quality.includes('min') || quality.includes('minor');
+                    // Minor chords - use exact quality matching (NOT substring)
+                    // This prevents matching 'diminished' or 'dominant' which contain 'min'
+                    return qualityGroups.minor.includes(quality) ||
+                           quality.startsWith('minor') ||
+                           (quality.startsWith('m') && !quality.startsWith('maj') && !quality.startsWith('mix'));
 
                 case 'seventh':
                     // Any chord with a seventh
-                    return intervals.some(i => i === '7' || i === 'b7' || i === 'maj7') ||
+                    return qualityGroups.seventh.includes(quality) ||
+                           intervals.some(i => i === '7' || i === 'b7' || i === 'maj7') ||
                            name.includes('7');
 
                 case 'extended':
@@ -531,13 +542,12 @@ const SelectionEngine = {
 
                 case 'power':
                     // Power chords
-                    return quality === 'power' || name.includes('5') && intervals.length === 2;
+                    return quality === 'power' || (name.includes('5') && intervals.length === 2);
 
                 case 'diminished':
-                    // Diminished and half-diminished
-                    return quality.includes('dim') || quality.includes('diminished') ||
-                           name.includes('dim') || name.includes('°') ||
-                           quality.includes('half-dim') || name.includes('m7b5');
+                    // Diminished and half-diminished - use exact quality matching
+                    return qualityGroups.diminished.includes(quality) ||
+                           name.includes('dim') || name.includes('°');
 
                 default:
                     return true;

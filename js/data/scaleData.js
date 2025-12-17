@@ -136,6 +136,24 @@ const ModeDefinitions = {
         commonProgressions: [
             { name: "Locrian Resolution", numerals: ["i°", "bII"] }
         ]
+    },
+
+    harmonic_minor: {
+        id: "harmonic_minor",
+        name: "Harmonic Minor",
+        alternateName: "Minor with raised 7th",
+        intervals: [0, 2, 3, 5, 7, 8, 11],
+        degrees: ["1", "2", "b3", "4", "5", "b6", "7"],
+        chordQualities: ["minor", "diminished", "augmented", "minor", "major", "major", "diminished"],
+        seventhQualities: ["minorMajor7", "half-diminished", "augmented-major7", "minor7", "dominant7", "major7", "diminished7"],
+        romanNumerals: ["i", "ii°", "bIII+", "iv", "V", "bVI", "vii°"],
+        character: "Classical, dramatic, exotic",
+        moods: ["sad", "dramatic", "mysterious", "tense"],
+        commonProgressions: [
+            { name: "Classical Minor", numerals: ["i", "iv", "V", "i"] },
+            { name: "Andalusian Cadence", numerals: ["i", "bVII", "bVI", "V"] },
+            { name: "Dramatic Minor", numerals: ["i", "bVI", "V", "i"] }
+        ]
     }
 };
 

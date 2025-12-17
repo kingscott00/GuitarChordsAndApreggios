@@ -123,7 +123,8 @@ const App = {
             currentScale: null,
             alternativeScales: [],
             perChordModes: [],
-            detectedKey: null
+            detectedKey: null,
+            validation: null // Scale fitness validation results
         }
     },
 
@@ -3577,15 +3578,18 @@ const App = {
             keyDropdown.value = this.state.currentKey;
         }
 
-        // Set key hint for scale detection
+        // Clear current progression first (this resets progressionKeyHint)
+        this.clearProgression();
+
+        // Clear scale builder state to force fresh analysis (don't preserve previous selection)
+        this.state.scaleBuilder.currentScale = null;
+
+        // Set key hint for scale detection AFTER clearProgression
         const isMinorKey = key.endsWith('m') || mood === 'sad' || mood === 'dark';
         this.state.progressionKeyHint = {
             note: key.replace('m', ''),
             mode: isMinorKey ? 'minor' : 'major'
         };
-
-        // Clear current progression
-        this.clearProgression();
 
         // Store inspired progression info for Randomize and display
         this.state.inspiredProgressionInfo = {
@@ -3617,7 +3621,8 @@ const App = {
                         chordId: chord.id,
                         name: chord.name,
                         symbol: chord.symbol,
-                        root: chord.root
+                        root: chord.root,
+                        quality: chord.quality
                     };
                     this.renderProgressionSlot(slot, chord, index);
                 }
@@ -3639,7 +3644,8 @@ const App = {
                         chordId: chord.id,
                         name: chord.name,
                         symbol: chord.symbol,
-                        root: chord.root
+                        root: chord.root,
+                        quality: chord.quality
                     };
                     this.renderProgressionSlot(slot, chord, index);
                 }
@@ -3806,13 +3812,17 @@ const App = {
             const keyDropdown = document.getElementById('key-select');
             if (keyDropdown) keyDropdown.value = this.state.currentKey;
 
+            this.loadTemplate(templateId, false);
+
+            // Clear scale builder state to force fresh analysis
+            this.state.scaleBuilder.currentScale = null;
+
+            // Set key hint for scale detection AFTER loadTemplate (which clears it via clearProgression)
             const isMinorKey = key.endsWith('m');
             this.state.progressionKeyHint = {
                 note: key.replace('m', ''),
                 mode: isMinorKey ? 'minor' : 'major'
             };
-
-            this.loadTemplate(templateId, false);
 
             // Clear template dropdown and state to be consistent with expanded templates path
             const templateSelectEl = document.getElementById('template-select');
@@ -3835,6 +3845,9 @@ const App = {
                 flatDegrees: builtInTemplate?.flatDegrees || []
             };
             this.updateProgressionInfoDisplay();
+
+            // Re-run scale builder with correct key hint
+            this.updateScaleBuilder();
 
             return { key };
         }
@@ -3872,13 +3885,17 @@ const App = {
             const keyDropdown = document.getElementById('key-select');
             if (keyDropdown) keyDropdown.value = this.state.currentKey;
 
+            this.loadTemplate(templateId, false);
+
+            // Clear scale builder state to force fresh analysis
+            this.state.scaleBuilder.currentScale = null;
+
+            // Set key hint for scale detection AFTER loadTemplate (which clears it via clearProgression)
             const isMinorKey = key.endsWith('m');
             this.state.progressionKeyHint = {
                 note: key.replace('m', ''),
                 mode: isMinorKey ? 'minor' : 'major'
             };
-
-            this.loadTemplate(templateId, false);
 
             // Clear template dropdown and state to be consistent with expanded templates path
             const templateSelectEl = document.getElementById('template-select');
@@ -3901,6 +3918,10 @@ const App = {
                 flatDegrees: builtInTemplate?.flatDegrees || []
             };
             this.updateProgressionInfoDisplay();
+
+            // Re-run scale builder with correct key hint
+            this.updateScaleBuilder();
+
             return { key };
         }
 
@@ -3924,15 +3945,18 @@ const App = {
             keyDropdown.value = this.state.currentKey;
         }
 
-        // Set key hint for scale detection
+        // Clear current progression first (this resets progressionKeyHint)
+        this.clearProgression();
+
+        // Clear scale builder state to force fresh analysis
+        this.state.scaleBuilder.currentScale = null;
+
+        // Set key hint for scale detection AFTER clearProgression
         const isMinorKey = key.endsWith('m') || template.rootMinor;
         this.state.progressionKeyHint = {
             note: key.replace('m', ''),
             mode: isMinorKey ? 'minor' : 'major'
         };
-
-        // Clear current progression
-        this.clearProgression();
 
         // Store inspired progression info for Randomize and display
         this.state.inspiredProgressionInfo = {
@@ -4121,7 +4145,8 @@ const App = {
                 chordId: chord.id,
                 name: chord.name,
                 symbol: chord.symbol,
-                root: chord.root
+                root: chord.root,
+                quality: chord.quality
             });
         });
 
@@ -4432,7 +4457,8 @@ const App = {
                 chordId: chord.id,
                 name: chord.name,
                 symbol: chord.symbol,
-                root: chord.root
+                root: chord.root,
+                quality: chord.quality
             };
             this.renderProgressionSlot(targetSlot, chord);
             targetSlot.classList.remove('selected');
@@ -4593,7 +4619,8 @@ const App = {
             chordId: newChord.id,
             name: newChord.name,
             symbol: newChord.symbol,
-            root: newChord.root
+            root: newChord.root,
+            quality: newChord.quality
         };
 
         // Re-render the slot
@@ -5373,7 +5400,8 @@ const App = {
                 chordId: chord.id,
                 name: chord.name,
                 symbol: chord.symbol,
-                root: chord.root
+                root: chord.root,
+                quality: chord.quality
             };
         });
     },
@@ -7806,6 +7834,18 @@ const App = {
         this.state.scaleBuilder.perChordModes = analysis.perChordModes;
         this.state.scaleBuilder.detectedKey = analysis.key;
 
+        // Validate scale fitness against the progression
+        const validProgression = this.state.progression.filter(c => c !== null);
+        if (this.state.scaleBuilder.currentScale && validProgression.length > 0) {
+            const parsedChords = validProgression.map(chord => ScaleDetection.parseChord(chord));
+            this.state.scaleBuilder.validation = ScaleDetection.validateScaleFitness(
+                this.state.scaleBuilder.currentScale,
+                parsedChords
+            );
+        } else {
+            this.state.scaleBuilder.validation = null;
+        }
+
         // Update UI based on current mode
         if (this.state.scaleBuilder.mode === 'single') {
             this.renderMainScale();
@@ -7851,7 +7891,16 @@ const App = {
         const scaleTypeName = this.getScaleTypeName(scale.type);
         const scaleName = `${scale.root} ${scaleTypeName}`;
         document.getElementById('main-scale-name').textContent = scaleName;
-        document.getElementById('main-scale-description').textContent = scale.description || '';
+
+        // Update description with reasoning if available
+        let description = scale.description || '';
+        if (scale.reasoning) {
+            description += ` ${scale.reasoning}`;
+        }
+        document.getElementById('main-scale-description').textContent = description;
+
+        // Display validation badge and warnings
+        this.renderScaleValidation();
 
         // Get chord tones from current progression
         const chordTones = this.getProgressionChordTones();
@@ -7869,6 +7918,93 @@ const App = {
 
         // Render position patterns for all scales
         this.renderPositionPatterns(scale);
+    },
+
+    /**
+     * Render scale validation badge and warnings
+     */
+    renderScaleValidation() {
+        const validation = this.state.scaleBuilder.validation;
+
+        // Find or create validation container
+        let validationContainer = document.getElementById('scale-validation-container');
+        if (!validationContainer) {
+            const descriptionEl = document.getElementById('main-scale-description');
+            if (descriptionEl) {
+                validationContainer = document.createElement('div');
+                validationContainer.id = 'scale-validation-container';
+                validationContainer.style.marginTop = '12px';
+                descriptionEl.parentNode.insertBefore(validationContainer, descriptionEl.nextSibling);
+            }
+        }
+
+        if (!validationContainer) return;
+
+        // Clear previous content
+        validationContainer.innerHTML = '';
+
+        if (!validation) return;
+
+        // Create badge
+        const badge = document.createElement('div');
+        badge.className = 'scale-validation-badge';
+        badge.style.display = 'inline-flex';
+        badge.style.alignItems = 'center';
+        badge.style.gap = '6px';
+        badge.style.padding = '6px 12px';
+        badge.style.borderRadius = '16px';
+        badge.style.fontSize = '13px';
+        badge.style.fontWeight = '500';
+        badge.style.marginBottom = '8px';
+
+        if (validation.isValid) {
+            badge.style.backgroundColor = 'rgba(34, 197, 94, 0.15)';
+            badge.style.color = '#22c55e';
+            badge.innerHTML = `<span style="font-size: 14px;">✓</span> Fits all chords (${validation.confidence}% match)`;
+        } else {
+            badge.style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
+            badge.style.color = '#f59e0b';
+            badge.innerHTML = `<span style="font-size: 14px;">⚠</span> Partial match (${validation.confidence}%)`;
+        }
+
+        validationContainer.appendChild(badge);
+
+        // Show warnings if there are problems
+        if (!validation.isValid && validation.problems.length > 0) {
+            const warningsDiv = document.createElement('div');
+            warningsDiv.className = 'scale-validation-warnings';
+            warningsDiv.style.marginTop = '10px';
+            warningsDiv.style.padding = '12px';
+            warningsDiv.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
+            warningsDiv.style.borderRadius = '8px';
+            warningsDiv.style.borderLeft = '3px solid #f59e0b';
+
+            const warningTitle = document.createElement('div');
+            warningTitle.style.fontWeight = '600';
+            warningTitle.style.marginBottom = '8px';
+            warningTitle.style.color = 'var(--text-primary)';
+            warningTitle.textContent = 'Note: Some chords contain notes outside this scale:';
+            warningsDiv.appendChild(warningTitle);
+
+            const problemsList = document.createElement('ul');
+            problemsList.style.margin = '0';
+            problemsList.style.paddingLeft = '20px';
+            problemsList.style.fontSize = '13px';
+            problemsList.style.color = 'var(--text-secondary)';
+
+            validation.problems.forEach(problem => {
+                const li = document.createElement('li');
+                li.style.marginBottom = '6px';
+                li.innerHTML = `<strong style="color: var(--text-primary);">${problem.chordName}</strong> has: ${problem.missingNotes.join(', ')}`;
+                if (problem.suggestion) {
+                    li.innerHTML += `<br><em style="color: var(--primary-color); font-size: 12px;">${problem.suggestion}</em>`;
+                }
+                problemsList.appendChild(li);
+            });
+
+            warningsDiv.appendChild(problemsList);
+            validationContainer.appendChild(warningsDiv);
+        }
     },
 
     /**

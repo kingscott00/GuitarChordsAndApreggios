@@ -140,6 +140,47 @@ const CuratedProgressions = {
             key: 'G',
             chordIds: ['gmaj7_open', 'cmaj7_open', 'am7_open', 'd7_open', 'gmaj7_open', 'em7_open', 'cmaj7_open', 'gmaj7_open'],
             tags: ['extended', 'jazzy', 'warm']
+        },
+        // New progressions for key coverage
+        {
+            id: 'happy-f-1',
+            name: 'Bright Morning',
+            description: 'Classic F major progression - warm and inviting',
+            key: 'F',
+            chordIds: ['f_major_barre', 'c_major_open', 'd_minor_open', 'bb_major_barre'],
+            tags: ['folk', 'bright', 'acoustic']
+        },
+        {
+            id: 'happy-bb-1',
+            name: 'Festival Vibes',
+            description: 'Bb major progression - big and bold sound',
+            key: 'Bb',
+            chordIds: ['bb_major_barre', 'f_major_barre', 'g_minor_barre', 'eb_major_barre'],
+            tags: ['uplifting', 'celebration', 'bright']
+        },
+        {
+            id: 'happy-eb-1',
+            name: 'Sunshine Pop',
+            description: 'Eb major - rich and colorful',
+            key: 'Eb',
+            chordIds: ['eb_major_barre', 'bb_major_barre', 'c_minor_barre', 'ab_major_barre'],
+            tags: ['pop', 'bright', 'radio']
+        },
+        {
+            id: 'happy-a-2',
+            name: 'Island Breeze',
+            description: 'A major progression - guitar-friendly and uplifting',
+            key: 'A',
+            chordIds: ['a_major_open', 'e_major_open', 'fsharp_minor_barre', 'd_major_open'],
+            tags: ['tropical', 'bright', 'summery']
+        },
+        {
+            id: 'happy-e-1',
+            name: 'Feel Good Jam',
+            description: 'E major rock progression - powerful and positive',
+            key: 'E',
+            chordIds: ['e_major_open', 'a_major_open', 'b_major_open', 'csharp_minor_barre'],
+            tags: ['rock', 'uplifting', 'energetic']
         }
     ],
 
@@ -253,6 +294,71 @@ const CuratedProgressions = {
             key: 'Dm',
             chordIds: ['d_minor_barre', 'a_minor_open', 'c_major_open', 'g_major_open', 'd_minor_barre', 'f_major_barre', 'a_minor_open', 'd_minor_barre'],
             tags: ['extended', 'contemplative', 'moody']
+        },
+        // New progressions for key coverage
+        {
+            id: 'sad-cm-1',
+            name: 'Winter Blues',
+            description: 'C minor progression - deep and somber',
+            key: 'Cm',
+            chordIds: ['c_minor_barre', 'ab_major_barre', 'eb_major_barre', 'bb_major_barre'],
+            tags: ['melancholic', 'dark', 'emotional']
+        },
+        {
+            id: 'sad-cm-2',
+            name: 'Lonely Streets',
+            description: 'C minor with subdominant movement - heavy emotion',
+            key: 'Cm',
+            chordIds: ['c_minor_barre', 'f_minor_barre', 'bb_major_barre', 'eb_major_barre'],
+            tags: ['urban', 'melancholic', 'introspective']
+        },
+        {
+            id: 'sad-gm-1',
+            name: 'Autumn Rain',
+            description: 'G minor progression - bittersweet and contemplative',
+            key: 'Gm',
+            chordIds: ['g_minor_barre', 'eb_major_barre', 'bb_major_barre', 'f_major_barre'],
+            tags: ['melancholic', 'gentle', 'reflective']
+        },
+        {
+            id: 'sad-gm-2',
+            name: 'Fading Light',
+            description: 'G minor with harmonic minor - classical sadness',
+            key: 'Gm',
+            chordIds: ['g_minor_barre', 'd_minor_barre', 'eb_major_barre', 'd_major_open'],
+            tags: ['dramatic', 'emotional', 'minor']
+        },
+        {
+            id: 'sad-fm-1',
+            name: 'Broken Dreams',
+            description: 'F minor - dark and introspective',
+            key: 'Fm',
+            chordIds: ['f_minor_barre', 'db_major_barre', 'ab_major_barre', 'eb_major_barre'],
+            tags: ['melancholic', 'deep', 'emotional']
+        },
+        {
+            id: 'sad-bm-2',
+            name: 'Lost in Thought',
+            description: 'B minor progression - wistful and reflective',
+            key: 'Bm',
+            chordIds: ['b_minor_barre', 'g_major_open', 'd_major_open', 'a_major_open'],
+            tags: ['introspective', 'gentle', 'melancholic']
+        },
+        {
+            id: 'sad-dm-2',
+            name: 'Silent Tears',
+            description: 'D minor with descending bass - powerful sadness',
+            key: 'Dm',
+            chordIds: ['d_minor_open', 'c_major_open', 'bb_major_barre', 'a_major_open'],
+            tags: ['emotional', 'dramatic', 'moving']
+        },
+        {
+            id: 'sad-em-2',
+            name: 'Empty Room',
+            description: 'E minor progression - stark and honest',
+            key: 'Em',
+            chordIds: ['e_minor_open', 'a_minor_open', 'd_major_open', 'g_major_open'],
+            tags: ['lonely', 'acoustic', 'simple']
         }
     ],
 
@@ -408,6 +514,47 @@ const CuratedProgressions = {
             key: 'C',
             chordIds: ['cmaj7_open', 'am7_open', 'dm7_open', 'gmaj7_open', 'cmaj7_open', 'fmaj7_open', 'em7_open', 'cmaj7_open'],
             tags: ['extended', 'lo-fi', 'dreamy']
+        },
+        // New progressions for key coverage
+        {
+            id: 'dreamy-f-1',
+            name: 'Floating Clouds',
+            description: 'F major 7th movement - soft and weightless',
+            key: 'F',
+            chordIds: ['fmaj7_open', 'cmaj7_open', 'am7_open', 'dm7_open'],
+            tags: ['ambient', 'peaceful', 'floating']
+        },
+        {
+            id: 'dreamy-bb-1',
+            name: 'Stardust',
+            description: 'Bb major with suspensions - magical atmosphere',
+            key: 'Bb',
+            chordIds: ['bbmaj7_barre', 'gm7_barre', 'ebmaj7_barre', 'f_major_barre'],
+            tags: ['ethereal', 'spacey', 'beautiful']
+        },
+        {
+            id: 'dreamy-eb-1',
+            name: 'Northern Lights',
+            description: 'Eb major progression - wide and celestial',
+            key: 'Eb',
+            chordIds: ['ebmaj7_barre', 'bbmaj7_barre', 'cm7_barre', 'ab_major_barre'],
+            tags: ['ambient', 'colorful', 'expansive']
+        },
+        {
+            id: 'dreamy-a-1',
+            name: 'Dream Sequence',
+            description: 'A major with 7ths - smooth and dreamy',
+            key: 'A',
+            chordIds: ['amaj7_open', 'fsharpm7_barre', 'dmaj7_open', 'e_major_open'],
+            tags: ['ambient', 'flowing', 'gentle']
+        },
+        {
+            id: 'dreamy-e-1',
+            name: 'Velvet Sky',
+            description: 'E major progression - warm and enveloping',
+            key: 'E',
+            chordIds: ['emaj7_barre', 'csharpm7_barre', 'amaj7_open', 'b_major_open'],
+            tags: ['lush', 'ambient', 'rich']
         }
     ],
 
@@ -532,6 +679,47 @@ const CuratedProgressions = {
             key: 'Dm',
             chordIds: ['dm7_open', 'g7_open', 'cmaj7_open', 'a7_open', 'dm7_open', 'e7_open', 'am7_open', 'dm7_open'],
             tags: ['extended', 'noir', 'jazzy']
+        },
+        // New progressions for key coverage
+        {
+            id: 'dark-cm-1',
+            name: 'Dark Cathedral',
+            description: 'C minor with major V - powerful darkness',
+            key: 'Cm',
+            chordIds: ['c_minor_barre', 'bb_major_barre', 'ab_major_barre', 'g_major_open'],
+            tags: ['gothic', 'dramatic', 'heavy']
+        },
+        {
+            id: 'dark-gm-1',
+            name: 'Shadow Realm',
+            description: 'G minor progression - lurking shadows',
+            key: 'Gm',
+            chordIds: ['g_minor_barre', 'eb_major_barre', 'f_major_barre', 'd_major_open'],
+            tags: ['mysterious', 'tense', 'dramatic']
+        },
+        {
+            id: 'dark-fm-1',
+            name: 'Midnight Ritual',
+            description: 'F minor circular progression - hypnotic darkness',
+            key: 'Fm',
+            chordIds: ['f_minor_barre', 'db_major_barre', 'eb_major_barre', 'f_minor_barre'],
+            tags: ['occult', 'mysterious', 'cyclic']
+        },
+        {
+            id: 'dark-bm-1',
+            name: 'Conspiracy',
+            description: 'B minor with major VI - intrigue and mystery',
+            key: 'Bm',
+            chordIds: ['b_minor_barre', 'd_major_open', 'e_minor_open', 'fsharp_minor_barre'],
+            tags: ['mysterious', 'tense', 'suspenseful']
+        },
+        {
+            id: 'dark-cm-2',
+            name: 'The Abyss',
+            description: 'C minor with emphasis on iv-V - crushing weight',
+            key: 'Cm',
+            chordIds: ['c_minor_barre', 'g_minor_barre', 'ab_major_barre', 'bb_major_barre'],
+            tags: ['heavy', 'doom', 'powerful']
         }
     ],
 
@@ -656,6 +844,47 @@ const CuratedProgressions = {
             key: 'A',
             chordIds: ['a_major_open', 'd_major_open', 'e_major_open', 'a_major_open', 'd_major_open', 'a_major_open', 'e_major_open', 'a_major_open'],
             tags: ['extended', 'punk', 'fast']
+        },
+        // New progressions for key coverage
+        {
+            id: 'energetic-f-1',
+            name: 'Rock Anthem',
+            description: 'F major rock progression - full and bold',
+            key: 'F',
+            chordIds: ['f_major_barre', 'bb_major_barre', 'c_major_open', 'f_major_barre'],
+            tags: ['rock', 'driving', 'powerful']
+        },
+        {
+            id: 'energetic-bb-1',
+            name: 'Brass Knuckles',
+            description: 'Bb major rock - massive sound',
+            key: 'Bb',
+            chordIds: ['bb_major_barre', 'eb_major_barre', 'f_major_barre', 'bb_major_barre'],
+            tags: ['rock', 'heavy', 'energetic']
+        },
+        {
+            id: 'energetic-eb-1',
+            name: 'Thunder Road',
+            description: 'Eb major with minor vi - dynamic range',
+            key: 'Eb',
+            chordIds: ['eb_major_barre', 'ab_major_barre', 'bb_major_barre', 'c_minor_barre'],
+            tags: ['rock', 'anthem', 'driving']
+        },
+        {
+            id: 'energetic-a-2',
+            name: 'Desert Highway',
+            description: 'A major rock staple - pure power',
+            key: 'A',
+            chordIds: ['a_major_open', 'd_major_open', 'e_major_open', 'a_major_open'],
+            tags: ['rock', 'classic', 'driving']
+        },
+        {
+            id: 'energetic-e-1',
+            name: 'Stadium Rock',
+            description: 'E major progression - arena-ready',
+            key: 'E',
+            chordIds: ['e_major_open', 'a_major_open', 'b_major_open', 'e_major_open'],
+            tags: ['rock', 'anthem', 'massive']
         }
     ],
 
@@ -772,6 +1001,47 @@ const CuratedProgressions = {
             key: 'C',
             chordIds: ['cmaj7_open', 'fmaj7_open', 'em7_open', 'am7_open', 'dm7_open', 'g7_open', 'fmaj7_open', 'cmaj7_open'],
             tags: ['extended', 'smooth', 'elegant']
+        },
+        // New progressions for key coverage
+        {
+            id: 'jazzy-cm-1',
+            name: 'Urban Jazz',
+            description: 'C minor ii-V-I - classic jazz in minor',
+            key: 'Cm',
+            chordIds: ['cm7_barre', 'fm7_barre', 'bb7_barre', 'ebmaj7_barre'],
+            tags: ['jazz', 'sophisticated', 'urban']
+        },
+        {
+            id: 'jazzy-gm-1',
+            name: 'Jazz Minor Standard',
+            description: 'G minor ii-V-I - iconic jazz sound',
+            key: 'Gm',
+            chordIds: ['gm7_barre', 'cm7_barre', 'f7_barre', 'bbmaj7_barre'],
+            tags: ['jazz', 'standard', 'smooth']
+        },
+        {
+            id: 'jazzy-fm-1',
+            name: 'Blue Note',
+            description: 'F minor ii-V-I - deep jazz harmony',
+            key: 'Fm',
+            chordIds: ['fm7_barre', 'bbm7_barre', 'eb7_barre', 'abmaj7_barre'],
+            tags: ['jazz', 'blue', 'sophisticated']
+        },
+        {
+            id: 'jazzy-bb-1',
+            name: 'Sophisticated Lady',
+            description: 'Bb major jazz progression - timeless elegance',
+            key: 'Bb',
+            chordIds: ['bbmaj7_barre', 'gm7_barre', 'cm7_barre', 'f7_barre'],
+            tags: ['jazz', 'elegant', 'classic']
+        },
+        {
+            id: 'jazzy-dm-1',
+            name: 'Modal Jazz',
+            description: 'D dorian vamp - modal jazz exploration',
+            key: 'Dm',
+            chordIds: ['dm7_open', 'em7_open', 'fmaj7_open', 'em7_open'],
+            tags: ['jazz', 'modal', 'modern']
         }
     ],
 
@@ -887,6 +1157,47 @@ const CuratedProgressions = {
             key: 'G',
             chordIds: ['gmaj7_open', 'am7_open', 'cmaj7_open', 'd7_open', 'gmaj7_open', 'em7_open', 'am7_open', 'gmaj7_open'],
             tags: ['extended', 'smooth', 'night']
+        },
+        // New progressions for key coverage
+        {
+            id: 'chill-f-1',
+            name: 'Lazy Sunday',
+            description: 'F major chill progression - effortlessly relaxed',
+            key: 'F',
+            chordIds: ['fmaj7_open', 'am7_open', 'bb_major_barre', 'c_major_open'],
+            tags: ['relaxed', 'peaceful', 'acoustic']
+        },
+        {
+            id: 'chill-bb-1',
+            name: 'Coastal Breeze',
+            description: 'Bb major laid-back groove',
+            key: 'Bb',
+            chordIds: ['bbmaj7_barre', 'dm7_open', 'eb_major_barre', 'f_major_barre'],
+            tags: ['beach', 'relaxed', 'smooth']
+        },
+        {
+            id: 'chill-eb-1',
+            name: 'Mountain View',
+            description: 'Eb major relaxation - wide open sound',
+            key: 'Eb',
+            chordIds: ['ebmaj7_barre', 'gm7_barre', 'ab_major_barre', 'bb_major_barre'],
+            tags: ['peaceful', 'expansive', 'chill']
+        },
+        {
+            id: 'chill-a-1',
+            name: 'Evening Stroll',
+            description: 'A major chill - easy and flowing',
+            key: 'A',
+            chordIds: ['amaj7_open', 'csharpm7_barre', 'd_major_open', 'e_major_open'],
+            tags: ['relaxed', 'gentle', 'acoustic']
+        },
+        {
+            id: 'chill-e-1',
+            name: 'Garden Peace',
+            description: 'E major tranquility - calm and centered',
+            key: 'E',
+            chordIds: ['emaj7_barre', 'abm7_barre', 'a_major_open', 'b_major_open'],
+            tags: ['peaceful', 'nature', 'serene']
         }
     ]
 };

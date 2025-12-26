@@ -95,6 +95,234 @@ h3 { font-size: var(--font-size-lg); }
     z-index: 100;
 }
 
+/* ============================================
+   Main Tab Navigation
+   ============================================ */
+
+.main-tab-navigation {
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 var(--spacing-xl);
+    position: sticky;
+    top: 60px; /* Below header */
+    z-index: 99;
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.main-tab-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.main-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    border-bottom: 3px solid transparent;
+}
+
+.main-tab-btn:hover {
+    color: var(--accent);
+    background: var(--accent-light);
+}
+
+.main-tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+}
+
+.main-tab-btn .tab-icon {
+    font-size: 1.2rem;
+}
+
+.main-tab-btn .tab-label {
+    white-space: nowrap;
+}
+
+/* Tab Content */
+.tab-content {
+    display: block;
+}
+
+.tab-content.hidden {
+    display: none;
+}
+
+/* Section Card Styling (for tabs) */
+.section-card {
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.section-header {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--text-primary);
+}
+
+.section-icon {
+    font-size: 1.25rem;
+}
+
+/* Scale Reference Tab Styles */
+.scale-reference-section {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.scale-reference-controls {
+    display: flex;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    flex-wrap: wrap;
+}
+
+.scale-reference-controls .control-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.scale-reference-controls label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.scale-reference-display {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.scale-info-card {
+    background: var(--bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.scale-info-card h3 {
+    font-size: var(--font-size-xl);
+    color: var(--accent);
+    margin-bottom: var(--spacing-sm);
+}
+
+.scale-notes {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.5em;
+    margin-bottom: var(--spacing-xs);
+}
+
+.scale-formula {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+}
+
+.scale-fretboard-container {
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.scale-fretboard-container svg {
+    flex-shrink: 0;
+}
+
+.placeholder-text {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.diatonic-chords-section h4 {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.diatonic-chords-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+.diatonic-chord {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.diatonic-chord:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    cursor: pointer;
+}
+
+/* Responsive: Main Tab Navigation */
+@media (max-width: 768px) {
+    .main-tab-navigation {
+        padding: 0 var(--spacing-md);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .main-tab-container {
+        min-width: max-content;
+    }
+
+    .main-tab-btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-sm);
+    }
+
+    .main-tab-btn .tab-label {
+        display: none;
+    }
+
+    .main-tab-btn .tab-icon {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-tab-navigation {
+        top: 56px;
+    }
+
+    .scale-reference-controls {
+        flex-direction: column;
+    }
+}
+
 .header-left {
     display: flex;
     align-items: center;
@@ -1540,8 +1768,39 @@ h3 { font-size: var(--font-size-lg); }
     background: var(--bg-primary);
     border-radius: var(--radius-lg);
     padding: var(--spacing-xl);
-    margin-top: var(--spacing-xl);
+    margin-top: 0;
     box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.practice-header-main {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-lg);
+}
+
+.practice-header-main .section-icon {
+    font-size: 1.5rem;
+}
+
+.practice-header-main .header-text h3 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+}
+
+.practice-header-main .section-hint {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+.practice-stats-bar {
+    display: flex;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
 }
 
 .practice-header {
@@ -2812,12 +3071,16 @@ h3 { font-size: var(--font-size-lg); }
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.7);
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10000;
     backdrop-filter: blur(4px);
     animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay.hidden {
+    display: none;
 }
 
 .modal-overlay.active {

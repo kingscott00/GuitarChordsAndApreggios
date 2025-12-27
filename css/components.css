@@ -2780,3 +2780,1044 @@
     margin: var(--spacing-sm) 0;
 }
 
+/* ============================================
+   Phase 2: Inline Inspire Me Section
+   ============================================ */
+
+.inspire-me-inline {
+    margin-bottom: var(--spacing-lg);
+}
+
+.inspire-me-inline .collapsible-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+}
+
+.inspire-me-inline .header-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.inspire-me-inline .header-text h3 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+}
+
+.inspire-me-inline .collapsed-hint {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.inspire-me-inline .expand-icon {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    transition: transform var(--transition-fast);
+}
+
+.inspire-me-inline.expanded .expand-icon {
+    transform: rotate(180deg);
+}
+
+.inspire-me-inline.expanded .collapsed-hint {
+    display: none;
+}
+
+.inspire-me-inline .collapsible-content {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border-color);
+}
+
+.inspire-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.inspire-option-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    min-width: 150px;
+}
+
+.inspire-option-group label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.inspire-select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    cursor: pointer;
+}
+
+.inspire-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.inspire-advanced-toggle {
+    margin-bottom: var(--spacing-lg);
+}
+
+.advanced-options-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) 0;
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: color var(--transition-fast);
+}
+
+.advanced-options-btn:hover {
+    color: var(--accent);
+}
+
+.advanced-options-btn .toggle-icon {
+    transition: transform var(--transition-fast);
+}
+
+.advanced-options-btn.expanded .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.inspire-advanced-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-sm);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+}
+
+.checkbox-option.inline {
+    margin-left: var(--spacing-lg);
+}
+
+.checkbox-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.inspire-actions {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.inspire-generate-btn {
+    padding: var(--spacing-md) var(--spacing-xl);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+}
+
+/* ============================================
+   Builder Section with Subsections
+   ============================================ */
+
+.builder-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.builder-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-md);
+}
+
+.builder-header .section-icon {
+    font-size: 1.5rem;
+}
+
+.builder-header .header-text h3 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+}
+
+.builder-header .section-hint {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+.builder-subsection {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+    overflow: hidden;
+}
+
+.subsection-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: none;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.subsection-header:hover {
+    background: var(--bg-tertiary, var(--bg-secondary));
+}
+
+.subsection-header .subsection-icon {
+    font-size: 1.1rem;
+}
+
+.subsection-header .subsection-title {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+}
+
+.subsection-header .subsection-hint {
+    flex: 1;
+    text-align: left;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-left: var(--spacing-sm);
+}
+
+.subsection-header .expand-icon {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    transition: transform var(--transition-fast);
+}
+
+.subsection-header:not(.collapsed) .expand-icon {
+    transform: rotate(180deg);
+}
+
+.subsection-content {
+    padding: var(--spacing-lg);
+    background: var(--bg-primary);
+}
+
+.subsection-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+}
+
+.template-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+}
+
+.inspire-option-group.full-width {
+    flex: 0 0 100%;
+    width: 100%;
+}
+
+/* ============================================
+   Phase 2: Your Progression Section
+   ============================================ */
+
+.progression-builder.section-card {
+    margin-bottom: var(--spacing-lg);
+}
+
+.progression-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-lg);
+}
+
+.progression-header .section-title {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+}
+
+.progression-header .section-subtitle {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+.voicing-options-row {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.voicing-option-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.voicing-option-group label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.voicing-select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    font-size: var(--font-size-base);
+    cursor: pointer;
+}
+
+.progression-slots-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-lg);
+}
+
+.add-chord-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    min-height: 100px;
+    padding: var(--spacing-md);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-lg);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.add-chord-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+}
+
+.add-chord-btn .add-icon {
+    font-size: 1.5rem;
+    font-weight: 300;
+    margin-bottom: var(--spacing-xs);
+}
+
+.add-chord-btn .add-label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+/* ============================================
+   Phase 2: Scale Builder Updates
+   ============================================ */
+
+.scale-builder.section-card {
+    margin-bottom: var(--spacing-lg);
+}
+
+.scale-builder-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-md);
+}
+
+.scale-builder-header .section-icon {
+    font-size: 1.5rem;
+}
+
+.scale-builder-header .header-text h3 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+}
+
+.scale-builder-header .section-hint {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+.main-scale-display {
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.scale-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.scale-name-display {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+}
+
+.confidence-badge {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
+.view-details-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.view-details-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.view-details-btn .toggle-icon {
+    transition: transform var(--transition-fast);
+}
+
+.view-details-btn.expanded .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.scale-details-content {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border-color);
+}
+
+/* ============================================
+   Phase 2: Practice Tools Updates
+   ============================================ */
+
+.practice-tools.section-card .section-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+}
+
+.practice-tools.section-card .section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin: 0;
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+}
+
+.practice-tools.section-card .toggle-icon {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    transition: transform var(--transition-fast);
+}
+
+.practice-tools.section-card.expanded .toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* Responsive: Progression Builder Tab */
+@media (max-width: 768px) {
+    .inspire-options {
+        flex-direction: column;
+    }
+
+    .inspire-option-group {
+        min-width: 100%;
+    }
+
+    .voicing-options-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .checkbox-option.inline {
+        margin-left: 0;
+    }
+
+    .progression-slots-container {
+        justify-content: center;
+    }
+}
+
+/* ============================================
+   Phase 3: Chord Library Tab
+   ============================================ */
+
+.chord-library-header {
+    margin-bottom: var(--spacing-lg);
+}
+
+.chord-library-header .section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin: 0 0 var(--spacing-xs) 0;
+    font-size: var(--font-size-xl);
+    color: var(--text-primary);
+}
+
+.chord-library-header .section-description {
+    margin: 0;
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
+}
+
+/* ============================================
+   Phase 5: Add Chord Modal
+   ============================================ */
+
+.add-chord-modal-container {
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.add-chord-modal-container .modal-body {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.quick-search-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.quick-search-section label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.chord-search-input {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-lg);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: border-color var(--transition-fast);
+}
+
+.chord-search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.or-divider {
+    display: flex;
+    align-items: center;
+    margin: var(--spacing-lg) 0;
+    color: var(--text-muted);
+}
+
+.or-divider::before,
+.or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.or-divider span {
+    padding: 0 var(--spacing-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.chord-filter-options {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-lg);
+}
+
+.chord-filter-options .filter-group {
+    flex: 1;
+    min-width: 120px;
+}
+
+.chord-filter-options label {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.filter-select {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    cursor: pointer;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.chord-filter-options .btn {
+    align-self: flex-end;
+    padding: var(--spacing-sm) var(--spacing-lg);
+}
+
+.chord-results-section {
+    margin-top: var(--spacing-lg);
+}
+
+.chord-results-section h4 {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.results-count {
+    color: var(--text-secondary);
+    font-weight: normal;
+}
+
+.chord-results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    max-height: 300px;
+    overflow-y: auto;
+    padding: var(--spacing-sm);
+}
+
+.no-results-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--spacing-xl);
+}
+
+.chord-result-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.chord-result-card:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+.chord-result-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.chord-result-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.chord-result-voicing {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.add-to-progression-btn {
+    padding: var(--spacing-xs) var(--spacing-md);
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--accent);
+    color: white;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.add-to-progression-btn:hover {
+    background: var(--accent-hover);
+}
+
+.add-to-progression-btn:active {
+    transform: scale(0.95);
+}
+
+/* Modal visibility */
+.modal-overlay.hidden {
+    display: none;
+}
+
+/* ============================================
+   Phase 7: Visual Improvements
+   ============================================ */
+
+/* Enhanced Section Cards */
+.section-card {
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+/* Section Title Styling */
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.section-icon {
+    font-size: 1.25rem;
+}
+
+/* Collapsible Header Improvements */
+.collapsible-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: var(--spacing-sm) 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    transition: color var(--transition-fast);
+}
+
+.collapsible-header:hover {
+    color: var(--accent);
+}
+
+.collapsible-header .expand-icon,
+.collapsible-header .toggle-icon {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    transition: transform var(--transition-fast);
+}
+
+.collapsible-header.expanded .expand-icon,
+.collapsible-header.expanded .toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* Button Improvements */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 1px solid transparent;
+}
+
+.btn.primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.btn.primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+.btn.secondary {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+
+.btn.secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* Form Element Improvements */
+select, input[type="text"], input[type="search"] {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    transition: border-color var(--transition-fast);
+}
+
+select:focus, input[type="text"]:focus, input[type="search"]:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+/* Dropdown cursor - let browser handle the arrow */
+select {
+    cursor: pointer;
+}
+
+/* Checkbox Styling */
+input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+/* Tab Content Fade Animation */
+.tab-content {
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Enhanced Progression Slots */
+.progression-slot {
+    position: relative;
+    min-width: 100px;
+    min-height: 120px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+
+.progression-slot:hover {
+    border-color: var(--accent);
+    box-shadow: 0 2px 12px var(--shadow-color);
+}
+
+.progression-slot.empty {
+    border-style: dashed;
+    background: var(--bg-secondary);
+}
+
+.progression-slot.empty:hover {
+    background: var(--accent-light);
+}
+
+.progression-slot .slot-placeholder {
+    font-size: 2rem;
+    color: var(--text-muted);
+    font-weight: 300;
+}
+
+/* Enhanced Scale Display */
+.scale-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+    background: linear-gradient(135deg, var(--accent-light), transparent);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--accent);
+}
+
+.confidence-badge {
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: 999px;
+    background: var(--accent);
+    color: white;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
+/* Dark Theme Enhancements */
+[data-theme="dark"] .section-card,
+.dark-theme .section-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .scale-summary,
+.dark-theme .scale-summary {
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.15), transparent);
+}
+
+
+/* Loading State */
+.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* Focus States for Accessibility */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Responsive Improvements */
+@media (max-width: 768px) {
+    .section-card {
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .section-title {
+        font-size: 16px;
+    }
+
+    .progression-slot {
+        min-width: 80px;
+        min-height: 100px;
+    }
+
+    .btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-sm);
+    }
+}
+
+@media (max-width: 480px) {
+    .section-card {
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+    }
+
+    .chord-filter-options {
+        flex-direction: column;
+    }
+
+    .chord-filter-options .filter-group {
+        min-width: 100%;
+    }
+}
+
